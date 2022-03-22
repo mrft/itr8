@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es2018",
+      "DOM",
+    ],
+    "target": "es2018",
+    // "noImplicitAny": true,
+    "strictNullChecks": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "module": "commonjs",
+    "sourceMap": true,
+    "declaration": true,
+    // "isolatedModules": true,
+  },
+  "exclude": [
+    "dist",
+    "node_modules",
+    "test"
+  ]
+}
