@@ -291,12 +291,14 @@ describe('itr8 test suite', () => {
       assert.deepEqual(
         itr8.itr8ToArray(itr8.groupPer(3)(itr8.itr8Range(1, 7))),
         [ [1, 2, 3], [4, 5, 6], [7] ],
+        'groupPer on sync iterator FAILED',
       );
 
       // async
       assert.deepEqual(
         await itr8.itr8ToArray(itr8.groupPer(3)(itr8.itr8RangeAsync(1, 7))),
         [ [1, 2, 3], [4, 5, 6], [7] ],
+        'groupPer on async iterator FAILED',
       );
     });
 
@@ -308,12 +310,14 @@ describe('itr8 test suite', () => {
       assert.deepEqual(
         itr8.itr8ToArray(itr8.flatten()(itr8.itr8FromArray(arrayToBeFlattened))),
         flattenedArray,
+        'flatten on sync iterator FAILED',
       );
 
       // async
       assert.deepEqual(
         await itr8.itr8ToArray(itr8.flatten()(itr8.itr8FromArrayAsync(arrayToBeFlattened))),
         flattenedArray,
+        'flatten on async iterator FAILED',
       );
     });
 
@@ -345,7 +349,46 @@ describe('itr8 test suite', () => {
       );
     });
 
-    it('mixing some operator works properly', async () => {
+    it('stringToChar(...) operator works properly', async () => {
+      const input = ['Hello', 'World', '\n', 'Goodbye', 'Space', '!'];
+      const expected = ['H', 'e', 'l', 'l', 'o', 'W', 'o', 'r', 'l', 'd', '\n', 'G', 'o', 'o', 'd', 'b', 'y', 'e', 'S', 'p', 'a', 'c', 'e', '!'];
+
+      // sync
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.stringToChar()(itr8.itr8FromArray(input))),
+        expected,
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8.stringToChar()(itr8.itr8FromArrayAsync(input))),
+        expected,
+      );
+    });
+
+    it('split(...) operator works properly', async () => {
+      const input = ['Hello', 'World', '!', 'Goodbye', 'Space', '!'];
+      const input2 = ['H', 'e', 'l', 'l', 'o', 'W', 'o', 'r', 'l', 'd', '\n', 'G', 'o', 'o', 'd', 'b', 'y', 'e', 'S', 'p', 'a', 'c', 'e', '!'];
+
+      // sync
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.split('!')(itr8.itr8FromArray(input))),
+        [ ['Hello', 'World' ], [ 'Goodbye', 'Space' ], [] ],
+      );
+
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.split('Hello')(itr8.itr8FromArray(input))),
+        [ [], [ 'World', '!', 'Goodbye', 'Space', '!'] ],
+      );
+
+      // async
+      // assert.deepEqual(
+      //   await itr8.itr8ToArray(itr8.stringToChar()(itr8.itr8FromArrayAsync(input))),
+      //   expected,
+      // );
+    });
+
+    it('mixing some operators works properly', async () => {
 
       const twoDimGen = function* ():Iterator<Array<string>> {
         const input = 'Hello, how are you today Sir?'.split(' ');
@@ -392,13 +435,13 @@ describe('itr8 test suite', () => {
     // we also have some other functions, like a forEach that doesn't produce output
     // and functions to split an iterator in 2 or more, or that combines 2 iterators etc.
 
-    it('forEach(...) operator works properly', async () => {
+    it('forEach(...) method works properly', async () => {
       const plusOne = (a) => a + 1;
       const wrapString = (s) => `<-- ${s} -->`
 
       // we'll put all elements in an array and check that
       let result1:any[] = [];
-      itr8.forEach((x) => result1.push(x))(itr8.map(plusOne)(itr8.itr8Range(4, 7))),
+      itr8.forEach((x) => result1.push(x))(itr8.itr8Range(4, 7).pipe(itr8.map(plusOne))),
 
       // synchronous
       assert.deepEqual(
@@ -420,7 +463,9 @@ describe('itr8 test suite', () => {
       // asynchronous
 
       let result3:any[] = [];
-      await itr8.forEach((x) => result3.push(x))(itr8.map(plusOne)(itr8.itr8RangeAsync(4, 7))),
+      await itr8.forEach(
+        (x) => result3.push(x)
+      )(itr8.map(plusOne)(itr8.itr8RangeAsync(4, 7))),
 
       assert.deepEqual(
         result3,
@@ -428,7 +473,9 @@ describe('itr8 test suite', () => {
       );
 
       let result4:any[] = [];
-      await itr8.forEach((x) => result4.push(x))(itr8.map(wrapString)(itr8.itr8RangeAsync(4, 7))),
+      await itr8.forEach(
+        async (x) => result4.push(x)
+      )(itr8.map(wrapString)(itr8.itr8RangeAsync(4, 7))),
 
       assert.deepEqual(
         result4,
@@ -437,7 +484,7 @@ describe('itr8 test suite', () => {
     });
   });
 
-  describe('piping operators works because every itreator returnd is also of type TPipeable', () => {
+  describe('piping operators works because every iterator returnd is also of type TPipeable', () => {
     it('piping some operators with the pipe(operator) method works properly', async () => {
       const twoDimGen = function* ():IterableIterator<Array<string>> {
         const input = 'Hello, how are you today Sir?'.split(' ');
@@ -518,28 +565,31 @@ describe('itr8 test suite', () => {
     // define a few operators, and test their functionality afterwards
     const transIts = {
       opr8Map: operatorFactory(
-        (nextIn, state, params) => [
-          itr8.itr8FromSingleValue({ ...nextIn, value: params(nextIn.value)}),
-          state,
-        ],
-        null,
+        (nextIn, state, params) => {
+          if (nextIn.done) {
+            return { done: true };
+          }
+          return { done: false, value: params(nextIn.value) };
+        },
+        undefined,
       ),
       opr8Skip: operatorFactory(
-        (nextIn, state, params) => [
-          itr8.itr8FromArray(state < params ? [] : [nextIn]),
-          state + 1,
-        ],
+        (nextIn, state, params) => {
+          if (nextIn.done) {
+            return { done: true };
+          }
+          if (state < params) {
+            return { done: false, state: state + 1 };
+          }
+          return { done: false, value: nextIn.value };
+        },
         0,
       ),
       opr8Delay: operatorFactory(
-        (nextIn, state, timeout) => new Promise<[IterableIterator<IteratorResult<any>>,any]>((resolve, reject) => {
+        (nextIn, state, timeout) => new Promise<any>((resolve, reject) => {
           setTimeout(
             () => {
-              // console.log('[opr8Delay] resolvong with', nextIn.value, 'after', timeout);
-              resolve([
-                itr8.itr8FromSingleValue(nextIn),
-                state + 1,
-              ]);
+              resolve(nextIn);
             },
             timeout
           );
@@ -549,34 +599,42 @@ describe('itr8 test suite', () => {
 
       // sync nextFn, sync iterator
       opr8MapSyncSync: operatorFactory(
-        (nextIn, state, params) => [
-          itr8.itr8FromSingleValue({ ...nextIn, value: nextIn.done ? undefined : params(nextIn.value) }),
-          state,
-        ],
+        (nextIn, state, params) => {
+          if (nextIn.done) {
+            return { done: true };
+          }
+          return { done: false, value: params(nextIn.value) };
+        },
         null,
       ),
       // async nextFn, sync iterator
-      opr8MapAsyncSync: operatorFactory(
-        (nextIn, state, params) => Promise.resolve([
-          itr8.itr8FromSingleValue({ ...nextIn, value: nextIn.done ? undefined : params(nextIn.value) }),
-          state,
-        ]),
-        null,
+      opr8MapAsyncSync: operatorFactory<(any) => any, any, any, void> (
+        async (nextIn, state, params) => {
+          if (nextIn.done) {
+            return { done: true };
+          }
+          return { done: false, value: params(nextIn.value) };
+        },
+        undefined,
       ),
       // sync nextFn, async iterator
       opr8MapSyncAsync: operatorFactory(
-        (nextIn, state, params) => [
-          itr8.itr8FromSingleValueAsync({ ...nextIn, value: nextIn.done ? undefined : params(nextIn.value) }),
-          state,
-        ],
+        (nextIn, state, params) => {
+          if (nextIn.done) {
+            return { done: true };
+          }
+          return { done: false, value: Promise.resolve(params(nextIn.value)) };
+        },
         null,
       ),
       // async nextFn, async iterator
       opr8MapAsyncAsync: operatorFactory(
-        (nextIn, state, params) => Promise.resolve([
-          itr8.itr8FromSingleValueAsync({ ...nextIn, value: nextIn.done ? undefined : params(nextIn.value) }),
-          state,
-        ]),
+        async (nextIn, state, params) => {
+          if (nextIn.done) {
+            return { done: true };
+          }
+          return { done: false, value: Promise.resolve(params(nextIn.value)) };
+        },
         null,
       ),
       /**
@@ -590,6 +648,63 @@ describe('itr8 test suite', () => {
       redim: (rowSize:number) => itr8.itr8Pipe(
         itr8.flatten(),
         itr8.groupPer(rowSize),
+      ),
+      ////////////////////////////////////////////////////////////////
+      // In the following RepeatEach functions we'll use the iterator
+      // property in the nextFn, to test it in all 4 combinations
+      // that is sync/async nextFn and sync/async iterator
+      ////////////////////////////////////////////////////////////////
+      // sync nextFn, sync iterator
+      opr8RepeatEachSyncSync: operatorFactory<number, any, any, void>(
+        (nextIn, state, count) => {
+          if (nextIn.done) {
+            return { done: true };
+          }
+          return {
+            done: false,
+            iterable: (function* () { for (let i = 0; i < count; i++) { yield nextIn.value; } })(),
+          };
+        },
+        undefined,
+      ),
+      // async nextFn, sync iterator
+      opr8RepeatEachAsyncSync: operatorFactory<number, any, any, void> (
+        async (nextIn, state, count) => {
+          if (nextIn.done) {
+            return { done: true };
+          }
+          return {
+            done: false,
+            iterable: (function* () { for (let i = 0; i < count; i++) { yield nextIn.value; } })(),
+          };
+        },
+        undefined,
+      ),
+      // sync nextFn, async iterator
+      opr8RepeatEachSyncAsync: operatorFactory<number, any, any, void>(
+        (nextIn, state, count) => {
+          if (nextIn.done) {
+            return { done: true };
+          }
+          return {
+            done: false,
+            iterable: (async function* () { for (let i = 0; i < count; i++) { yield nextIn.value; } })(),
+          };
+        },
+        undefined,
+      ),
+      // async nextFn, async iterator
+      opr8RepeatEachAsyncAsync: operatorFactory<number, any, any, void>(
+        async (nextIn, state, count) => {
+          if (nextIn.done) {
+            return { done: true };
+          }
+          return {
+            done: false,
+            iterable: (async function* () { for (let i = 0; i < count; i++) { yield nextIn.value; } })(),
+          };
+        },
+        undefined,
       ),
     };
 
@@ -644,14 +759,14 @@ describe('itr8 test suite', () => {
 
       const generateItr = () => asyncIterator ? itr8.itr8RangeAsync(4, 7) : itr8.itr8Range(4, 7);
 
-      console.log(`        TESTING ${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with plusOne`);
+      // console.log(`        TESTING ${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with plusOne`);
       assert.deepEqual(
         await itr8.itr8ToArray(mapFn(plusOne)(generateItr())),
         [5, 6, 7, 8],
         `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with plus one fails`,
       );
 
-      console.log(`        TESTING ${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with wrapString`);
+      // console.log(`        TESTING ${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with wrapString`);
       assert.deepEqual(
         await itr8.itr8ToArray(mapFn(wrapString)(generateItr())),
         ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
@@ -660,13 +775,13 @@ describe('itr8 test suite', () => {
     }
 
     it('opr8MapSyncSync(...) operator works properly', async () => {
-      testMap(false, transIts.opr8MapSyncSync);
-      testMap(true, transIts.opr8MapSyncSync);
+      await testMap(false, transIts.opr8MapSyncSync);
+      await testMap(true, transIts.opr8MapSyncSync);
     });
 
     it('opr8MapAsyncSync(...) operator works properly', async () => {
-      testMap(false, transIts.opr8MapAsyncSync);
-      testMap(true, transIts.opr8MapAsyncSync);
+      await testMap(false, transIts.opr8MapAsyncSync);
+      await testMap(true, transIts.opr8MapAsyncSync);
     });
 
     it('opr8MapSyncAsync(...) operator works properly', async () => {
@@ -678,6 +793,48 @@ describe('itr8 test suite', () => {
       testMap(false, transIts.opr8MapAsyncAsync);
       testMap(true, transIts.opr8MapAsyncAsync);
     });
+
+    const testRepeatEach = async (useAsyncIterator:boolean, mapFn: (any) => any) => {
+      const mapFnName = transItToName(mapFn);
+      const syncOrAsyncIterator = useAsyncIterator ? 'async' : 'sync';
+
+      const generateItr = () => useAsyncIterator ? itr8.itr8RangeAsync(4, 7) : itr8.itr8Range(4, 7);
+
+      // console.log(`        TESTING ${syncOrAsyncIterator} input iterator with mapFn ${mapFnName}`);
+      assert.deepEqual(
+        await itr8.itr8ToArray(mapFn(2)(generateItr())),
+        [4, 4, 5, 5, 6, 6, 7, 7],
+        `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with 2 FAILED`,
+      );
+
+      assert.deepEqual(
+        await itr8.itr8ToArray(mapFn(3)(generateItr())),
+        [4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7,  7],
+        `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with 3 FAILED`,
+      );
+    }
+
+
+    it('opr8RepeatEachSyncSync(...) operator works properly', async () => {
+      await testRepeatEach(false, transIts.opr8RepeatEachSyncSync);
+      await testRepeatEach(true, transIts.opr8RepeatEachSyncSync);
+    });
+
+    it('opr8RepeatEachAsyncSync(...) operator works properly', async () => {
+      await testRepeatEach(false, transIts.opr8RepeatEachAsyncSync);
+      await testRepeatEach(true, transIts.opr8RepeatEachAsyncSync);
+    });
+
+    it('opr8RepeatEachSyncAsync(...) operator works properly', async () => {
+      await testRepeatEach(false, transIts.opr8RepeatEachSyncAsync);
+      await testRepeatEach(true, transIts.opr8RepeatEachSyncAsync);
+    });
+
+    it('opr8RepeatEachAsyncAsync(...) operator works properly', async () => {
+      await testRepeatEach(false, transIts.opr8RepeatEachAsyncAsync);
+      await testRepeatEach(true, transIts.opr8RepeatEachAsyncAsync);
+    });
+
 
     it('opr8Skip(...) operator works properly', async () => {
       assert.deepEqual(
@@ -698,7 +855,7 @@ describe('itr8 test suite', () => {
         [1, 2, 3, 4, 5, 6, 7],
         'async opr8Delay on sync iterator fails',
       );
-console.log('ASYNC VERION -----------------------------')
+
       // asynchronous
       assert.deepEqual(
         await itr8.itr8ToArray(transIts.opr8Delay(10)(itr8.itr8RangeAsync(1, 7))),
@@ -725,9 +882,10 @@ console.log('ASYNC VERION -----------------------------')
         'sync redim on async iterator fails',
       );
     });
+
   });
 
-  describe('We won\'t support this, and add the pipe(operator) to all returned iterators: operations can be applied by calling them directly on the iterator (to allow for easy chaining)...', () => {
+  describe('We won\'t support this, and only add the pipe(operator) to all returned iterators: operations can be applied by calling them directly on the iterator (to allow for easy chaining)...', () => {
     it.skip('a single operator can be called', () => {
       const range1to7:any = itr8.itr8Range(1, 7);
       assert.deepEqual(
@@ -748,12 +906,7 @@ console.log('ASYNC VERION -----------------------------')
 
   describe('Check speed', () => {
     it('compare the speed of native arrays with the iterator versions', () => {
-      const transIt = itr8.itr8Pipe(
-        itr8.map((x) => x / 2),
-        itr8.filter((x) => x % 3 === 0),
-        itr8.skip(5),
-        itr8.limit(50),
-      );
+      const myLimit = 200;
 
       const startIt = hrtime();
       const resultIt:number[] = itr8.itr8ToArray(
@@ -762,7 +915,7 @@ console.log('ASYNC VERION -----------------------------')
           .pipe(itr8.map((x) => x / 2))
           .pipe(itr8.filter((x) => x % 3 === 0))
           .pipe(itr8.skip(5))
-          .pipe(itr8.limit(50)),
+          .pipe(itr8.limit(myLimit)),
       ) as number[];
       const durationIt = hrtimeToMilliseconds(hrtime(startIt));
 
@@ -771,7 +924,7 @@ console.log('ASYNC VERION -----------------------------')
         .map((x) => x / 2)
         .filter((x) => x % 3 === 0)
         .slice(5)
-        .slice(0, 50)
+        .slice(0, myLimit)
       ;
       const durationArr = hrtimeToMilliseconds(hrtime(startArr));
 
@@ -782,6 +935,33 @@ console.log('ASYNC VERION -----------------------------')
 
       // iterators should be faster than creating the intermediate arrays
       assert.isBelow(durationIt, durationArr);
+    });
+  });
+
+  describe('Check a really large set', () => {
+    it('when running over a really large set, we should not run out of memory', async () => {
+      const startIt = hrtime();
+      const resultIt:number[] = itr8.itr8ToArray(
+        // transIt(itr8.itr8Range(1, 10_000)),
+        itr8.itr8Range(1, 10_000_000)
+          .pipe(itr8.filter((x) => x % 1_000_000 === 0))
+      ) as number[];
+      const durationIt = hrtimeToMilliseconds(hrtime(startIt));
+
+      console.log('      -', 'itr8 took', durationIt);
+
+      assert.equal(resultIt.length, 10);
+
+      const startItAsync = hrtime();
+      const resultItAsync:number[] = await itr8.itr8ToArray(
+        itr8.itr8RangeAsync(1, 10_000_000)
+          .pipe(itr8.filter((x) => x % 1_000_000 === 0))
+      ) as number[];
+      const durationItAsync = hrtimeToMilliseconds(hrtime(startItAsync));
+
+      console.log('      -', 'itr8 async took', durationItAsync);
+
+      assert.equal(resultItAsync.length, 10);
     });
   });
 })

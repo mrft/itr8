@@ -1,48 +1,48 @@
 # itr8
 
-An experiment to create a unified interface over both [synchronous](https://www.javascripttutorial.net/es6/javascript-iterator/) and [asynchronous iterators](https://www.javascripttutorial.net/es-next/javascript-asynchronous-iterators/) such that the same iterator-operators (cfr. RxJS operators like filter, map, ...) can be used in various contexts (plain arrays, NodeJS streams, Observables, ...).
+An experiment to create a unified interface over both [synchronous](https://www.javascripttutorial.net/es6/javascript-iterator/) and [asynchronous iterators](https://www.javascripttutorial.net/es-next/javascript-asynchronous-iterators/) such that the same iterator-operators (cfr. RxJS operators like filter, map, ...) can be used in various contexts (plain arrays, NodeJS streams, Observables, page-by-page database queries by writing an async generator function, page-by-age API queries, ...).
 
 ## Getting started
 
     npm install mrft/itr8
 
 ```typescript
-    import * as itr8 from 'itr8'
+import * as itr8 from 'itr8'
 
-    // create an iterator to start from
-    const myIterator = itr8.range(0, 10_000_000); // or itr8.fromArray([...])
+// create an iterator to start from
+const myIterator = itr8.range(0, 10_000_000); // or itr8.fromArray([...])
 
-    // due to the current lack of the |> operator
-    // we'll create our combined 'trans-iterator' with a utility function
-    const transIt = itr8.itr8Pipe(
+// due to the current lack of the |> operator
+// we'll create our combined 'trans-iterator' with a utility function
+const transIt = itr8.itr8Pipe(
+    itr8.map((x) => x / 2),
+    itr8.filter((x) => x % 3 === 0),
+    itr8.skip(5),
+    itr8.limit(50),
+);
+
+// we can use standard JS 'for ... of' to loop over an iterable
+for (let x of transIt(myIterator)) {
+  console.log(x);
+}
+
+// All iterables returned by itr8 are also 'pipeable', meaning that each returned iterator also exposes a pipe function to add other operators to the chain
+const myTransformedIterator = itr8.itr8Proxy(myIterator)
+    .pipe(
         itr8.map((x) => x / 2),
         itr8.filter((x) => x % 3 === 0),
         itr8.skip(5),
         itr8.limit(50),
-    );
+    )
+);
 
-    // we can use standard JS 'for ... of' to loop over an iterable
-    for (let x of transIt(myIterator)) {
-      console.log(x);
-    }
-
-    // All iterables returned by itr8 are also 'pipeable', meaning that each returned iterator also exposes a pipe function to add other operators to the chain
-    const myTransformedIterator = itr8.itr8Proxy(myIterator)
-        .pipe(
-            itr8.map((x) => x / 2),
-            itr8.filter((x) => x % 3 === 0),
-            itr8.skip(5),
-            itr8.limit(50),
-        )
-    );
-
-    // this will work as well (because pipe produces andther 'pipeable')
-    const myTransformedIterator2 = itr8.itr8Proxy(myIterator)
-        .pipe(itr8.map((x) => x / 2))
-        .pipe(itr8.filter((x) => x % 3 === 0))
-        .pipe(itr8.skip(5))
-        .pipe(itr8.limit(50))
-    );
+// this will work as well (because pipe produces another 'pipeable')
+const myTransformedIterator2 = itr8.itr8Proxy(myIterator)
+    .pipe(itr8.map((x) => x / 2))
+    .pipe(itr8.filter((x) => x % 3 === 0))
+    .pipe(itr8.skip(5))
+    .pipe(itr8.limit(50))
+);
 ```
 
 ## TODO
@@ -53,7 +53,6 @@ An experiment to create a unified interface over both [synchronous](https://www.
   * can be given options that allow for (limited or unlimited) parallelism
 * General code cleanup
 * Writing more and better documentation
-* Improving the speed, because that seems to have taken a hit after supporting all sync and async operator cases
 * Add more operators
 
 ## What is a transIterator?
@@ -63,75 +62,135 @@ It is simply a function with an iterator as single argument which will return an
 ## Writing your own operators
 
 There are 2 options to write your own operators. You can either build a new operator by chaining
-a bunch of existing operators together, or hyou can write your own.
+a bunch of existing operators together, or you can write your own.
 
 ### A new operator by combining existing operators
 
 Let's use the same example as is used in the [RxJS tutorial](https://netbasal.com/creating-custom-operators-in-rxjs-32f052d69457#7b9e): a filterNil operator.
 
-It can be created with the filter operator, so:
+It can be created with the filter operator, like this:
 
 ```typescript
-    const filterNil = filter((x) => x !== undefined && x !== null)
+const filterNil = filter((x) => x !== undefined && x !== null)
 ```
 
-or by using the itr8Pipe method (useful for combining multiple operators):
-
-```typescript
-    const filterNil = itr8Pipe((filter((x) => x !== undefined && x !== null))
-```
-
-Another example: a 'redim' operator can be created by combining flatten and groupPer.
+Another example: a 'regroup' operator can be created by combining flatten and groupPer. This is where the `itr8Pipe(...)` method will come in handy.
 So to turn [ [ 1, 2 ], [ 3, 4 ], [ 5, 6 ] ] into [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
-You'll want the redim(3) operator (3 being the new 'rowSize').
+You'll want the regroup(3) operator (3 being the new 'rowSize').
 
 ```typescript
-    const redim = (rowSize:number) => itr8Pipe(
-        flatten(),
-        groupPer(rowSize),
-    );
+const redim = (rowSize:number) => itr8Pipe(
+    flatten(),
+    groupPer(rowSize),
+);
 ```
-
-
-
 
 ### Writing a new operator from scratch
+
+#### A simple example operator: filterNil
 
 Let's show you the code right away:
 
 ```typescript
-    const filterNil = operatorFactory<void, any, any, null>(
-        (nextIn, state, ...params) => (
-            if (nextIn.done || (nextIn.value !== undefined && nextIn.value !== null)) {
-                return [itr8FromSinglevalue(nextIn), state];
-            } else {
-                return [itr8FromArray([]), state];
-            }
-        ),
-        null, // no initial state needed
-    );
+const filterNil = operatorFactory<void, any, any, null>(
+    (nextIn, state, ...params) => (
+        if (nextIn.done) {
+            return { done: true };
+        } elseif (nextIn.value === undefined || nextIn.value === null)) {
+            // nill so it's not done, but don't return a value
+            return { done: false };
+        } else {
+            // not nill, so it's not done, and return the value
+            return { done: false, value: nextIn.value };
+        }
+    ),
+    null, // no state needed
+);
 ```
 
 Now what is nextIn, state and param?
 
- * nextIn is simply the result of the next call of the incoming iterator. (The next call of an iterator always returns an object of the form { done: true or false, value: \<current value\> })
+ * nextIn is simply the result of the next call of the incoming iterator. (The next call of an iterator always returns an object of the form { done: \<true of false\>, value: \<current value\> })
  * state is used to store intermediate data, for example if you want to make a sum, the state will be the sum until now, or if you need to buffer things, state could be the array of things in the buffer.
  * params is the argument that you can pass to your operator, like the number of elements in a limit operator, or the mapping function in a map operator
 
 What does that function return?
 
-It returns a tuple.
-* The first element of the tuple is
-A NEW ITERATOR
-  * it should be generating values of the form { done: ..., value: ... }) to return as the response when next is being called
-  * this iterator can be 'empty' if the current nextIn doesn't lead to a next on the output side (for example in a filter function)
-  * this iterator can return many elements (for the same nextIn) if 1 element on the input side returns multiple elements on the output side (for example in a flatten function)
-* The second element of the tuple is the new state (for example state + nextIn.value in case of a sum operator). Don't modify the state, produce anew state, and keep this function pure!
+It returns an object that looks a lot like ...drum roll... the result of a next call of an iterator
+  * if the output iterator will return no more elements it is { done:true }
+  * if the output iterator is not done, but does not return anything based on the current value of the input iterator, the value is { done: false }, without a value or { done: false, state: \<newState\> } if you need to update the state
+  * if the output iterator is not done, and it does need to return a value, it is { done: false, value: \<output value\> } (again with an optional state property if you need to pass state to the next step)
+  * if the output iterator is not done, and the current input iterator value would output *more than a single item*, it is { done: false, iterable: \<your iterable\> }. Any Iterable (or IterableIterator) will do 
 
 Knowing all this we can break down the example:
-* if the input iterator is done, or its value is different from null or undefined, we'll just pass the incoming thing unaltered
-* else we'll return [undefined, state] to indicate that this will not produce a value on our iterator
-* we don't need state, so we always pass the incoming state unaltered
+* if the input iterator is done, we'll return that it's done
+* if the input iterator's value is either null or undefined, we'll return that its not done, but won't provide a value
+* otherwise we'll just pass the incoming thing unaltered
+* we don't need state, so we never specify the state property
+
+#### A slightly more advaced example operator: RepeatEach
+
+Let's write an operator that repeats each value from the input iterator n times on the output iterator:
+
+```typescript
+const opr8RepeatEach: operatorFactory<number, any, any, void>(
+  (nextIn, state, count) => {
+    if (nextIn.done) {
+      return { done: true };
+    }
+    return {
+      done: false,
+      iterable: (function* () { for (let i = 0; i < count; i++) { yield nextIn.value; } })(),
+    };
+  },
+  undefined,
+);
+```
+
+As you can see, we use the 'iterable' property here, and in order to easily generate an IterableIterator, we use an 'immediately invoked function expression'. This is important since a generator function generates an Iterableiterator, so it should be called!
+
+But you could also assign an array, because thet is also an iterable. But beware that creating an intermediate array will use more memory! I'll show you the same example with an array here:
+
+```typescript
+const repeatEach: operatorFactory<number, any, any, void>(
+  (nextIn, state, count) => {
+    if (nextIn.done) {
+      return { done: true };
+    }
+    return {
+      done: false,
+      iterable: Array.from(Array(count)).map(x => nextIn.value),
+    };
+  },
+  undefined,
+);
+```
+
+#### An example operator that needs some state: total
+
+What if we have an iterator that holds numbers and we want to calculate the total sum?
+This can only be done by holding on the the 'sum so far', because with each new element we need to add the current value to the value we already have calculated.
+
+```typescript
+const total = operatorFactory<void, number, number, { done: boolean, total: number }>(
+  (nextIn: IteratorResult<any>, state:{ done: boolean, total: number }) => {
+    if (state.done) {
+      return { done: true };
+    } else if (nextIn.done) {
+      return { done: false, value: state.total, state: { ...state, done: true } };
+    }
+    return { done: false, state: { ...state, total: state.total + nextIn.value } };
+  },
+  { done: false, total: 0 },
+);
+```
+
+Here you can see that we also specified the second argument of the operatorFactory function, which is the initialSate (not done, and the total so far = 0).
+
+So this iterator will only return a value on the output iterator once the input iterator has finished. Hence the 'done' flag on the state to indicate that we've seen the last element of the input iterator.
+* When we see that we're done in the state (= the next call after the one where we finally sent a value to the output iterator) we'll send { done: true }.
+* When we see the last element of the input iterator, we don't modify the sum anymore, but send the total sum as the value, and indicate that there won't be any more values by setting the 'done' flag on the state
+* In all other cases, we don't senda value, but we generate a new version of the state where the 'total' property is set to the current state's total + nextIn.value
 
 #### Notes
 
@@ -150,7 +209,7 @@ And composition is what we all want, but there doesn't seem to be a single way t
 * The current [proposal for iterator helpers](https://github.com/tc39/proposal-iterator-helpers)
 solves things the same way as they have been solved for arrays. The problem with this is that
 **the iterator must contain all available operators as properties**, which keeps people from writing
-reuseable new operators, solving the same problems over and over again.
+reuseable new operators, thus people keep solving the same problems over and over again.
 
 There does not seem to be an easy way to treat all these as essentialy the same.
 It also makes sense to use things that are part of the "standard" as much as possible, as it will produce less friction using it in multiple environments.
