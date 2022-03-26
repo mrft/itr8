@@ -54,6 +54,15 @@ const myTransformedIterator2 = itr8.itr8Proxy(myIterator)
 * General code cleanup
 * Writing more and better documentation
 * Add more operators
+* Add more 'generators' for typical cases like file input, db paga-per-page processing?
+* Investigate if performance can be improved for async iterators by batching multiple records together in one promise, without exposing this to the user, such that they don't have to change their algorithm (= the chain of operators).
+  * Why: async is slower due to going thrpough the event loop multiple times, but if we put multiple items of the source stream together, the number of 'awaits' would drop significantly which should produce a big speedup (especially with long pipes of sync operators that happen to be called on an asyncronous input stream).
+  * I don't feel that supporting somethng weird like a SemiAsyncIterator (that can either produce the next value synchronously or return a promise) would be a good idea.
+  * I am thinking about just adding batch(size) and isBatch() operators (and maybe unBatch or deBatch to output the result as single items, and maybe reBatch for changing the batch size efficiently?) in the pipeline which would do the following: add an extra flag property to the iterator that is being produced such that the rest of the operators will know that the iterable they get as input actually represents single elements, such that the user should not 'think' in terms of the batchesbut in single elements (you don't want to force someone to change their algorithm significantly just for performance optimisations)
+    * batch(size) would take 'size' elements from the input and output batches of that size (+ add the flag so the next operator knows this)
+    * isBatch() would just add the flag, which is kind of like adding a flatten in between (already containing 'arrays' as the value in each next()'s value), but because you keep the elements together should be more efficient
+    * unBatch would effectively again produce an asyc iterator that outputs all the elements separately (if you wnat to use the iterator somewhere else, and not solely this library)
+    * reBatch would be like creating a new batch size (maybe input and output batch sizes differ) but not by using flatten().group() as that would produces an iterator outputting all elements separately in between, and that is not very efficient.
 
 ## What is a transIterator?
 

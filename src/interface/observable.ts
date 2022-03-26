@@ -1,6 +1,15 @@
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { itr8Proxy } from '..';
+import { TPipeable } from '../types';
 
-const itr8FromObservable = (observable:Observable<any>) => {
+/**
+ * Turns an observable into an AsyncIterableIterator,
+ * so we can use all itr8 operators on it.
+ *
+ * @param observable 
+ * @returns 
+ */
+function itr8FromObservable<T>(observable:Observable<T>):TPipeable & AsyncIterableIterator<T> {
   let buffer:any[] = [];
 
   let currentResolve;
@@ -30,7 +39,8 @@ const itr8FromObservable = (observable:Observable<any>) => {
     }
   });
 
-  return {
+  const retVal = {
+    [Symbol.asyncIterator]: () => retVal,
     next: async () => {
       if (buffer.length > 0) {
         const [firstOfBufferPromise, ...restOfBuffer] = buffer;
@@ -40,10 +50,29 @@ const itr8FromObservable = (observable:Observable<any>) => {
       } else {
         throw new Error('[itr8FromObservable] No elements in the buffer?')
       }
-    }
+    },
   }
+  return itr8Proxy(retVal);
 }
+
+/**
+ * Turns an AsyncIterableIterator,
+ * so we can use all RxJS operators on it.
+ *
+ * @param observable 
+ * @returns 
+ */
+function itr8ToObservable<T>(iterator:IterableIterator<T> | AsyncIterableIterator<T>):Observable<T> {
+  // const iterable = {
+  //   [Symbol.iterator]: () => iterable,
+  //   [Symbol.asyncIterator]: () => iterable,
+  //   next: iterator.next,
+  // } as AsyncIterableIterator<T>;
+  return from(iterator);
+}
+
 
 export {
   itr8FromObservable,
+  itr8ToObservable,
 }

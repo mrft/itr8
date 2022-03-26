@@ -1,5 +1,6 @@
-import { TTransIteratorSyncOrAsync, isPromise } from "./types";
-import { itr8FromArray, itr8FromSingleValue, itr8FromString, itr8Proxy } from './';
+import { isPromise } from 'util/types';
+import { TTransIteratorSyncOrAsync } from "./types";
+import { itr8FromIterable, itr8FromString, itr8Pipe, itr8Proxy } from './';
 
 // /**
 //  * This is a function that generates an operator that can work both on synchronous and
@@ -555,11 +556,7 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
             return { done: false, value: curNextFnResult.value };
           } else if ('iterable' in curNextFnResult) {
             if (currentOutputIterator !== undefined) throw new Error('currentOutputIterator should be undefined at this point');
-            if (curNextFnResult.iterable[Symbol.iterator]) {
-              currentOutputIterator = curNextFnResult.iterable[Symbol.iterator]();
-            } else {
-              currentOutputIterator = curNextFnResult.iterable[Symbol.asyncIterator]();
-            }
+            currentOutputIterator = itr8FromIterable(curNextFnResult.iterable);
             if (currentOutputIterator?.next === undefined) {
               throw new Error('Error while trying to get output iterator, did you specify something that is not an Iterable to the \'iterable\' property? (when using a generator function, don\'t forget to call it in order to return an IterableIterator!)');
             }
@@ -637,11 +634,7 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
             return { done: false, value: curNextFnResult.value };
           } else if ('iterable' in curNextFnResult) {
             if (currentOutputIterator !== undefined) throw new Error('currentOutputIterator should be undefined at this point');
-            if (curNextFnResult.iterable[Symbol.iterator]) {
-              currentOutputIterator = curNextFnResult.iterable[Symbol.iterator]();
-            } else {
-              currentOutputIterator = curNextFnResult.iterable[Symbol.asyncIterator]();
-            }
+            currentOutputIterator = itr8FromIterable(curNextFnResult.iterable);
             if (currentOutputIterator?.next === undefined) {
               throw new Error('Error while trying to get output iterator, did you specify something that is not an Iterable to the \'iterable\' property? (when using a generator function, don\'t forget to call it in order to return an IterableIterator!)');
             }
@@ -1063,6 +1056,17 @@ const delay = operatorFactory<number, any, any, void>(
   undefined,
 );
 
+/**
+ * The input must be a stream of characters,
+ * and the output will be 1 string for each line (using \n as the line separator)
+ *
+ */
+const lineByLine = () => itr8Pipe(
+  stringToChar(),
+  split('\n'),
+  map(x => x.reduce((acc, cur) => acc + cur, '')),
+);
+
 
 /**
  * Only useful on async iterators.
@@ -1101,7 +1105,7 @@ const forEach = function<T=any>(handler:(T) => void):((it:Iterator<T> | AsyncIte
     let nextPromiseOrValue = it.next();
     if (isPromise(nextPromiseOrValue)) {
       return (async () => {
-        let next = await nextPromiseOrValue;
+        let next = (await nextPromiseOrValue) as IteratorResult<any>;
         while (!next.done) {
           const resp = await handler(next.value);
           // what if the handler turns out to be async?
@@ -1134,6 +1138,7 @@ export {
   stringToChar,
   split,
   delay,
+  lineByLine,
 
   forEach,
 

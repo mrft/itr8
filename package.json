@@ -13,7 +13,8 @@
     "build": "tsc --project .",
     "clean": "rm -rf ./dist",
     "//pretest": "npm run clean && mkdir -p ./dist && npm run build",
-    "test": "./node_modules/.bin/mocha --exit --timeout 4000 --require ts-node/register ./test/*.ts"
+    "echoForTest": "echo -e \"01 this is stdin\n02 So we can do some stream tests in the program\n03\n04\"",
+    "test": "npm run echoForTest | ./node_modules/.bin/mocha --exit --timeout 4000 --require ts-node/register ./test/*.ts"
   },
   "keywords": [],
   "author": "",

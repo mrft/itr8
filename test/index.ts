@@ -1,13 +1,19 @@
 import { assert } from 'chai';
 import * as Stream from 'stream';
 import { concatMap, delay, from, of } from 'rxjs';
+import * as fs from 'fs';
+import * as zlib from 'zlib';
 
 import * as itr8 from '../src';
-import { operatorFactory } from '../src';
-import { itr8FromStream } from '../src/interface/stream'
-import { itr8FromObservable } from '../src/interface/observable'
+import { lineByLine, operatorFactory } from '../src';
+import { itr8FromStream, itr8ToReadableStream } from '../src/interface/stream'
+import { itr8FromObservable, itr8ToObservable } from '../src/interface/observable'
 import { hrtime } from 'process';
 import { cursorTo } from 'readline';
+import { gunzip } from 'zlib';
+import { resolve } from 'path';
+import { utils } from 'mocha';
+import { promisify } from 'util';
 
 
 const a: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -194,6 +200,134 @@ describe('itr8 test suite', () => {
       );
     });
 
+    it('itr8FromStream works properly (stdin experiment)', async () => {
+      const stdinAsTextIt = itr8FromStream(process.stdin)
+        .pipe(itr8.map(x => x.toString()));
+
+      const lineByLine = itr8.itr8Pipe(
+        itr8.stringToChar(),
+        itr8.split('\n'),
+        itr8.map(x => x.reduce((acc, cur) => acc + cur, '')),
+      );
+
+      const stdInLineByLine = await itr8.itr8ToArray(
+        stdinAsTextIt.pipe(
+          lineByLine,
+        )
+      );
+      // console.log(stdInLineByLine);
+      assert.isAbove(
+        stdInLineByLine.length,
+        4,
+      );
+    });
+
+    it('itr8FromStream works properly (file experiment)', async () => {
+      const stdinAsTextIt = itr8FromStream(fs.createReadStream("./test/lorem_ipsum.txt"))
+        .pipe(itr8.map(x => x.toString()));
+
+      const stdInLineByLine = await itr8.itr8ToArray(
+        stdinAsTextIt.pipe(
+          lineByLine(),
+        )
+      );
+      // console.log(stdInLineByLine);
+      assert.isAbove(
+        stdInLineByLine.length,
+        4,
+      );
+      assert.isTrue(
+        stdInLineByLine[0].startsWith('Lorem ipsum'),
+      );
+    });
+
+    it('itr8FromStream works properly (gz file experiment)', async () => {
+      console.log('GZIP file experiment');
+
+      // const stream = fs.createReadStream('./test/lorem_ipsum.txt.gz').pipe(zlib.createGunzip())
+      // stream.on('error', (error) => { console.log('Streamù error', error) })
+
+      // for await (const x of fs.createReadStream('./test/lorem_ipsum.txt.gz').pipe(zlib.createGunzip())) {
+      //   // counter ++;
+      //   // do stuff with data
+      //   console.log( 'gz data', x.toString());
+      // }
+
+      // let counter = 0
+      // for await (const data of fs.createReadStream('./test/lorem_ipsum.txt.gz') ) { //.pipe(zlib.createGunzip())) {
+      //   counter ++;
+      //   // do stuff with data
+      //   const unzipped = await promisify(zlib.gunzip)(data);
+      //   console.log('unzipped data:', unzipped.toString());
+      //   console.log( 'data', data);
+      //   zlib.gzip('hello', (err, buffer) => console.log('hello zipped', buffer.toString()));
+      // }
+      // console.log('counter', counter)
+
+      const gzippedFileAsTextIt =
+        itr8FromStream(
+          fs.createReadStream("./test/lorem_ipsum.txt.gz").pipe(zlib.createGunzip())
+        ).pipe(itr8.map(x => x.toString()));
+      ;
+
+  //     for await (let x of gzippedFileAsTextIt) {
+  //       console.log('gzip', x);
+  //     }
+  //     // itr8.forEach((x) => console.log('gzip', x))(gzippedFileAsTextIt);
+
+      const fileLineByLine = await itr8.itr8ToArray(
+        gzippedFileAsTextIt.pipe(
+          lineByLine(),
+        )
+      );
+      // console.log(stdInLineByLine);
+      assert.isAbove(
+        fileLineByLine.length,
+        4,
+      );
+      assert.isTrue(
+        fileLineByLine[0].startsWith('Lorem ipsum'),
+      );
+    });
+
+    it('itr8ToReadableStream works properly', async () => {
+
+      const syncReadCount = await (() => new Promise<any>((resolve, reject) => {
+        const stream = itr8ToReadableStream(itr8.itr8Range(1, 100));
+
+        let readCount = 0;
+        stream.on('data', (data) => {
+          // console.log('Received from sync stream:', data);
+          readCount += 1;
+        });
+
+        stream.on('end', () => {
+          // console.log('Sync stream ended');
+          resolve(readCount);
+        });
+      }))();
+
+      assert.equal(syncReadCount, 100, 'test reading sync stream FAILED');
+
+      const asyncReadCount = await (() => new Promise<any>((resolve, reject) => {
+        const stream = itr8ToReadableStream(itr8.itr8RangeAsync(1, 100));
+
+        let readCount = 0;
+        stream.on('data', (data) => {
+          // console.log('Received from async stream:', data);
+          readCount += 1;
+        });
+
+        stream.on('end', () => {
+          // console.log('Async stream ended');
+          resolve(readCount);
+        });
+      }))();
+
+      assert.equal(asyncReadCount, 100, 'test reading async stream FAILED');
+
+    });
+
     it('itr8FromObservable works properly', async () => {
       // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and dely stuff
       const observable = from(a)
@@ -203,6 +337,147 @@ describe('itr8 test suite', () => {
         a,
       );
     });
+
+    it('itr8ToObservable works properly', async () => {
+      // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and dely stuff
+      const observable = itr8ToObservable(itr8.itr8FromArray(a))
+        .pipe(concatMap(item => of(item).pipe(delay(10))));
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8FromObservable(observable)),
+        a,
+      );
+    });
+
+  });
+
+  describe('our own \'operators\'', () => {
+    it('map(...) operator works properly', async () => {
+      const plusOne = (a) => a + 1;
+      const wrapString = (s) => `<-- ${s} -->`
+
+      // itr8.map(plusOne)(itr8.itr8Range(4, 7));
+
+      // synchronous
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.map(plusOne)(itr8.itr8Range(4, 7))),
+        [5, 6, 7, 8],
+        'map synchronous plusOne fails',
+      );
+
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.map(wrapString)(itr8.itr8Range(4, 7))),
+        ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
+        'map synchronous wrapString fails',
+      );
+
+      // asynchronous
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8.map(plusOne)(itr8.itr8RangeAsync(4, 7))),
+        [5, 6, 7, 8],
+        'map asynchronous plusOne fails',
+      );
+
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8.map(wrapString)(itr8.itr8RangeAsync(4, 7))),
+        ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
+        'map asynchronous wrapString fails',
+      );
+    });
+
+    it('filter(...) operator works properly', () => {
+      const isEven = (a) => a % 2 === 0;
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.filter(isEven)(itr8.itr8Range(0, 7))),
+        [0, 2, 4, 6],
+      );
+
+      const moreThan5 = (a) => a > 5;
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.filter(moreThan5)(itr8.itr8Range(0, 7))),
+        [6, 7],
+      );
+    });
+
+    it('skip(...) operator works properly', () => {
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.skip(5)(itr8.itr8Range(1, 7))),
+        [6, 7],
+      );
+    });
+
+    it('limit(...) operator works properly', async () => {
+      // sync
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.limit(5)(itr8.itr8Range(1, 7) as Iterator<number>)),
+        [1, 2, 3, 4, 5],
+      );
+
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.limit(5)(itr8.itr8Range(1, 3) as Iterator<number>)),
+        [1, 2, 3],
+        'limit should return the entire input when the limit is set higher than the total nr of elements in the input',
+      );
+
+    });
+
+    it('itr8ToReadableStream works properly', async () => {
+
+      const syncReadCount = await (() => new Promise<any>((resolve, reject) => {
+        const stream = itr8ToReadableStream(itr8.itr8Range(1, 100));
+
+        let readCount = 0;
+        stream.on('data', (data) => {
+          // console.log('Received from sync stream:', data);
+          readCount += 1;
+        });
+
+        stream.on('end', () => {
+          // console.log('Sync stream ended');
+          resolve(readCount);
+        });
+      }))();
+
+      assert.equal(syncReadCount, 100, 'test reading sync stream FAILED');
+
+      const asyncReadCount = await (() => new Promise<any>((resolve, reject) => {
+        const stream = itr8ToReadableStream(itr8.itr8RangeAsync(1, 100));
+
+        let readCount = 0;
+        stream.on('data', (data) => {
+          // console.log('Received from async stream:', data);
+          readCount += 1;
+        });
+
+        stream.on('end', () => {
+          // console.log('Async stream ended');
+          resolve(readCount);
+        });
+      }))();
+
+      assert.equal(asyncReadCount, 100, 'test reading async stream FAILED');
+
+    });
+
+    it('itr8FromObservable works properly', async () => {
+      // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and dely stuff
+      const observable = from(a)
+        .pipe(concatMap(item => of(item).pipe(delay(10))));
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8FromObservable(observable)),
+        a,
+      );
+    });
+
+    it('itr8ToObservable works properly', async () => {
+      // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and dely stuff
+      const observable = itr8ToObservable(itr8.itr8FromArray(a))
+        .pipe(concatMap(item => of(item).pipe(delay(10))));
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8FromObservable(observable)),
+        a,
+      );
+    });
+
   });
 
   describe('our own \'operators\'', () => {
@@ -382,13 +657,56 @@ describe('itr8 test suite', () => {
       );
 
       // async
-      // assert.deepEqual(
-      //   await itr8.itr8ToArray(itr8.stringToChar()(itr8.itr8FromArrayAsync(input))),
-      //   expected,
-      // );
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8.split('!')(itr8.itr8FromArrayAsync(input))),
+        [ ['Hello', 'World' ], [ 'Goodbye', 'Space' ], [] ],
+      );
+
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8.split('Hello')(itr8.itr8FromArrayAsync(input))),
+        [ [], [ 'World', '!', 'Goodbye', 'Space', '!'] ],
+      );
     });
 
-    it('mixing some operators works properly', async () => {
+    it('lineByLine(...) operator works properly', async () => {
+      const input1 = ['H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n', 'G', 'o', 'o', 'd', 'b', 'y', 'e', ' ', 'S', 'p', 'a', 'c', 'e', '!'];
+      const expected1 = [ 'Hello World', 'Goodbye Space!'];
+
+      const input2 = ['0', '1', '\n', '0', '2', '\n', '\n', '\n', '0', '5', '\n'];
+      const expected2 = [ '01', '02', '', '', '05', ''];
+
+      // sync
+      assert.deepEqual(
+        itr8.itr8ToArray(
+          itr8.itr8FromArray(input1).pipe(lineByLine()),
+        ),
+        expected1,
+      );
+
+      assert.deepEqual(
+        itr8.itr8ToArray(
+          itr8.itr8FromArray(input2).pipe(lineByLine()),
+        ),
+        expected2,
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8ToArray(
+          itr8.itr8FromArrayAsync(input1).pipe(lineByLine()),
+        ),
+        expected1,
+      );
+
+      assert.deepEqual(
+        await itr8.itr8ToArray(
+          itr8.itr8FromArrayAsync(input2).pipe(lineByLine()),
+        ),
+        expected2,
+      );
+    });
+
+    it('chaining a bunch of operators works properly', async () => {
 
       const twoDimGen = function* ():Iterator<Array<string>> {
         const input = 'Hello, how are you today Sir?'.split(' ');
@@ -484,7 +802,7 @@ describe('itr8 test suite', () => {
     });
   });
 
-  describe('piping operators works because every iterator returnd is also of type TPipeable', () => {
+  describe('piping operators is easy because every iterator returned is also of type TPipeable', () => {
     it('piping some operators with the pipe(operator) method works properly', async () => {
       const twoDimGen = function* ():IterableIterator<Array<string>> {
         const input = 'Hello, how are you today Sir?'.split(' ');
