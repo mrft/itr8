@@ -8,7 +8,7 @@ import { TPipeable, TTransIteratorSyncOrAsync } from './types';
  *  * make sure that all existing operators can be called as
  *    if it were methods of this object (to allow for easy chaining),
  *    and only with the second argument
- *  * make sure that any synchronous 'operator' can also be used on asynchronous 
+ *  * make sure that any synchronous 'operator' can also be used on asynchronous
  *    iterators without modification, and make sure that a chain goes from sync to async
  *    as soon as there is a single async operator in the chain
  */
@@ -69,7 +69,7 @@ function itr8Pipe<TIn=any,TOut=any>(
  *      |> map(mapFn)
  *      |> filter(filterFn)
  *
- * @param iterator 
+ * @param iterator
  * @returns an iterator augmented with auseful pipe function
  */
 function itr8Proxy<PTIterator extends IterableIterator<any> | AsyncIterableIterator<any>>
@@ -163,7 +163,7 @@ function itr8FromStringAsync(s: string): TPipeable & AsyncIterableIterator<strin
 /**
  * Turns a single value into an Iterator that will produce 1 result.
  * Should work for boolean, number, string, object, ...
- * 
+ *
  * @param a anything like object, string, number, ...
  * @returns an iterator
  */
@@ -176,7 +176,7 @@ function itr8FromSingleValue<T>(v: any): TPipeable & IterableIterator<T> {
 /**
  * Turns a single value into an (async) Iterator that will produce 1 result.
  * Should work for boolean, number, string, object, ...
- * 
+ *
  * @param a anything like object, string, number, ...
  * @returns an iterator
  */
@@ -191,22 +191,36 @@ function itr8FromSingleValue<T>(v: any): TPipeable & IterableIterator<T> {
  * @param iterator
  * @returns an array
  */
-function itr8ToArray<T>(iterator: Iterator<T> | AsyncIterator<T>): Array<T> | Promise<Array<T>> {
-  let result:T[] = [];
+function itr8ToArray<T>(iterator: Iterator<T> | AsyncIterator<T>): Array<T | any> | Promise<Array<T | any>> {
+  const isBatch = iterator['itr8Batch'] === true;
   let n = iterator.next();
   if (isPromise(n)) {
     return (async () => {
       let asyncResult:T[] = [];
       while (!(await n).done) {
-        asyncResult.push((await n).value);
+        if (isBatch) {
+          for (let v of (await n).value as unknown as Iterable<any>) {
+            asyncResult.push(v);
+          }
+        } else {
+          asyncResult.push((await n).value);
+        }
         n = iterator.next();
       }
       return asyncResult;
     })();
   } else {
+    // return Array.from(iterator);
+    let result:T[] = [];
     let nSync = (n as IteratorResult<T>);
     while (!nSync.done) {
-      result.push(nSync.value);
+      if (isBatch) {
+        for (let v of nSync.value as unknown as Iterable<any>) {
+          result.push(v);
+        }
+      } else {
+        result.push(nSync.value);
+      }
       nSync = iterator.next() as IteratorResult<T>;
     }
     return result;

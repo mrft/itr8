@@ -1,7 +1,21 @@
 # itr8
 
+DISCLAIMER: This is work in progress, and although a fair amount of functionality seems to work, things might still change along the way...
+
 An experiment to create a unified interface over both [synchronous](https://www.javascripttutorial.net/es6/javascript-iterator/) and [asynchronous iterators](https://www.javascripttutorial.net/es-next/javascript-asynchronous-iterators/) such that the same iterator-operators (cfr. RxJS operators like filter, map, ...) can be used in various contexts (plain arrays, NodeJS streams, Observables, page-by-page database queries by writing an async generator function, page-by-age API queries, ...).
 
+If you work with 'batches' (getting multiple records at a time), but you still want to do record-per-record processing, this library will help you as well by also abstracting the batching logic away. This way, when your 'operator-chain' works on a simple array, it will also work on batches of these records. This way you can focus on the problem that is specific, instead of solving the same problem over and over again.
+
+It is also easy to create your own (sync or async) operators so you are in no way limited to the operators provided in this library. In fact, I think the essence of this library lies in the operatorFactory function, rather than the implemented operators.
+
+## Why not RxJS, IxJS, iter-tools, HighlandJS, ...?
+
+* RxJS, being push-based, with no easy pushback mechanism wold not solve the issue for me.
+* IxJS I found too cumbersome (the docs were not clear enough for me), and I didn't see how to write my own operators (as opposed to RxJS that explains how to do that very well in the docs)
+* iter-tools: same here, how to write your own operators?
+* HighlandJS is stream based, which makes it NodeJS only (at least without browserify). Also, streams are kind of cumbersome,a dn the sync and async iterator protocols are dead simple and part of the standard.
+
+So, while all these libraries have their meri, none of them convered my needs well enough, so at a certain point things became clear enough in my head to write my own library.
 ## Getting started
 
     npm install mrft/itr8
@@ -54,8 +68,10 @@ const myTransformedIterator2 = itr8.itr8Proxy(myIterator)
 * General code cleanup
 * Writing more and better documentation
 * Add more operators
+  * debounce
+  * throttle
 * Add more 'generators' for typical cases like file input, db paga-per-page processing?
-* Investigate if performance can be improved for async iterators by batching multiple records together in one promise, without exposing this to the user, such that they don't have to change their algorithm (= the chain of operators).
+* Investigate if performance can be improved for async iterators by batching multiple records together in one promise, without exposing this to the user, such that they don't have to change their algorithm (= the chain of operators). Although this idea started as having to do with performance, it is actually quite powerful because the user can reuse the same algorithm on one-by-on or page-by-page streams, which keeps the code clean and only about the essence.
   * Why: async is slower due to going thrpough the event loop multiple times, but if we put multiple items of the source stream together, the number of 'awaits' would drop significantly which should produce a big speedup (especially with long pipes of sync operators that happen to be called on an asyncronous input stream).
   * I don't feel that supporting somethng weird like a SemiAsyncIterator (that can either produce the next value synchronously or return a promise) would be a good idea.
   * I am thinking about just adding batch(size) and isBatch() operators (and maybe unBatch or deBatch to output the result as single items, and maybe reBatch for changing the batch size efficiently?) in the pipeline which would do the following: add an extra flag property to the iterator that is being produced such that the rest of the operators will know that the iterable they get as input actually represents single elements, such that the user should not 'think' in terms of the batchesbut in single elements (you don't want to force someone to change their algorithm significantly just for performance optimisations)
@@ -63,7 +79,7 @@ const myTransformedIterator2 = itr8.itr8Proxy(myIterator)
     * isBatch() would just add the flag, which is kind of like adding a flatten in between (already containing 'arrays' as the value in each next()'s value), but because you keep the elements together should be more efficient
     * unBatch would effectively again produce an asyc iterator that outputs all the elements separately (if you wnat to use the iterator somewhere else, and not solely this library)
     * reBatch would be like creating a new batch size (maybe input and output batch sizes differ) but not by using flatten().group() as that would produces an iterator outputting all elements separately in between, and that is not very efficient.
-
+  * CURRENT IMPLEMENTATION WILL GROW AND SHRINK BATCH SIZE depending on the operation (filter could shrink batches significatnly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always 'unBatch |> batch(size)' to force a new batch size, but it could be more efficient if the operatorFactory handles the batch size and keeps it constant throughtout the chain.
 ## What is a transIterator?
 
 It is simply a function with an iterator as single argument which will return another iterator. So it transforms iterators, which is why I have called it transIterator (~transducers).
@@ -129,7 +145,7 @@ It returns an object that looks a lot like ...drum roll... the result of a next 
   * if the output iterator will return no more elements it is { done:true }
   * if the output iterator is not done, but does not return anything based on the current value of the input iterator, the value is { done: false }, without a value or { done: false, state: \<newState\> } if you need to update the state
   * if the output iterator is not done, and it does need to return a value, it is { done: false, value: \<output value\> } (again with an optional state property if you need to pass state to the next step)
-  * if the output iterator is not done, and the current input iterator value would output *more than a single item*, it is { done: false, iterable: \<your iterable\> }. Any Iterable (or IterableIterator) will do 
+  * if the output iterator is not done, and the current input iterator value would output *more than a single item*, it is { done: false, iterable: \<your iterable\> }. Any Iterable (or IterableIterator) will do. (That means in practice that you can use a simple array, but a generator function will work as well, or some iterator that is the result of some input with a few itr8 operators applied to it).
 
 Knowing all this we can break down the example:
 * if the input iterator is done, we'll return that it's done
@@ -223,12 +239,14 @@ reuseable new operators, thus people keep solving the same problems over and ove
 There does not seem to be an easy way to treat all these as essentialy the same.
 It also makes sense to use things that are part of the "standard" as much as possible, as it will produce less friction using it in multiple environments.
 
-So here is *my own* version of the schema on rxjs.dev that tries to explain what [RxJS Observables](https://rxjs.dev/guide/observable) are:
+So here is another version of the schema on rxjs.dev that tries to explain what [RxJS Observables](https://rxjs.dev/guide/observable) are:
 
 |          | Single   | Multiple
 | -------- | ------   | --------
 | **Pull** | Function | Iterator
 | **Push** | Promise  | ~~Observable~~ Async Iterator
+
+(and the more I think about it, the lesser this schema makes sense to me at all)
 
 My conclusion was: you could build something similar based on Iterators, and then you could create operators that work both on sync or async iterators, which solves all these problems with a single solution.
 In my view, if we create a set of functions that take some arguments as input, and that produces functions transforming an existing iterator into a new iterator, we have all we need.
