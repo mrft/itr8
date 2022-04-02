@@ -1252,14 +1252,18 @@ const lineByLine = () => itr8Pipe(
  * @param handler
  * @returns
  */
-const forEach = function<T=any>(handler:(T) => void):((it:Iterator<T> | AsyncIterator<T>) => void) {
+const forEach = function<T=any>(handler:(T) => void, options?:{ concurrency?:number }):((it:Iterator<T> | AsyncIterator<T>) => void) {
   return (it:Iterator<T>) => {
+    // const maxRunningHandlers = options?.concurrency || Number.MAX_VALUE;
+    // let runningHandlers = 0;
+
     let nextPromiseOrValue = it.next();
     if (isPromise(nextPromiseOrValue)) {
       return (async () => {
         let next = (await nextPromiseOrValue) as IteratorResult<any>;
         while (!next.done) {
           const resp = await handler(next.value);
+
           // what if the handler turns out to be async?
           // do we do everything one aftyer the other, or should we allow some parallelism with an extra parameter?
           next = await it.next();
@@ -1267,12 +1271,25 @@ const forEach = function<T=any>(handler:(T) => void):((it:Iterator<T> | AsyncIte
       })();
     } else {
       let next = nextPromiseOrValue;
-      while (!next.done) {
+      if (!next.done) {
         const resp = handler(next.value);
-        // what if the handler turns out to be async?
-        // do we do everything one after the other, or should we allow some parallelism with an extra parameter?
-        next = it.next();
-        // console.log('[forEach] next', next);
+        if (isPromise(resp)) {
+          return (async () => {
+            await resp;
+            next = it.next();
+            while (!next.done) {
+              await handler(next.value);
+              next = it.next();
+            }
+          })();;
+        } else {
+          next = it.next();
+          while (!next.done) {
+            handler(next.value);
+            next = it.next();
+            // console.log('[forEach] next', next);
+          }
+        }
       }
     };
   };

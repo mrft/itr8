@@ -622,7 +622,7 @@ describe('itr8 test suite', () => {
       );
     });
 
-    it('filter(...) operator works properly', () => {
+    it('filter(...) operator works properly', async () => {
       const isEven = (a) => a % 2 === 0;
       assert.deepEqual(
         itr8.itr8ToArray(itr8.filter(isEven)(itr8.itr8Range(0, 7))),
@@ -634,6 +634,13 @@ describe('itr8 test suite', () => {
         itr8.itr8ToArray(itr8.filter(moreThan5)(itr8.itr8Range(0, 7))),
         [6, 7],
       );
+
+      const moreThan5Async = async (a) => a > 5;
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8.filter(moreThan5Async)(itr8.itr8Range(0, 7))),
+        [6, 7],
+      );
+
     });
 
     it('skip(...) operator works properly', () => {
@@ -1389,46 +1396,64 @@ describe('itr8 test suite', () => {
 
       // we'll put all elements in an array and check that
       let result1: any[] = [];
-      itr8.forEach((x) => result1.push(x))(itr8.itr8Range(4, 7).pipe(itr8.map(plusOne))),
+      itr8.forEach(
+        (x) => result1.push(x)
+      )(
+        itr8.itr8Range(4, 7)
+          .pipe(
+            itr8.map(plusOne),
+          ),
+      );
 
-        // synchronous
-        assert.deepEqual(
-          result1,
-          [5, 6, 7, 8],
-        );
+      // synchronous
+      assert.deepEqual(
+        result1,
+        [5, 6, 7, 8],
+      );
 
       let result2: any[] = [];
-      itr8.forEach((x) => {
+      await itr8.forEach(async (x) => {
         console.log('----', x);
         result2.push(x);
-      })(itr8.map(wrapString)(itr8.itr8Range(4, 7))),
+      })(
+        itr8.itr8Range(4, 7).pipe(
+          itr8.map(wrapString),
+        ),
+      );
 
-        assert.deepEqual(
-          result2,
-          ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
-        );
+      assert.deepEqual(
+        result2,
+        ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
+      );
 
       // asynchronous
 
       let result3: any[] = [];
       await itr8.forEach(
         (x) => result3.push(x)
-      )(itr8.map(plusOne)(itr8.itr8RangeAsync(4, 7))),
+      )(
+        itr8.itr8RangeAsync(4, 7).pipe(
+          itr8.map(plusOne),
+        ),
+      );
 
-        assert.deepEqual(
-          result3,
-          [5, 6, 7, 8],
-        );
+      assert.deepEqual(
+        result3,
+        [5, 6, 7, 8],
+      );
 
       let result4: any[] = [];
       await itr8.forEach(
         async (x) => result4.push(x)
-      )(itr8.map(wrapString)(itr8.itr8RangeAsync(4, 7))),
-
-        assert.deepEqual(
-          result4,
-          ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
-        );
+      )(
+        itr8.itr8RangeAsync(4, 7).pipe(
+          itr8.map(wrapString),
+        ),
+      );
+      assert.deepEqual(
+        result4,
+        ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
+      );
     });
   });
 
