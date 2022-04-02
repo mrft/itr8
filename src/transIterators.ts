@@ -855,6 +855,8 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
 
 /**
  * Translate each element into something else by applying the fn function to each element.
+ * 
+ * The mapping function can be asynchronous!
  *
  * @param it
  * @param fn
@@ -892,14 +894,35 @@ const map = operatorFactory<(any) => any, any, any, void>(
 //   null,
 // );
 
-const filter = operatorFactory<(any) => boolean, any, any, void>(
+/**
+ * Only keep elements where the filter function returns true.
+ * 
+ */
+const filter = operatorFactory<(any) => boolean | Promise<boolean>, any, any, void>(
   (nextIn, state, filterFn) => {
     if (nextIn.done) return { done: true };
-    if (filterFn(nextIn.value)) return { done: false, value: nextIn.value };
-    return { done: false };
+    
+    const result = filterFn(nextIn.value);
+    if (isPromise(result)) {
+      return (async () => {
+        if (await result) return { done: false, value: nextIn.value };
+        return { done: false };
+      })();
+    } else {
+      if (result) return { done: false, value: nextIn.value };
+      return { done: false };
+    }
   },
   undefined,
 );
+// const filter = operatorFactory<(any) => boolean, any, any, void>(
+//   (nextIn, state, filterFn) => {
+//     if (nextIn.done) return { done: true };
+//     if (filterFn(nextIn.value)) return { done: false, value: nextIn.value };
+//     return { done: false };
+//   },
+//   undefined,
+// );
 
 // operatorFactory<(any) => boolean, any, any, null>(
 //   (nextIn: IteratorResult<any>, state, filterFn:(any) => boolean) => ([
