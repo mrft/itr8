@@ -859,89 +859,38 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
  * @param it
  * @param fn
  */
-const map = operatorFactory(
-  (nextIn, state, params) => (nextIn.done
-    ? { done: true }
-    : {
-      done: false,
-      value: params(nextIn.value),
-    }),
-  null,
+const map = operatorFactory<(any) => any, any, any, void>(
+  (nextIn, state, nextFn) => {
+    if (nextIn.done) {
+      return { done: true };
+    } else {
+      const nextValOrPromise = nextFn(nextIn.value);
+      if (isPromise(nextValOrPromise)) {
+        return (async () => {
+          return {
+            done: false,
+            value: await nextValOrPromise,
+          }
+        })();
+      } else {
+        return {
+          done: false,
+          value: nextValOrPromise,
+        }
+      }
+    }
+  },
+  undefined,
 );
-// operatorFactory<(any) => any, any, any, null>(
-//   (nextIn: IteratorResult<any>, state, mapFn:(any) => any) => [
-//     itr8FromSingleValue({ ...nextIn, value: nextIn.done ? undefined : mapFn(nextIn.value) }),
-//     state
-//   ],
+// const map = operatorFactory(
+//   (nextIn, state, params) => (nextIn.done
+//     ? { done: true }
+//     : {
+//       done: false,
+//       value: params(nextIn.value),
+//     }),
 //   null,
 // );
-
-// Handwritten version that should work with both synchronous and asynchronous iterators
-// const mapSyncOrAsync: TTransIteratorSyncOrAsync<any, any, any> = function (
-//   it: Iterator<any> | AsyncIterator<any>,
-//   fn: (x: any) => any
-// ):Iterator<any> | AsyncIterator<any> {
-//   // this part can be reused
-//   const translateNextIn = (n) => {
-//     const r: IteratorResult<number> = {
-//       value: fn(n.value),
-//       done: n.done,
-//     }
-//     return r;
-//   }
-
-//   let nextIn = it.next();
-//   const isAsync = isPromise(nextIn);
-
-//   // the next part is kind of generic, but what if we need to keep some state?
-//   // add a param to the reusable function that gets nextIn + state as parameters?
-//   return {
-//     next: () => {
-//       if (isAsync) {
-//         // console.log('next promise found, now mapping it...', nextIn);
-//         return (nextIn as Promise<IteratorResult<any>>).then((n) => {
-//           // console.log('next promise resolved, now mapping it...', n.value);
-//           nextIn = it.next();
-//           return translateNextIn(n);
-//         });
-//       } else {
-//         // console.log('next synchronously resolved, now mapping it...', (nextIn as IteratorResult<any>).value);
-//         const n = nextIn;
-//         nextIn = it.next();
-//         return translateNextIn(n);
-//       }
-//     }
-//   } as Iterator<number>
-
-//   // let nextIn = it.next();
-//   // if (isPromise(nextIn)) {
-//   //   nextIn.then((nextInResolved) =>)
-//   //   while (!nextIn.done) {
-//   //     yield fn(nextIn.value);
-//   //     nextIn = it.next();
-//   //   }
-//   // } else {
-//   //   while (!nextIn.done) {
-//   //     yield fn(nextIn.value);
-//   //     nextIn = it.next();
-//   //   }
-//   // }
-
-// }
-
-// Same as map but written by hand without the 'generator' syntax
-// const map2: TTransducer<any, any> = (it: Iterator<number>, fn: (x: any) => any) => {
-//   return {
-//     next: () => {
-//       const nextIn = it.next();
-//       const r: IteratorResult<number> = {
-//         value: fn(nextIn.value),
-//         done: nextIn.done,
-//       }
-//       return r;
-//     }
-//   } as Iterator<number>
-// }
 
 const filter = operatorFactory<(any) => boolean, any, any, void>(
   (nextIn, state, filterFn) => {

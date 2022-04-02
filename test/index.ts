@@ -584,6 +584,8 @@ describe('itr8 test suite', () => {
     it('map(...) operator works properly', async () => {
       const plusOne = (a) => a + 1;
       const wrapString = (s) => `<-- ${s} -->`
+      // our mapping function should also support async mapping functions as argument !!!
+      const wrapStringAsync = async (s) => `<-- ${s} -->`
 
       // itr8.map(plusOne)(itr8.itr8Range(4, 7));
 
@@ -609,6 +611,12 @@ describe('itr8 test suite', () => {
 
       assert.deepEqual(
         await itr8.itr8ToArray(itr8.map(wrapString)(itr8.itr8RangeAsync(4, 7))),
+        ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
+        'map asynchronous wrapString fails',
+      );
+
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8.map(wrapStringAsync)(itr8.itr8RangeAsync(4, 7))),
         ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
         'map asynchronous wrapString fails',
       );
@@ -1032,7 +1040,7 @@ describe('itr8 test suite', () => {
       const syncOrAsyncIterator = asyncIterator ? 'async' : 'sync';
       const plusOne = (a) => a + 1;
       const timesTwo = (a) => a * 2;
-      const wrapString = (s) => `<-- ${s} -->`
+      const wrapString = (s) => `<-- ${s} -->`;
 
       const generateItr = () => asyncIterator ? itr8.itr8RangeAsync(4, 7) : itr8.itr8Range(4, 7);
 
@@ -1248,16 +1256,16 @@ describe('itr8 test suite', () => {
 
         const plusOne = (a) => a + 1;
 
-        const operation = itr8.itr8Pipe(itr8.map(plusOne));
+        const syncOperation = itr8.itr8Pipe(itr8.map(plusOne));
 
         const expected = [[2, 3, 4], [5, 6, 7], [8, 9, 10]];
 
         const generateItr = () => (useAsyncIterator ? itr8.itr8RangeAsync : itr8.itr8Range)(1, 9).pipe(itr8.batch(3));
 
         assert.deepEqual(
-          itr8.itr8ToArray(generateItr().pipe(operation, asNoBatch())),
+          itr8.itr8ToArray(generateItr().pipe(syncOperation, asNoBatch())),
           expected,
-          `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with plusOne FAILED`,
+          `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with sync plusOne FAILED`,
         );
       }
 
