@@ -860,7 +860,7 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
  * @param fn
  */
 const map = operatorFactory<(any) => any, any, any, void>(
-  (nextIn, state, nextFn) => {
+  (nextIn, state, nextFn:(TIn) => any | Promise<any>) => {
     if (nextIn.done) {
       return { done: true };
     } else {
