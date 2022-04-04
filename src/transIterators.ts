@@ -1252,35 +1252,71 @@ const lineByLine = () => itr8Pipe(
  * @param handler
  * @returns
  */
-const forEach = function<T=any>(handler:(T) => void, options?:{ concurrency?:number }):((it:Iterator<T> | AsyncIterator<T>) => void) {
+const forEach = function<T=any>(handler:(T) => void | Promise<void>, options?:{ concurrency?:number }):((it:Iterator<T> | AsyncIterator<T>) => void) {
   return (it:Iterator<T>) => {
-    // const maxRunningHandlers = options?.concurrency || Number.MAX_VALUE;
-    // let runningHandlers = 0;
+    const maxRunningHandlers = options?.concurrency || 1;
+    let runningHandlers:Set<Promise<void>> = new Set();
 
     let nextPromiseOrValue = it.next();
     if (isPromise(nextPromiseOrValue)) {
       return (async () => {
         let next = (await nextPromiseOrValue) as IteratorResult<any>;
         while (!next.done) {
-          const resp = await handler(next.value);
+          // TODO: add a try catch so errors can be handled properly?
+          // or maybe we should leave it to the user???
+          const handlerPossiblePromise = handler(next.value);
+          if (isPromise(handlerPossiblePromise)) {
+            // add it to the running handlers list
+            runningHandlers.add(handlerPossiblePromise);
+            handlerPossiblePromise.finally(() => {
+              runningHandlers.delete(handlerPossiblePromise);
+            });
 
-          // what if the handler turns out to be async?
-          // do we do everything one aftyer the other, or should we allow some parallelism with an extra parameter?
+            // wait for an open spot if the max amount of running handlers is reached
+            if (runningHandlers.size >= maxRunningHandlers) {
+              try {
+                await Promise.race(runningHandlers);
+              } catch (e) {
+                // ignore this we only want to know there is an open spot again
+              }
+            }
+          }
           next = await it.next();
         }
+        // wait until all remaining handlers are done before resolving the current promise!
+        await Promise.all(runningHandlers);
       })();
     } else {
       let next = nextPromiseOrValue;
       if (!next.done) {
-        const resp = handler(next.value);
-        if (isPromise(resp)) {
+        const handlerPossiblePromise = handler(next.value);
+        if (isPromise(handlerPossiblePromise)) {
           return (async () => {
-            await resp;
-            next = it.next();
+            let handlerPossiblePromiseIn:Promise<void> | undefined = handlerPossiblePromise;
             while (!next.done) {
-              await handler(next.value);
+              // TODO: add a try catch so errors can be handled properly?
+              // or maybe we should leave it to the user???
+              const handlerPossiblePromise = handlerPossiblePromiseIn || handler(next.value) as Promise<void>;
+              handlerPossiblePromiseIn = undefined;
+
+              // add it to the running handlers list
+              runningHandlers.add(handlerPossiblePromise);
+              handlerPossiblePromise.finally(() => {
+                runningHandlers.delete(handlerPossiblePromise);
+              });
+
+              // wait for an open spot if the max amount of running handlers is reached
+              if (runningHandlers.size >= maxRunningHandlers) {
+                try {
+                  await Promise.race(runningHandlers);
+                } catch (e) {
+                  // ignore this we only want to know there is an open spot again
+                }
+              }
               next = it.next();
             }
+            // wait until all remaining handlers are done before resolving the current promise!
+            await Promise.all(runningHandlers);
           })();;
         } else {
           next = it.next();

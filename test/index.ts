@@ -37,6 +37,7 @@ const arrayToStream = (arr: any[], timeBetweenChunks: number = 10) => {
   return readable;
 }
 
+const sleep = (milliseconds:number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 /**
  * process.hrtime() method can be used to measure execution time, but returns an array
@@ -1390,70 +1391,128 @@ describe('itr8 test suite', () => {
     // we also have some other functions, like a forEach that doesn't produce output
     // and functions to split an iterator in 2 or more, or that combines 2 iterators etc.
 
-    it('forEach(...) method works properly', async () => {
-      const plusOne = (a) => a + 1;
-      const wrapString = (s) => `<-- ${s} -->`
+    describe('forEach(...) method works properly', () => {
+      it('forEach(...) method works properly with a sync handler (no concurrency possible)', async () => {
+        const plusOne = (a) => a + 1;
+        const wrapString = (s) => `<-- ${s} -->`
 
-      // we'll put all elements in an array and check that
-      let result1: any[] = [];
-      itr8.forEach(
-        (x) => result1.push(x)
-      )(
-        itr8.itr8Range(4, 7)
-          .pipe(
+        // we'll put all elements in an array and check that
+        let result1: any[] = [];
+        itr8.forEach(
+          (x) => {
+            result1.push(x);
+          }
+        )(
+          itr8.itr8Range(4, 7)
+            .pipe(
+              itr8.map(plusOne),
+            ),
+        );
+
+        // synchronous
+        assert.deepEqual(
+          result1,
+          [5, 6, 7, 8],
+        );
+
+        let result2: any[] = [];
+        await itr8.forEach(async (x) => {
+          console.log('----', x);
+          result2.push(x);
+        })(
+          itr8.itr8Range(4, 7).pipe(
+            itr8.map(wrapString),
+          ),
+        );
+
+        assert.deepEqual(
+          result2,
+          ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
+        );
+
+        // asynchronous
+        let result3: any[] = [];
+        await itr8.forEach(
+          (x) => { result3.push(x); }
+        )(
+          itr8.itr8RangeAsync(4, 7).pipe(
             itr8.map(plusOne),
           ),
-      );
+        );
 
-      // synchronous
-      assert.deepEqual(
-        result1,
-        [5, 6, 7, 8],
-      );
+        assert.deepEqual(
+          result3,
+          [5, 6, 7, 8],
+        );
 
-      let result2: any[] = [];
-      await itr8.forEach(async (x) => {
-        console.log('----', x);
-        result2.push(x);
-      })(
-        itr8.itr8Range(4, 7).pipe(
-          itr8.map(wrapString),
-        ),
-      );
+        let result4: any[] = [];
+        await itr8.forEach(
+          async (x) => {
+            result4.push(x);
+          }
+        )(
+          itr8.itr8RangeAsync(4, 7).pipe(
+            itr8.map(wrapString),
+          ),
+        );
+        assert.deepEqual(
+          result4,
+          ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
+        );
 
-      assert.deepEqual(
-        result2,
-        ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
-      );
+      });
 
-      // asynchronous
+      it('forEach(...) method works properly with an async handler ( + concurrency can be controlled)', async () => {
+        const plusOne = (a) => a + 1;
+        const pow2 = (a) => a * a;
+        const wrapString = (s) => `<-- ${s} -->`
 
-      let result3: any[] = [];
-      await itr8.forEach(
-        (x) => result3.push(x)
-      )(
-        itr8.itr8RangeAsync(4, 7).pipe(
-          itr8.map(plusOne),
-        ),
-      );
 
-      assert.deepEqual(
-        result3,
-        [5, 6, 7, 8],
-      );
+        // we'll put all elements in an array and check that
+        let result1: any[] = [];
+        let counter = 0;
+        let maxCounter = 0;
+        const forEachHandler = async (x) => {
+          counter += 1;
+          maxCounter = Math.max(maxCounter, counter);
+          await sleep(x); // by sleeping for the amount we get, the inverse order should be inverted again
+          result1.push(x);
+          counter -= 1;
+        };
 
-      let result4: any[] = [];
-      await itr8.forEach(
-        async (x) => result4.push(x)
-      )(
-        itr8.itr8RangeAsync(4, 7).pipe(
-          itr8.map(wrapString),
-        ),
-      );
-      assert.deepEqual(
-        result4,
-        ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
-      );
+        await itr8.forEach(forEachHandler, { concurrency: 4 })(
+          itr8.itr8Range(4, 1)
+            .pipe(
+              itr8.map(pow2), // => 16, 9, 4, 1
+            ),
+        );
+
+        assert.equal(maxCounter, 4);
+
+        assert.deepEqual(
+          result1,
+          [1, 4, 9, 16],
+        );
+
+        // now we'll use a different concurrency,
+        // which should yield different results
+        result1 = [];
+        counter = 0;
+        maxCounter = 0;
+        await itr8.forEach(forEachHandler, { concurrency: 2 })(
+          itr8.itr8Range(4, 1)
+            .pipe(
+              itr8.map(pow2), // => 16, 9, 4, 1
+            ),
+        );
+
+        assert.equal(maxCounter, 2);
+
+        assert.deepEqual(
+          result1,
+          [9, 4, 1, 16],
+        );
+      });
     });
   });
 
@@ -1523,7 +1582,7 @@ describe('itr8 test suite', () => {
     });
   });
 
-  describe('We won\'t support this, and only add the pipe(operator) to all returned iterators: operations can be applied by calling them directly on the iterator (to allow for easy chaining)...', () => {
+  describe.skip('We won\'t support this, and only add the pipe(operator) to all returned iterators: operations can be applied by calling them directly on the iterator (to allow for easy chaining)...', () => {
     it.skip('a single operator can be called', () => {
       const range1to7: any = itr8.itr8Range(1, 7);
       assert.deepEqual(
