@@ -17,7 +17,7 @@ type TTransIteratorSyncOrAsync<TIn=any, TOut=any> =
   (iterator: Iterator<TIn> | AsyncIterator<TIn>) => TPipeable & (IterableIterator<TOut> | AsyncIterableIterator<TOut>);
 
 /**
- * The type that the the nextFn of the operatorFactory should output
+ * The type that the the nextFn of the itr8OperatorFactory should output
  */
 type TNextFnResult<TOut, TState> =
     { done: true } | ( { done: false, state?: TState } & ({} | { value: TOut } | { iterable: Iterable<TOut> }) )

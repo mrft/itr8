@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as zlib from 'zlib';
 
 import * as itr8 from '../src';
-import { asNoBatch, lineByLine, operatorFactory, unBatch } from '../src';
+import { asNoBatch, lineByLine, itr8OperatorFactory as itr8OperatorFactory, unBatch } from '../src';
 import { itr8FromStream, itr8ToReadableStream } from '../src/interface/stream'
 import { itr8FromObservable, itr8ToObservable } from '../src/interface/observable'
 import { hrtime } from 'process';
@@ -55,10 +55,10 @@ function hrtimeToMilliseconds([seconds, nanoseconds]: [number, number]): number 
  * A bunch of operators created with the operator factory in order to test multiple
  * cases of operator behaviour.
  *
- * Used in the operatorFactory tests cases, and maybe some other places...
+ * Used in the itr8OperatorFactory tests cases, and maybe some other places...
  */
 const transIts = {
-  opr8Map: operatorFactory(
+  opr8Map: itr8OperatorFactory(
     (nextIn, state, params) => {
       if (nextIn.done) {
         return { done: true };
@@ -67,7 +67,7 @@ const transIts = {
     },
     undefined,
   ),
-  opr8Skip: operatorFactory(
+  opr8Skip: itr8OperatorFactory(
     (nextIn, state, params) => {
       if (nextIn.done) {
         return { done: true };
@@ -79,7 +79,7 @@ const transIts = {
     },
     0,
   ),
-  opr8Delay: operatorFactory(
+  opr8Delay: itr8OperatorFactory(
     (nextIn, state, timeout) => new Promise<any>((resolve, reject) => {
       setTimeout(
         () => {
@@ -92,7 +92,7 @@ const transIts = {
   ),
 
   // sync nextFn, sync iterator
-  opr8MapSyncSync: operatorFactory(
+  opr8MapSyncSync: itr8OperatorFactory(
     (nextIn, state, params) => {
       if (nextIn.done) {
         return { done: true };
@@ -102,7 +102,7 @@ const transIts = {
     null,
   ),
   // async nextFn, sync iterator
-  opr8MapAsyncSync: operatorFactory<(any) => any, any, any, void>(
+  opr8MapAsyncSync: itr8OperatorFactory<(any) => any, any, any, void>(
     async (nextIn, state, params) => {
       if (nextIn.done) {
         return { done: true };
@@ -112,7 +112,7 @@ const transIts = {
     undefined,
   ),
   // sync nextFn, async iterator
-  opr8MapSyncAsync: operatorFactory(
+  opr8MapSyncAsync: itr8OperatorFactory(
     (nextIn, state, params) => {
       if (nextIn.done) {
         return { done: true };
@@ -122,7 +122,7 @@ const transIts = {
     null,
   ),
   // async nextFn, async iterator
-  opr8MapAsyncAsync: operatorFactory(
+  opr8MapAsyncAsync: itr8OperatorFactory(
     async (nextIn, state, params) => {
       if (nextIn.done) {
         return { done: true };
@@ -149,7 +149,7 @@ const transIts = {
   // that is sync/async nextFn and sync/async iterator
   ////////////////////////////////////////////////////////////////
   // sync nextFn, sync iterator
-  opr8RepeatEachSyncSync: operatorFactory<number, any, any, void>(
+  opr8RepeatEachSyncSync: itr8OperatorFactory<number, any, any, void>(
     (nextIn, state, count) => {
       if (nextIn.done) {
         return { done: true };
@@ -162,7 +162,7 @@ const transIts = {
     undefined,
   ),
   // async nextFn, sync iterator
-  opr8RepeatEachAsyncSync: operatorFactory<number, any, any, void>(
+  opr8RepeatEachAsyncSync: itr8OperatorFactory<number, any, any, void>(
     async (nextIn, state, count) => {
       if (nextIn.done) {
         return { done: true };
@@ -175,7 +175,7 @@ const transIts = {
     undefined,
   ),
   // sync nextFn, async iterator
-  opr8RepeatEachSyncAsync: operatorFactory<number, any, any, void>(
+  opr8RepeatEachSyncAsync: itr8OperatorFactory<number, any, any, void>(
     (nextIn, state, count) => {
       if (nextIn.done) {
         return { done: true };
@@ -188,7 +188,7 @@ const transIts = {
     undefined,
   ),
   // async nextFn, async iterator
-  opr8RepeatEachAsyncAsync: operatorFactory<number, any, any, void>(
+  opr8RepeatEachAsyncAsync: itr8OperatorFactory<number, any, any, void>(
     async (nextIn, state, count) => {
       if (nextIn.done) {
         return { done: true };
@@ -209,7 +209,7 @@ const transIts = {
   ////////////////////////////////////////////////////////////////
 
   // sync nextFn, sync iterator
-  opr8FilterSyncSync: operatorFactory(
+  opr8FilterSyncSync: itr8OperatorFactory(
     (nextIn, state, filterFn:(any) => boolean) => {
       if (nextIn.done) {
         return { done: true };
@@ -222,7 +222,7 @@ const transIts = {
     null,
   ),
   // async nextFn, sync iterator
-  opr8FilterAsyncSync: operatorFactory(
+  opr8FilterAsyncSync: itr8OperatorFactory(
     async (nextIn, state, filterFn:(any) => boolean) => {
       if (nextIn.done) {
         return { done: true };
@@ -235,7 +235,7 @@ const transIts = {
     null,
   ),
   // sync nextFn, async iterator
-  opr8FilterSyncAsync: operatorFactory(
+  opr8FilterSyncAsync: itr8OperatorFactory(
     (nextIn, state, filterFn:(any) => boolean) => {
       if (nextIn.done) {
         return { done: true };
@@ -248,7 +248,7 @@ const transIts = {
     null,
   ),
   // async nextFn, async iterator
-  opr8FilterAsyncAsync: operatorFactory(
+  opr8FilterAsyncAsync: itr8OperatorFactory(
     async (nextIn, state, filterFn:(any) => boolean) => {
       if (nextIn.done) {
         return { done: true };
@@ -870,6 +870,52 @@ describe('itr8 test suite', () => {
       );
     });
 
+
+    it('max(...) operator works properly', async () => {
+      // sync
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.max()(itr8.itr8Range(1, 4))),
+        [4],
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8.max()(itr8.itr8RangeAsync(10, -4))),
+        [10],
+      );
+    });
+
+    it('min(...) operator works properly', async () => {
+      // sync
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.min()(itr8.itr8FromArray([1, 4, 7, 2]))),
+        [1],
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8.min()(itr8.itr8FromArrayAsync([1, -4, 7, 2]))),
+        [-4],
+      );
+    });
+
+    it('sort(...) operator works properly', async () => {
+      // sync
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.sort()(itr8.itr8FromArray([1, 4, 7, 2]))),
+        [1, 2, 4, 7],
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8ToArray(
+          itr8.itr8FromArrayAsync([ { v: 1 }, { v: -4 }, { v: 7 }, { v: 2 } ])
+            .pipe(itr8.sort((a:{ v:number }, b:{ v:number }) => a.v - b.v))
+        ),
+        [ { v: -4 }, { v: 1 }, { v: 2 }, { v: 7 } ],
+      );
+    });
+
     it('stringToChar(...) operator works properly', async () => {
       const input = ['Hello', 'World', '\n', 'Goodbye', 'Space', '!'];
       const expected = ['H', 'e', 'l', 'l', 'o', 'W', 'o', 'r', 'l', 'd', '\n', 'G', 'o', 'o', 'd', 'b', 'y', 'e', 'S', 'p', 'a', 'c', 'e', '!'];
@@ -994,7 +1040,7 @@ describe('itr8 test suite', () => {
     });
   });
 
-  describe('allowing users to easily implement their own operators (operatorFactory)', () => {
+  describe('allowing users to easily implement their own operators (itr8OperatorFactory)', () => {
     // TODO: test ALL cases:
     // *  sync input iterator, sync operator producing a sync iterator
     // * async input iterator, sync operator producing a sync iterator

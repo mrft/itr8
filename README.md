@@ -71,7 +71,7 @@ You, can find some more [documentation](#documentation) further in this file.
 ## Who is this library for?
 
 If you ever found yourself in one of these situations, this library might be useful for you:
- * You needed to do some filtering or mapping of some data (stored in an array for example), but the filter or map function is _asynchronous_. So instead of simply writing `araay.filter(...).map(...)` you had to add a bunch of code to make it work like you wanted (maybe using sindresorhus' promise-fun here and there to keep things under control). As a result, your code suddenly becomes hard to read, even if the problem you needed to solve was actually quite simple.
+ * You needed to do some filtering or mapping of some data (stored in an array for example), but the filter or map function is _asynchronous_. So instead of simply writing `array.filter(...).map(...)` you had to add a bunch of code to make it work like you wanted (maybe using sindresorhus' promise-fun here and there to keep things under control). As a result, your code suddenly becomes hard to read, even if the problem you needed to solve was actually quite simple.
  * You have some data manipulation that works properly over a small array, but now you have to apply it on a a huge file that doesn't fit in memory, and now you need to entirely rewrite your code to handle this new situation.
  * You need to get some data from an API that is 'page-oriented' (it only returns a limited number of results, and in order to get the next set of results you need to do another call). You need some manipulation on each single element of the set. Now you need to write additional logic to apply your algorithm to every element of each batch that you are processing that has nothing to do with the core problem you are trying to solve.
  * You were thrilled by RxJS, but found out it cannot be used easily when the data comes in at a higher pace than you can handle (files, db, API) and implementing pushback in RxJS feels 'wrong'.
@@ -84,7 +84,7 @@ If you ever found yourself in one of these situations, this library might be use
 * RxJS, being push-based, with no easy pushback mechanism wold not solve the issue for me.
 * IxJS I found too cumbersome (the docs were not clear enough for me), and I didn't see how to write my own operators (as opposed to RxJS that explains how to do that very well in the docs)
 * iter-tools: same here, how to write your own operators?
-* HighlandJS is stream based, which makes it NodeJS only (at least without browserify). Also, streams are kind of cumbersome,a dn the sync and async iterator protocols are dead simple and part of the standard.
+* HighlandJS is stream based, which makes it NodeJS only (at least without browserify). Also, streams are kind of cumbersome, and the sync and async iterator protocols are dead simple and part of the standard.
 
 So, while all these libraries have their merit, none of them convered my needs well enough, so at a certain point things became clear enough in my head to write my own library.
 
@@ -92,7 +92,7 @@ So, while all these libraries have their merit, none of them convered my needs w
 
 * Piping should have better typing (like RxJS does it)
 * Piping should only care whether the output type of the first and the input type of the next match
-  so that we are not only limited to transIterators, this way the last steo of the pipe could be
+  so that we are not only limited to transIterators, this way the last step of the pipe could be
   forEach. Right now calling forEach is still clunky.
 * General code cleanup
 * Writing more and better documentation
@@ -101,7 +101,7 @@ So, while all these libraries have their merit, none of them convered my needs w
   * throttle
   * ...
 * Add more 'generators' for typical cases like file input, db paga-per-page processing?
-* Further improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significatnly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always `unBatch |> batch(size)` to force a new batch size, but it could be more efficient if the operatorFactory handles the batch size and keeps it constant throughtout the chain.
+* Further improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significatnly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always `unBatch |> batch(size)` to force a new batch size, but it could be more efficient if the itr8OperatorFactory handles the batch size and keeps it constant throughtout the chain.
 
 
 # Documentation
@@ -118,7 +118,7 @@ An operator is 'a function that generates a transIterator'. So for example filte
 ## Writing your own operators
 
 There are 2 options to write your own operators. You can either build a new operator by chaining
-a bunch of existing operators together, or you can write your own.
+a bunch of existing operators together, or you can write your own with the itr8OperatorFactory function.
 
 ### A new operator by combining existing operators
 
@@ -148,7 +148,7 @@ const regroup = (rowSize:number) => itr8Pipe(
 Let's show you the code right away:
 
 ```typescript
-const filterNil = operatorFactory<void, any, any, null>(
+const filterNil = itr8OperatorFactory<void, any, any, null>(
     (nextIn, state, ...params) => (
         if (nextIn.done) {
             return { done: true };
@@ -189,7 +189,7 @@ Knowing all this we can break down the example:
 Let's write an operator that repeats each value from the input iterator n times on the output iterator:
 
 ```typescript
-const opr8RepeatEach: operatorFactory<number, any, any, void>(
+const opr8RepeatEach: itr8OperatorFactory<number, any, any, void>(
   (nextIn, state, count) => {
     if (nextIn.done) {
       return { done: true };
@@ -205,10 +205,10 @@ const opr8RepeatEach: operatorFactory<number, any, any, void>(
 
 As you can see, we use the 'iterable' property here, and in order to easily generate an IterableIterator, we use an 'immediately invoked function expression'. This is important since a generator function generates an Iterableiterator, so it should be called!
 
-But you could also assign an array, because thet is also an iterable. But beware that creating an intermediate array will use more memory! I'll show you the same example with an array here:
+But you could also assign an array, because that is also an iterable. But beware that creating an intermediate array will use more memory! I'll show you the same example with an array here:
 
 ```typescript
-const repeatEach: operatorFactory<number, any, any, void>(
+const repeatEach: itr8OperatorFactory<number, any, any, void>(
   (nextIn, state, count) => {
     if (nextIn.done) {
       return { done: true };
@@ -225,10 +225,10 @@ const repeatEach: operatorFactory<number, any, any, void>(
 #### An example operator that needs some state: total
 
 What if we have an iterator that holds numbers and we want to calculate the total sum?
-This can only be done by holding on the the 'sum so far', because with each new element we need to add the current value to the value we already have calculated.
+This can only be done by holding on to the 'sum so far', because with each new element we need to add the current value to the value we already have calculated.
 
 ```typescript
-const total = operatorFactory<void, number, number, { done: boolean, total: number }>(
+const total = itr8OperatorFactory<void, number, number, { done: boolean, total: number }>(
   (nextIn: IteratorResult<any>, state:{ done: boolean, total: number }) => {
     if (state.done) {
       return { done: true };
@@ -241,18 +241,18 @@ const total = operatorFactory<void, number, number, { done: boolean, total: numb
 );
 ```
 
-Here you can see that we also specified the second argument of the operatorFactory function, which is the initialSate (not done, and the total so far = 0).
+Here you can see that we also specified the second argument of the itr8OperatorFactory function, which is the initialSate (not done, and the total so far = 0).
 
 So this iterator will only return a value on the output iterator once the input iterator has finished. Hence the 'done' flag on the state to indicate that we've seen the last element of the input iterator.
 * When we see that we're done in the state (= the next call after the one where we finally sent a value to the output iterator) we'll send { done: true }.
 * When we see the last element of the input iterator, we don't modify the sum anymore, but send the total sum as the value, and indicate that there won't be any more values by setting the 'done' flag on the state
-* In all other cases, we don't senda value, but we generate a new version of the state where the 'total' property is set to the current state's total + nextIn.value
+* In all other cases, we don't send a value, but we generate a new version of the state where the 'total' property is set to the current state's total + nextIn.value
 
 #### Notes
 
-* The function given to operatorFactory can also be ASYNC (useful if you can only know the new state after an async operation).
+* The function given to itr8OperatorFactory can also be ASYNC (useful if you can only know the new state after an async operation).
 
-* The function given to operatorFactory can also return an ASYNC iterator (useful if you can only know each new elements after another async operation).
+* The function given to itr8OperatorFactory can also return an ASYNC iterator (useful if you can only know each new elements after another async operation).
 
 
 # Inspiration
@@ -286,7 +286,7 @@ Some things that I read that helped me to get a better understanding:
 Quote: "So, a transducer is a function that transforms a reducer into another reducer, opening the doors of composition."
 
 And composition is what we all want, but there doesn't seem to be a single way to do things:
-* Libraries like RxJS (and IxJS for pull-based) solve it by inventing something new called Observables.
+* Libraries like RxJS solve it by inventing something new called Observables.
 * Using transform streams is cumbersome!
 * Other libraries like HighlandJS do something similar to IxJS, but built upon NodeJS streams, which makes it non-browser-friendly (you'd need browserify).
 * A project called rxjs-transducer exists that tries to reuse the RxJS 'operators' in other contexts, but it seems about arrays and not iterators at first sight.
