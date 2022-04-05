@@ -1,0 +1,241 @@
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>itr8</title><meta name="description" content="Documentation for itr8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">itr8</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1> itr8</h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<a href="#itr8" id="itr8" style="color: inherit; text-decoration: none;">
+  <h1>itr8</h1>
+</a>
+<p>DISCLAIMER: This is work in progress (including the docs), and although a fair amount of functionality seems to work, things might still change along the way...</p>
+<p>An experiment to create a unified interface over both <a href="https://www.javascripttutorial.net/es6/javascript-iterator/">synchronous</a> and <a href="https://www.javascripttutorial.net/es-next/javascript-asynchronous-iterators/">asynchronous iterators</a> such that the same iterator-operators (cfr. RxJS operators like filter, map, ...) can be used in various contexts (plain arrays, NodeJS streams, Observables, page-by-page database queries by writing an async generator function, page-by-age API queries, ...).</p>
+
+<a href="#who-is-it-for" id="who-is-it-for" style="color: inherit; text-decoration: none;">
+  <h2>Who is it for?</h2>
+</a>
+<p>If you ever found yourself in one of these situations, this library might be useful for you:</p>
+<ul>
+<li>You needed to do some filtering or mapping of some data (stored in an array for example), but the filter or map function is <em>asynchronous</em>. So instead of simply writing <code>araay.filter(...).map(...)</code> you had to add a bunch of code to make it work like you wanted (maybe using sindresorhus&#39; promise-fun here and there to keep things under control). As a result, your code suddenly becomes hard to read, even if the problem you needed to solve was actually quite simple.</li>
+<li>You have some data manipulation that works properly over a small array, but now you have to apply it on a a huge file that doesn&#39;t fit in memory, and now you need to entirely rewrite your code to handle this new situation.</li>
+<li>You need to get some data from an API that is &#39;page-oriented&#39; (it only returns a limited number of results, and in order to get the next set of results you need to do another call). You need some manipulation on each single element of the set. Now you need to write additional logic to apply your algorithm to every element of each batch that you are processing that has nothing to do with the core problem you are trying to solve.</li>
+<li>You were thrilled by RxJS, but found out it cannot be used easily when the data comes in at a higher pace than you can handle (files, db, API) and implementing pushback in RxJS feels &#39;wrong&#39;.</li>
+<li>You&#39;ve tried to implement a transform stream in NodeJS but found it quite cumbersome.</li>
+<li>In general: when you have the feeling you have solved the same problem a few too many times.</li>
+<li>You&#39;ve used another library like IxJS, iter-tools or HighlandJS, but don&#39;t know how to write your own &#39;operators&#39; in one of them.</li>
+</ul>
+
+<a href="#why-not-rxjs-ixjs-iter-tools-highlandjs-" id="why-not-rxjs-ixjs-iter-tools-highlandjs-" style="color: inherit; text-decoration: none;">
+  <h2>Why not RxJS, IxJS, iter-tools, HighlandJS, ...?</h2>
+</a>
+<ul>
+<li>RxJS, being push-based, with no easy pushback mechanism wold not solve the issue for me.</li>
+<li>IxJS I found too cumbersome (the docs were not clear enough for me), and I didn&#39;t see how to write my own operators (as opposed to RxJS that explains how to do that very well in the docs)</li>
+<li>iter-tools: same here, how to write your own operators?</li>
+<li>HighlandJS is stream based, which makes it NodeJS only (at least without browserify). Also, streams are kind of cumbersome,a dn the sync and async iterator protocols are dead simple and part of the standard.</li>
+</ul>
+<p>So, while all these libraries have their merit, none of them convered my needs well enough, so at a certain point things became clear enough in my head to write my own library.</p>
+
+<a href="#getting-started" id="getting-started" style="color: inherit; text-decoration: none;">
+  <h2>Getting started</h2>
+</a>
+<pre><code><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">install</span><span class="hl-1"> </span><span class="hl-0">mrft</span><span class="hl-1">/</span><span class="hl-0">itr8</span>
+</code></pre>
+<pre><code class="language-typescript"><span class="hl-2">import</span><span class="hl-1"> </span><span class="hl-3">*</span><span class="hl-1"> </span><span class="hl-2">as</span><span class="hl-1"> </span><span class="hl-0">itr8</span><span class="hl-1"> </span><span class="hl-2">from</span><span class="hl-1"> </span><span class="hl-4">&#39;itr8&#39;</span><br/><br/><span class="hl-5">// create an iterator to start from</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-6">myIterator</span><span class="hl-1"> = </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">range</span><span class="hl-1">(</span><span class="hl-8">0</span><span class="hl-1">, </span><span class="hl-8">10_000_000</span><span class="hl-1">); </span><span class="hl-5">// or itr8.fromArray([...])</span><br/><br/><span class="hl-5">// All iterables returned by itr8 are also &#39;pipeable&#39;, meaning that each returned iterator also exposes a pipe function to add other operators to the chain</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-6">myTransformedIterator</span><span class="hl-1"> = </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">itr8Proxy</span><span class="hl-1">(</span><span class="hl-0">myIterator</span><span class="hl-1">)</span><br/><span class="hl-1">    .</span><span class="hl-7">pipe</span><span class="hl-1">(</span><br/><span class="hl-1">        </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">map</span><span class="hl-1">((</span><span class="hl-0">x</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> </span><span class="hl-0">x</span><span class="hl-1"> / </span><span class="hl-8">2</span><span class="hl-1">),</span><br/><span class="hl-1">        </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">filter</span><span class="hl-1">((</span><span class="hl-0">x</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> </span><span class="hl-0">x</span><span class="hl-1"> % </span><span class="hl-8">3</span><span class="hl-1"> === </span><span class="hl-8">0</span><span class="hl-1">),</span><br/><span class="hl-1">        </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">skip</span><span class="hl-1">(</span><span class="hl-8">5</span><span class="hl-1">),</span><br/><span class="hl-1">        </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">limit</span><span class="hl-1">(</span><span class="hl-8">50</span><span class="hl-1">),</span><br/><span class="hl-1">    )</span><br/><span class="hl-1">);</span><br/><br/><span class="hl-5">// this will work as well (because pipe produces another &#39;pipeable&#39;)</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-6">myTransformedIterator2</span><span class="hl-1"> = </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">itr8Proxy</span><span class="hl-1">(</span><span class="hl-0">myIterator</span><span class="hl-1">)</span><br/><span class="hl-1">    .</span><span class="hl-7">pipe</span><span class="hl-1">(</span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">map</span><span class="hl-1">((</span><span class="hl-0">x</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> </span><span class="hl-0">x</span><span class="hl-1"> / </span><span class="hl-8">2</span><span class="hl-1">))</span><br/><span class="hl-1">    .</span><span class="hl-7">pipe</span><span class="hl-1">(</span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">filter</span><span class="hl-1">((</span><span class="hl-0">x</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> </span><span class="hl-0">x</span><span class="hl-1"> % </span><span class="hl-8">3</span><span class="hl-1"> === </span><span class="hl-8">0</span><span class="hl-1">))</span><br/><span class="hl-1">    .</span><span class="hl-7">pipe</span><span class="hl-1">(</span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">skip</span><span class="hl-1">(</span><span class="hl-8">5</span><span class="hl-1">))</span><br/><span class="hl-1">    .</span><span class="hl-7">pipe</span><span class="hl-1">(</span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">limit</span><span class="hl-1">(</span><span class="hl-8">50</span><span class="hl-1">))</span><br/><span class="hl-1">);</span><br/><br/><span class="hl-5">// we can create a new &#39;trans-iterator&#39; or operator by combining some existing operators with a utility function</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-6">transIt</span><span class="hl-1"> = </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">itr8Pipe</span><span class="hl-1">(</span><br/><span class="hl-1">    </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">map</span><span class="hl-1">((</span><span class="hl-0">x</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> </span><span class="hl-0">x</span><span class="hl-1"> / </span><span class="hl-8">2</span><span class="hl-1">),</span><br/><span class="hl-1">    </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">filter</span><span class="hl-1">((</span><span class="hl-0">x</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> </span><span class="hl-0">x</span><span class="hl-1"> % </span><span class="hl-8">3</span><span class="hl-1"> === </span><span class="hl-8">0</span><span class="hl-1">),</span><br/><span class="hl-1">    </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">skip</span><span class="hl-1">(</span><span class="hl-8">5</span><span class="hl-1">),</span><br/><span class="hl-1">    </span><span class="hl-0">itr8</span><span class="hl-1">.</span><span class="hl-7">limit</span><span class="hl-1">(</span><span class="hl-8">50</span><span class="hl-1">),</span><br/><span class="hl-1">);</span><br/><br/><span class="hl-5">// need to do something on every element, use forEach (yes it will handle async handlers as well, you can even control the concurrency easily)</span><br/><span class="hl-7">forEach</span><span class="hl-1">(</span><br/><span class="hl-1">  </span><span class="hl-3">async</span><span class="hl-1"> (</span><span class="hl-0">id</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-6">descr</span><span class="hl-1"> = </span><span class="hl-2">await</span><span class="hl-1"> </span><span class="hl-7">getElementFromDisk</span><span class="hl-1">(</span><span class="hl-0">id</span><span class="hl-1">);</span><br/><span class="hl-1">    </span><span class="hl-0">console</span><span class="hl-1">.</span><span class="hl-7">log</span><span class="hl-1">(</span><span class="hl-4">&#39;element = &#39;</span><span class="hl-1">, </span><span class="hl-0">descr</span><span class="hl-1">);</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">)</span><br/><span class="hl-1">(</span><span class="hl-0">myTransformedIterator</span><span class="hl-1">)</span><br/><span class="hl-5">// TODO: should be pipeable into forEach like this:</span><br/><span class="hl-5">// myTransformedIterator.pipe(</span><br/><span class="hl-5">//   forEach((element) =&gt; {</span><br/><span class="hl-5">//     console.log(&#39;element = &#39;, element);</span><br/><span class="hl-5">//   }),</span><br/><span class="hl-5">// );</span><br/><br/><span class="hl-5">// we can use standard JS &#39;for ... of&#39; to loop over an iterable</span><br/><span class="hl-2">for</span><span class="hl-1"> (</span><span class="hl-3">let</span><span class="hl-1"> </span><span class="hl-0">x</span><span class="hl-1"> </span><span class="hl-3">of</span><span class="hl-1"> </span><span class="hl-0">myTransformedIterator2</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-0">console</span><span class="hl-1">.</span><span class="hl-7">log</span><span class="hl-1">(</span><span class="hl-0">x</span><span class="hl-1">);</span><br/><span class="hl-1">}</span><br/>
+</code></pre>
+
+<a href="#todo" id="todo" style="color: inherit; text-decoration: none;">
+  <h2>TODO</h2>
+</a>
+<ul>
+<li>General code cleanup</li>
+<li>Writing more and better documentation</li>
+<li>Add more operators<ul>
+<li>debounce</li>
+<li>throttle</li>
+<li>...</li>
+</ul>
+</li>
+<li>Add more &#39;generators&#39; for typical cases like file input, db paga-per-page processing?</li>
+<li>Further improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significatnly for example, but batches with only a few elements don&#39;t have a very big advantage performance wise). Of course you could always <code>unBatch |&gt; batch(size)</code> to force a new batch size, but it could be more efficient if the operatorFactory handles the batch size and keeps it constant throughtout the chain.
+<a href="#what-is-a-transiterator" id="what-is-a-transiterator" style="color: inherit; text-decoration: none;">
+  <h2>What is a transIterator?</h2>
+</a>
+</li>
+</ul>
+<p>It is simply a function with an iterator as single argument which will return another iterator. So it transforms iterators, which is why I have called it transIterator (~transducers).</p>
+
+<a href="#what-is-the-difference-between-a-transiterator-and-an-operator" id="what-is-the-difference-between-a-transiterator-and-an-operator" style="color: inherit; text-decoration: none;">
+  <h3>WHat is the difference between a transIterator and an operator?</h3>
+</a>
+<p>An operator is &#39;a function that generates a transIterator&#39;. So for example filter(...) is an operator, because when called with an argument (the filter function) the result of that will be another function which is the transIterator.</p>
+
+<a href="#writing-your-own-operators" id="writing-your-own-operators" style="color: inherit; text-decoration: none;">
+  <h2>Writing your own operators</h2>
+</a>
+<p>There are 2 options to write your own operators. You can either build a new operator by chaining
+a bunch of existing operators together, or you can write your own.</p>
+
+<a href="#a-new-operator-by-combining-existing-operators" id="a-new-operator-by-combining-existing-operators" style="color: inherit; text-decoration: none;">
+  <h3>A new operator by combining existing operators</h3>
+</a>
+<p>Let&#39;s use the same example as is used in the <a href="https://netbasal.com/creating-custom-operators-in-rxjs-32f052d69457#7b9e">RxJS tutorial</a>: a filterNil operator.</p>
+<p>It can be created with the filter operator, like this:</p>
+<pre><code class="language-typescript"><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-6">filterNil</span><span class="hl-1"> = </span><span class="hl-7">filter</span><span class="hl-1">((</span><span class="hl-0">x</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> </span><span class="hl-0">x</span><span class="hl-1"> !== </span><span class="hl-3">undefined</span><span class="hl-1"> &amp;&amp; </span><span class="hl-0">x</span><span class="hl-1"> !== </span><span class="hl-3">null</span><span class="hl-1">)</span>
+</code></pre>
+<p>Another example: a &#39;regroup&#39; operator can be created by combining flatten and groupPer. This is where the <code>itr8Pipe(...)</code> method will come in handy.
+So to turn [ [ 1, 2 ], [ 3, 4 ], [ 5, 6 ] ] into [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
+You&#39;ll want the regroup(3) operator (3 being the new &#39;rowSize&#39;).</p>
+<pre><code class="language-typescript"><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-7">redim</span><span class="hl-1"> = (</span><span class="hl-0">rowSize</span><span class="hl-1">:</span><span class="hl-9">number</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> </span><span class="hl-7">itr8Pipe</span><span class="hl-1">(</span><br/><span class="hl-1">    </span><span class="hl-7">flatten</span><span class="hl-1">(),</span><br/><span class="hl-1">    </span><span class="hl-7">groupPer</span><span class="hl-1">(</span><span class="hl-0">rowSize</span><span class="hl-1">),</span><br/><span class="hl-1">);</span>
+</code></pre>
+
+<a href="#writing-a-new-operator-from-scratch" id="writing-a-new-operator-from-scratch" style="color: inherit; text-decoration: none;">
+  <h3>Writing a new operator from scratch</h3>
+</a>
+
+<a href="#a-simple-example-operator-filternil" id="a-simple-example-operator-filternil" style="color: inherit; text-decoration: none;">
+  <h4>A simple example operator: filterNil</h4>
+</a>
+<p>Let&#39;s show you the code right away:</p>
+<pre><code class="language-typescript"><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-6">filterNil</span><span class="hl-1"> = </span><span class="hl-7">operatorFactory</span><span class="hl-1">&lt;</span><span class="hl-9">void</span><span class="hl-1">, </span><span class="hl-9">any</span><span class="hl-1">, </span><span class="hl-9">any</span><span class="hl-1">, </span><span class="hl-9">null</span><span class="hl-1">&gt;(</span><br/><span class="hl-1">    (</span><span class="hl-0">nextIn</span><span class="hl-1">, </span><span class="hl-0">state</span><span class="hl-1">, ...</span><span class="hl-0">params</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> (</span><br/><span class="hl-1">        </span><span class="hl-7">if</span><span class="hl-1"> (</span><span class="hl-0">nextIn</span><span class="hl-1">.</span><span class="hl-0">done</span><span class="hl-1">) {</span><br/><span class="hl-1">            </span><span class="hl-0">return</span><span class="hl-1"> { </span><span class="hl-0">done</span><span class="hl-1">: </span><span class="hl-0">true</span><span class="hl-1"> };</span><br/><span class="hl-1">        } </span><span class="hl-7">elseif</span><span class="hl-1"> (</span><span class="hl-0">nextIn</span><span class="hl-1">.</span><span class="hl-0">value</span><span class="hl-1"> === </span><span class="hl-3">undefined</span><span class="hl-1"> || </span><span class="hl-0">nextIn</span><span class="hl-1">.</span><span class="hl-0">value</span><span class="hl-1"> === </span><span class="hl-3">null</span><span class="hl-1">)) {</span><br/><span class="hl-1">            </span><span class="hl-5">// nill so it&#39;s not done, but don&#39;t return a value</span><br/><span class="hl-1">            return { </span><span class="hl-0">done:</span><span class="hl-1"> </span><span class="hl-3">false</span><span class="hl-1"> };</span><br/><span class="hl-1">        } </span><span class="hl-0">else</span><span class="hl-1"> {</span><br/><span class="hl-1">            </span><span class="hl-5">// not nill, so it&#39;s not done, and return the value</span><br/><span class="hl-1">            return { </span><span class="hl-0">done:</span><span class="hl-1"> </span><span class="hl-3">false</span><span class="hl-1">, </span><span class="hl-0">value:</span><span class="hl-1"> </span><span class="hl-0">nextIn</span><span class="hl-1">.</span><span class="hl-0">value</span><span class="hl-1"> };</span><br/><span class="hl-1">        }</span><br/><span class="hl-1">    ),</span><br/><span class="hl-1">    </span><span class="hl-6">null</span><span class="hl-1">, </span><span class="hl-5">// no state needed</span><br/><span class="hl-1">);</span>
+</code></pre>
+<p>Now what is nextIn, state and param?</p>
+<ul>
+<li>nextIn is simply the result of the next call of the incoming iterator. (The next call of an iterator always returns an object of the form { done: &lt;true of false&gt;, value: &lt;current value&gt; })</li>
+<li>state is used to store intermediate data, for example if you want to make a sum, the state will be the sum until now, or if you need to buffer things, state could be the array of things in the buffer.</li>
+<li>params is the argument that you can pass to your operator, like the number of elements in a limit operator, or the mapping function in a map operator</li>
+</ul>
+<p>What does that function return?</p>
+<p>It returns an object that looks a lot like ...drum roll... the result of a next call of an iterator</p>
+<ul>
+<li>if the output iterator will return no more elements it is { done:true }</li>
+<li>if the output iterator is not done, but does not return anything based on the current value of the input iterator, the value is { done: false }, without a value or { done: false, state: &lt;newState&gt; } if you need to update the state</li>
+<li>if the output iterator is not done, and it does need to return a value, it is { done: false, value: &lt;output value&gt; } (again with an optional state property if you need to pass state to the next step)</li>
+<li>if the output iterator is not done, and the current input iterator value would output <em>more than a single item</em>, it is { done: false, iterable: &lt;your iterable&gt; }. Any Iterable (or IterableIterator) will do. (That means in practice that you can use a simple array, but a generator function will work as well, or some iterator that is the result of some input with a few itr8 operators applied to it).</li>
+</ul>
+<p>Knowing all this we can break down the example:</p>
+<ul>
+<li>if the input iterator is done, we&#39;ll return that it&#39;s done</li>
+<li>if the input iterator&#39;s value is either null or undefined, we&#39;ll return that its not done, but won&#39;t provide a value</li>
+<li>otherwise we&#39;ll just pass the incoming thing unaltered</li>
+<li>we don&#39;t need state, so we never specify the state property</li>
+</ul>
+
+<a href="#a-slightly-more-advaced-example-operator-repeateach" id="a-slightly-more-advaced-example-operator-repeateach" style="color: inherit; text-decoration: none;">
+  <h4>A slightly more advaced example operator: RepeatEach</h4>
+</a>
+<p>Let&#39;s write an operator that repeats each value from the input iterator n times on the output iterator:</p>
+<pre><code class="language-typescript"><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-6">opr8RepeatEach</span><span class="hl-1">: </span><span class="hl-9">operatorFactory</span><span class="hl-1">&lt;</span><span class="hl-9">number</span><span class="hl-1">, </span><span class="hl-9">any</span><span class="hl-1">, </span><span class="hl-9">any</span><span class="hl-1">, </span><span class="hl-9">void</span><span class="hl-1">&gt;(</span><br/><span class="hl-1">  (</span><span class="hl-0">nextIn</span><span class="hl-1">, </span><span class="hl-0">state</span><span class="hl-1">, </span><span class="hl-0">count</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-7">if</span><span class="hl-1"> (nextIn.done) {</span><br/><span class="hl-1">      </span><span class="hl-2">return</span><span class="hl-1"> { </span><span class="hl-0">done:</span><span class="hl-1"> </span><span class="hl-3">true</span><span class="hl-1"> };</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">    </span><span class="hl-9">return</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-0">done</span><span class="hl-1">: </span><span class="hl-9">false</span><span class="hl-1">,</span><br/><span class="hl-1">      </span><span class="hl-0">iterable</span><span class="hl-1">: (</span><span class="hl-9">function</span><span class="hl-1">* () { </span><span class="hl-7">for</span><span class="hl-1"> (</span><span class="hl-0">let</span><span class="hl-1"> </span><span class="hl-0">i</span><span class="hl-1"> = </span><span class="hl-8">0</span><span class="hl-1">; </span><span class="hl-0">i</span><span class="hl-1"> &lt; </span><span class="hl-0">count</span><span class="hl-1">; </span><span class="hl-0">i</span><span class="hl-1">++) { </span><span class="hl-2">yield</span><span class="hl-1"> </span><span class="hl-0">nextIn</span><span class="hl-1">.</span><span class="hl-0">value</span><span class="hl-1">; } })(),</span><br/><span class="hl-1">    };</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">  undefined,</span><br/><span class="hl-1">);</span>
+</code></pre>
+<p>As you can see, we use the &#39;iterable&#39; property here, and in order to easily generate an IterableIterator, we use an &#39;immediately invoked function expression&#39;. This is important since a generator function generates an Iterableiterator, so it should be called!</p>
+<p>But you could also assign an array, because thet is also an iterable. But beware that creating an intermediate array will use more memory! I&#39;ll show you the same example with an array here:</p>
+<pre><code class="language-typescript"><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-6">repeatEach</span><span class="hl-1">: </span><span class="hl-9">operatorFactory</span><span class="hl-1">&lt;</span><span class="hl-9">number</span><span class="hl-1">, </span><span class="hl-9">any</span><span class="hl-1">, </span><span class="hl-9">any</span><span class="hl-1">, </span><span class="hl-9">void</span><span class="hl-1">&gt;(</span><br/><span class="hl-1">  (</span><span class="hl-0">nextIn</span><span class="hl-1">, </span><span class="hl-0">state</span><span class="hl-1">, </span><span class="hl-0">count</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-7">if</span><span class="hl-1"> (nextIn.done) {</span><br/><span class="hl-1">      </span><span class="hl-2">return</span><span class="hl-1"> { </span><span class="hl-0">done:</span><span class="hl-1"> </span><span class="hl-3">true</span><span class="hl-1"> };</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">    </span><span class="hl-9">return</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-0">done</span><span class="hl-1">: </span><span class="hl-9">false</span><span class="hl-1">,</span><br/><span class="hl-1">      </span><span class="hl-0">iterable</span><span class="hl-1">: </span><span class="hl-9">Array</span><span class="hl-1">.</span><span class="hl-9">from</span><span class="hl-1">(</span><span class="hl-9">Array</span><span class="hl-1">(</span><span class="hl-9">count</span><span class="hl-1">)).</span><span class="hl-9">map</span><span class="hl-1">(</span><span class="hl-0">x</span><span class="hl-1"> =&gt; </span><span class="hl-0">nextIn</span><span class="hl-1">.</span><span class="hl-0">value</span><span class="hl-1">),</span><br/><span class="hl-1">    };</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">  </span><span class="hl-9">undefined</span><span class="hl-1">,</span><br/><span class="hl-1">);</span>
+</code></pre>
+
+<a href="#an-example-operator-that-needs-some-state-total" id="an-example-operator-that-needs-some-state-total" style="color: inherit; text-decoration: none;">
+  <h4>An example operator that needs some state: total</h4>
+</a>
+<p>What if we have an iterator that holds numbers and we want to calculate the total sum?
+This can only be done by holding on the the &#39;sum so far&#39;, because with each new element we need to add the current value to the value we already have calculated.</p>
+<pre><code class="language-typescript"><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-6">total</span><span class="hl-1"> = </span><span class="hl-7">operatorFactory</span><span class="hl-1">&lt;</span><span class="hl-9">void</span><span class="hl-1">, </span><span class="hl-9">number</span><span class="hl-1">, </span><span class="hl-9">number</span><span class="hl-1">, { </span><span class="hl-0">done</span><span class="hl-1">: </span><span class="hl-9">boolean</span><span class="hl-1">, </span><span class="hl-0">total</span><span class="hl-1">: </span><span class="hl-9">number</span><span class="hl-1"> }&gt;(</span><br/><span class="hl-1">  (</span><span class="hl-0">nextIn</span><span class="hl-1">: </span><span class="hl-9">IteratorResult</span><span class="hl-1">&lt;</span><span class="hl-9">any</span><span class="hl-1">&gt;, </span><span class="hl-0">state</span><span class="hl-1">:{ </span><span class="hl-0">done</span><span class="hl-1">: </span><span class="hl-9">boolean</span><span class="hl-1">, </span><span class="hl-0">total</span><span class="hl-1">: </span><span class="hl-9">number</span><span class="hl-1"> }) </span><span class="hl-3">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-2">if</span><span class="hl-1"> (</span><span class="hl-0">state</span><span class="hl-1">.</span><span class="hl-0">done</span><span class="hl-1">) {</span><br/><span class="hl-1">      </span><span class="hl-2">return</span><span class="hl-1"> { </span><span class="hl-0">done:</span><span class="hl-1"> </span><span class="hl-3">true</span><span class="hl-1"> };</span><br/><span class="hl-1">    } </span><span class="hl-2">else</span><span class="hl-1"> </span><span class="hl-2">if</span><span class="hl-1"> (</span><span class="hl-0">nextIn</span><span class="hl-1">.</span><span class="hl-0">done</span><span class="hl-1">) {</span><br/><span class="hl-1">      </span><span class="hl-2">return</span><span class="hl-1"> { </span><span class="hl-0">done:</span><span class="hl-1"> </span><span class="hl-3">false</span><span class="hl-1">, </span><span class="hl-0">value:</span><span class="hl-1"> </span><span class="hl-0">state</span><span class="hl-1">.</span><span class="hl-0">total</span><span class="hl-1">, </span><span class="hl-0">state:</span><span class="hl-1"> { ...</span><span class="hl-0">state</span><span class="hl-1">, </span><span class="hl-0">done:</span><span class="hl-1"> </span><span class="hl-3">true</span><span class="hl-1"> } };</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">    </span><span class="hl-2">return</span><span class="hl-1"> { </span><span class="hl-0">done:</span><span class="hl-1"> </span><span class="hl-3">false</span><span class="hl-1">, </span><span class="hl-0">state:</span><span class="hl-1"> { ...</span><span class="hl-0">state</span><span class="hl-1">, </span><span class="hl-0">total:</span><span class="hl-1"> </span><span class="hl-0">state</span><span class="hl-1">.</span><span class="hl-0">total</span><span class="hl-1"> + </span><span class="hl-0">nextIn</span><span class="hl-1">.</span><span class="hl-0">value</span><span class="hl-1"> } };</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">  { </span><span class="hl-0">done:</span><span class="hl-1"> </span><span class="hl-3">false</span><span class="hl-1">, </span><span class="hl-0">total:</span><span class="hl-1"> </span><span class="hl-8">0</span><span class="hl-1"> },</span><br/><span class="hl-1">);</span>
+</code></pre>
+<p>Here you can see that we also specified the second argument of the operatorFactory function, which is the initialSate (not done, and the total so far = 0).</p>
+<p>So this iterator will only return a value on the output iterator once the input iterator has finished. Hence the &#39;done&#39; flag on the state to indicate that we&#39;ve seen the last element of the input iterator.</p>
+<ul>
+<li>When we see that we&#39;re done in the state (= the next call after the one where we finally sent a value to the output iterator) we&#39;ll send { done: true }.</li>
+<li>When we see the last element of the input iterator, we don&#39;t modify the sum anymore, but send the total sum as the value, and indicate that there won&#39;t be any more values by setting the &#39;done&#39; flag on the state</li>
+<li>In all other cases, we don&#39;t senda value, but we generate a new version of the state where the &#39;total&#39; property is set to the current state&#39;s total + nextIn.value</li>
+</ul>
+
+<a href="#notes" id="notes" style="color: inherit; text-decoration: none;">
+  <h4>Notes</h4>
+</a>
+<ul>
+<li><p>The function given to operatorFactory can also be ASYNC (useful if you can only know the new state after an async operation).</p>
+</li>
+<li><p>The function given to operatorFactory can also return an ASYNC iterator (useful if you can only know each new elements after another async operation).</p>
+</li>
+</ul>
+
+<a href="#inspiration" id="inspiration" style="color: inherit; text-decoration: none;">
+  <h1>Inspiration</h1>
+</a>
+<p>This section contains background info and random thoughts on how I ended up writing this library, so you can skip this...</p>
+
+<a href="#what-sparked-the-idea" id="what-sparked-the-idea" style="color: inherit; text-decoration: none;">
+  <h2>What sparked the idea</h2>
+</a>
+<p>The idea for this came from my search for a unified way to handle gets from an API, data from files, data in arrays, and I got frustrated that I needed to use HighlandJS for the file thing, but that I couldn&#39;t easily use that same library for handling stuff I got from an API in NodeJS as well as in the browser.</p>
+<ul>
+<li>RxJS, being push based and thus having no easy push-back mechanism, always seemed too limited to me for my use-case.</li>
+<li>Some people claim that &#39;a pull is 2 pushes&#39;, and so theoretically they can solve these problems with RxJS, but that somehow seemed way too complex for me.</li>
+<li>HighlandJS did a great job, but somehow streams always seemed to not be a good base (ever written a transform stream?) also due to streams being NodeJS specific.</li>
+</ul>
+<p>Now all anyone has to do is write a generator function for his use case, and they are good to go.</p>
+<p>It took me a while and a lot of reading to have a clear picture in my head of how I could unify everything I found online in one single solution.</p>
+<p>Some things that I read that helped me to get a better understanding:</p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=4jusLF_Xz7Q">Design Patterns in Functional programming by Scott Wlaschin</a></li>
+<li><a href="http://blog.sigfpe.com/2006/08/you-could-have-invented-monads-and.html">You Could Have Invented Monads! (And Maybe You Already Have.)</a></li>
+<li><a href="https://itnext.io/lossless-backpressure-in-rxjs-b6de30a1b6d4">Lossless backpressue in RxJS</a></li>
+<li>Stuff about CSP which triggered me to understand better where generator functions could be useful.<ul>
+<li><a href="https://tgvashworth.com/2014/08/31/csp-and-transducers.html">https://tgvashworth.com/2014/08/31/csp-and-transducers.html</a></li>
+<li><a href="https://medium.com/free-code-camp/csp-vs-rxjs-what-you-dont-know-1542cd5dd100">https://medium.com/free-code-camp/csp-vs-rxjs-what-you-dont-know-1542cd5dd100</a></li>
+<li><a href="https://medium.com/javascript-scene/transducers-efficient-data-processing-pipelines-in-javascript-7985330fe73d">https://medium.com/javascript-scene/transducers-efficient-data-processing-pipelines-in-javascript-7985330fe73d</a></li>
+<li><a href="https://dev.to/rasmusvhansen/rxjs-transducer---harness-the-power-of-rxjs-operators-1ai8">https://dev.to/rasmusvhansen/rxjs-transducer---harness-the-power-of-rxjs-operators-1ai8</a></li>
+<li><a href="https://github.com/rasmusvhansen/rxjs-transducer">https://github.com/rasmusvhansen/rxjs-transducer</a></li>
+<li><a href="https://benlesh.medium.com/rxjs-observable-interop-with-promises-and-async-await-bebb05306875">https://benlesh.medium.com/rxjs-observable-interop-with-promises-and-async-await-bebb05306875</a></li>
+</ul>
+</li>
+</ul>
+
+<a href="#the-reasoning-behind-this-library" id="the-reasoning-behind-this-library" style="color: inherit; text-decoration: none;">
+  <h2>The reasoning behind this library</h2>
+</a>
+<p>Quote: &quot;So, a transducer is a function that transforms a reducer into another reducer, opening the doors of composition.&quot;</p>
+<p>And composition is what we all want, but there doesn&#39;t seem to be a single way to do things:</p>
+<ul>
+<li>Libraries like RxJS (and IxJS for pull-based) solve it by inventing something new called Observables.</li>
+<li>Using transform streams is cumbersome!</li>
+<li>Other libraries like HighlandJS do something similar to IxJS, but built upon NodeJS streams, which makes it non-browser-friendly (you&#39;d need browserify).</li>
+<li>A project called rxjs-transducer exists that tries to reuse the RxJS &#39;operators&#39; in other contexts, but it seems about arrays and not iterators at first sight.</li>
+<li>The current <a href="https://github.com/tc39/proposal-iterator-helpers">proposal for iterator helpers</a>
+solves things the same way as they have been solved for arrays. The problem with this is that</li>
+</ul>
+<p><strong>the iterator must contain all available operators as properties</strong>, which keeps people from writing
+reuseable new operators, thus people keep solving the same problems over and over again.</p>
+<p>There does not seem to be an easy way to treat all these as essentialy the same.
+It also makes sense to use things that are part of the &quot;standard&quot; as much as possible, as it will produce less friction using it in multiple environments.</p>
+<p>So here is another version of the schema on rxjs.dev that tries to explain what <a href="https://rxjs.dev/guide/observable">RxJS Observables</a> are:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Single</th>
+<th>Multiple</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Pull</strong></td>
+<td>Function</td>
+<td>Iterator</td>
+</tr>
+<tr>
+<td><strong>Push</strong></td>
+<td>Callback function</td>
+<td><del>Observable</del> Async Iterator</td>
+</tr>
+</tbody></table>
+<p>And the more I think about it, the lesser this schema makes sense to me at all, so maybe the schema should be something 3-dimensional and not 2-dimensional like:</p>
+<ul>
+<li>You can get multiple results separated in space or time. Separated in space would be an array, separated in time would be Iterators or Observable.</li>
+<li>A function can either return a result immediately or callback with the response. And that callback could be called once (Promise), or multiple times (Events and Observables).</li>
+<li>A function can always return the same result (stateless) or a different result each time (stateful).
+I should try to get that in a nice schema somehow.</li>
+</ul>
+<p>My conclusion was: you could build something similar based on Iterators, and then you could create operators that work both on sync or async iterators, which solves all these problems with a single solution.
+In my view, if we create a set of functions that take some arguments as input, and that produces functions transforming an existing iterator into a new iterator, we have all we need.</p>
+<p>But because not all iterators can produce the data synchronously, we will need to make sure all of them can handle <em>both synchronous and asynchronous</em> iterators (where a &#39;next()&#39; call will return a Promise). This will allow us to support streams, as well as Observables (+ all the basics like arrays). Actually <a href="https://nodejs.org/api/stream.html#stream_streams_compatibility_with_async_generators_and_async_iterators">NodeJs streams are already AsyncIterables</a> right now, so we don&#39;t even need a helper funtion to use them as a source!</p>
+<p>So with a few utility functions that would make an iterator from its input (array, stream, Observable, ...).</p>
+<pre><code><span class="hl-7">itr8FromArray</span><span class="hl-1">(</span><span class="hl-0">something</span><span class="hl-1">)</span><br/><span class="hl-7">itr8FromStream</span><span class="hl-1">(</span><span class="hl-0">someStream</span><span class="hl-1">) </span><span class="hl-5">// not really needed</span><br/><span class="hl-7">itr8FromObservable</span><span class="hl-1">(</span><span class="hl-0">someStream</span><span class="hl-1">)</span>
+</code></pre>
+<p>We could then write a bunch of &#39;operators&#39; which are simply functions taking an iterator
+(+ some arguments) as input and returning another iterator as output.</p>
+<p>function(...argumants) {
+    return (itr:Iterator) =&gt; Iterator
+}</p>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Modules</a></li><li class=" tsd-kind-module"><a href="modules/index.html">index</a></li><li class=" tsd-kind-module"><a href="modules/interface_observable.html">interface/observable</a></li><li class=" tsd-kind-module"><a href="modules/interface_stream.html">interface/stream</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li><li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>

@@ -1,5 +1,5 @@
 import { isPromise } from 'util/types';
-import { TTransIteratorSyncOrAsync } from "./types";
+import { TNextFnResult, TTransIteratorSyncOrAsync } from "./types";
 import { itr8FromIterable, itr8FromString, itr8Pipe, itr8Proxy } from './';
 
 /**
@@ -84,7 +84,6 @@ const unBatch = function<T>():TTransIteratorSyncOrAsync<T> {
   );
 };
 
-
 /**
  * An operator is a function that takes an iterator as input parameter,
  * and produces a new iterator, which allows easy chaining.
@@ -92,241 +91,18 @@ const unBatch = function<T>():TTransIteratorSyncOrAsync<T> {
  * This is a function that generates an operator that can work both on synchronous and
  * asynchronous iterators, by providing it with a single function of the form
  *
- * (nextOfPreviousIteratorInTheChain, state) => [newIteratorOfIteratorResults, newState] | Promise<[newIteratorOfIteratorResults, newState]>
+ * ```typescript
+ * (nextOfPreviousIteratorInTheChain, state, operatorParams) => TNextFnResult | Promise<[TNextFnResult]>
+ * ```
  * and an initial state
  *
- * Watch out: newIterator should produce ItaratorResults that can be used directly as responses
- * to the next function cakll, so elements looking like: { value: ..., done: boolean } !!!
- *
- * newIterator can be 'empty', which actually means that no next results from the current
- * value of the input stream, and thus the function will be called again until our function
- * actually produces a response like [ newIterator, newState ] where newIterator.next()
- * actually produces a result)
- *
- * The state parameter is used to allow operators to have state, but not all operators need this.
- *
- * For example: a 'map' operator doesn't need state, but the 'skip' operator would need to keep
+ * * nextOfPreviousIteratorInTheChain is the (resolved if async) result of a next call of the input
+ *   iterator. This means it will be of the form { done: true } or { done: false, value: <...> }.
+ * * The state parameter is used to allow operators to have state, but not all operators need this.
+ *   For example: a 'map' operator doesn't need state, but the 'skip' operator would need to keep
  * track of how many records have passed.
- *
- * @param nextFn
- * @param initialState
- * @returns a funtion taking an iterator (and optionally some argument) as input and that has an iterator as output
- */
-// const oldOperatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
-//   nextFn: (nextIn:IteratorResult<TIn>, state:any, params:any) =>
-//           [
-//             Iterator<IteratorResult<TOut>> | AsyncIterator<IteratorResult<TOut>>,
-//             TState
-//           ] |
-//           Promise<[
-//             Iterator<IteratorResult<TOut>> | AsyncIterator<IteratorResult<TOut>>,
-//             TState
-//           ]>,
-//   initialState: TState,
-// ):(params:TParams) => TTransIteratorSyncOrAsync<TIn, TOut> {
-//   return function(params:TParams):TTransIteratorSyncOrAsync<TIn, TOut> {
-//     return (itIn:Iterator<TIn> | AsyncIterator<TIn>) => {
-//       let nextInPromiseOrValue:IteratorResult<TIn> | Promise<IteratorResult<TIn>> | undefined = undefined;
-//       let nextIn: IteratorResult<TIn> | undefined = undefined;
-//       let isAsyncInput:boolean | undefined = undefined;
-//       let isAsyncNextFn:boolean | undefined = undefined;
-//       let state = initialState;
-//       let curNextFnResultPromiseOrValue:[
-//             Iterator<IteratorResult<TOut>> | AsyncIterator<IteratorResult<TOut>>,
-//             TState
-//           ]
-//           |
-//           Promise<[
-//             Iterator<IteratorResult<TOut>> | AsyncIterator<IteratorResult<TOut>>,
-//             TState
-//           ]>
-//           | undefined
-//         = undefined;
-//       let curNextFnResult:[
-//             Iterator<IteratorResult<TOut>> | AsyncIterator<IteratorResult<TOut>>,
-//             TState
-//           ]
-//           | undefined
-//         = undefined;
-
-//       let isAsyncNextFnResultIterator:boolean | undefined = undefined;
-//       let possibleNextPromiseOrValue:IteratorResult<IteratorResult<TOut>>
-//             | Promise<IteratorResult<IteratorResult<TOut>>>
-//             | undefined
-//         = undefined;
-//       let done = false;
-
-//       const generateNextReturnValAsync = async (outputIteratorNextCalled:boolean) => {
-//         if (done) {
-//           return { value: undefined, done: true };
-//         }
-
-//         if (curNextFnResultPromiseOrValue === undefined) {
-//           nextIn = (isAsyncInput ? await nextInPromiseOrValue : nextInPromiseOrValue) as IteratorResult<TIn>;
-//           curNextFnResultPromiseOrValue = nextFn(nextIn as IteratorResult<TIn>, state, params);
-//           isAsyncNextFn = isPromise(curNextFnResultPromiseOrValue);
-//         }
-//         curNextFnResult = (isAsyncNextFn ? await curNextFnResultPromiseOrValue : curNextFnResultPromiseOrValue) as [Iterator<IteratorResult<TOut>> | AsyncIterator<IteratorResult<TOut>>, TState];
-//         state = curNextFnResult[1];
-
-//         if (!outputIteratorNextCalled && curNextFnResult !== undefined) {
-//           possibleNextPromiseOrValue = curNextFnResult[0].next();
-//           isAsyncNextFnResultIterator = isPromise(possibleNextPromiseOrValue);
-//         }
-
-//         // console.log('operatorFactory: something in the chain is async', 'async input', isAsyncInput, 'async nextFn', isAsyncNextFn, 'nextFn\'s returned iterator is async', isAsyncNextFnResultIterator);
-
-//         let possibleNext = (isAsyncNextFnResultIterator ? await possibleNextPromiseOrValue : possibleNextPromiseOrValue) as IteratorResult<IteratorResult<TOut>>;
-//         // console.log( '    possibleNextPromiseOrValue', possibleNextPromiseOrValue);
-
-//         while (possibleNext.done) {
-//           // console.log( '    done is true, try to call nextFn again');
-
-//           // previous iterator is done, call nextFn again
-//           nextInPromiseOrValue = itIn.next();
-//           nextIn = await nextInPromiseOrValue as IteratorResult<TIn>;
-//           curNextFnResultPromiseOrValue = nextFn(nextIn, state, params);
-//           curNextFnResult = (isAsyncNextFn ? await curNextFnResultPromiseOrValue : curNextFnResultPromiseOrValue) as [Iterator<IteratorResult<TOut>> | AsyncIterator<IteratorResult<TOut>>, TState];
-//           state = curNextFnResult[1];
-//           possibleNextPromiseOrValue = curNextFnResult[0].next();
-//           // console.log( '    possibleNextPromiseOrValue', possibleNextPromiseOrValue);
-//           possibleNext = (isAsyncNextFnResultIterator ? await possibleNextPromiseOrValue : possibleNextPromiseOrValue) as IteratorResult<IteratorResult<TOut>>;
-//         }
-//         // the value from the iterator must contain a valid response
-//         // console.log( '    next() will return', possibleNext.value);
-//         if (possibleNext.done) done = true;
-//         return possibleNext.value;
-//       };
-
-//       const generateNextReturnValSync = (iteratorNextCalled:boolean) => {
-//         if (done) {
-//           return { value: undefined, done: true };
-//         }
-//         // console.log('    operatorFactory: the entire chain is synchronous', 'async input:', isAsyncInput, 'async nextFn:', isAsyncNextFn, 'nextFn\'s returned iterator is async', isAsyncNextFnResultIterator);
-//         if (curNextFnResultPromiseOrValue === undefined) {
-//           nextIn = nextInPromiseOrValue as IteratorResult<any>;
-//           curNextFnResultPromiseOrValue = nextFn(nextIn, state, params);
-//         }
-//         curNextFnResult = curNextFnResultPromiseOrValue as [Iterator<IteratorResult<TOut>>, TState];
-//         state = curNextFnResult[1];
-
-//         if (!iteratorNextCalled) {
-//           possibleNextPromiseOrValue = curNextFnResult[0].next() as IteratorResult<IteratorResult<TOut>>;
-//         }
-
-//         let possibleNext = possibleNextPromiseOrValue as IteratorResult<IteratorResult<TOut>>;
-//         // console.log( '    possibleNext', possibleNext);
-
-//         while (possibleNext.done) {
-//           // console.log( '    done is true, try to call nextFn again');
-
-//           // previous iterator is done, call nextFn again
-//           nextInPromiseOrValue = itIn.next() as IteratorResult<any>;
-//           nextIn = nextInPromiseOrValue;
-//           curNextFnResultPromiseOrValue = nextFn(nextIn, state, params);
-//           curNextFnResult = curNextFnResultPromiseOrValue as [Iterator<IteratorResult<TOut>>, TState];
-//           if (curNextFnResult !== undefined) {
-//             state = curNextFnResult[1];
-//             possibleNextPromiseOrValue = curNextFnResult[0].next() as IteratorResult<IteratorResult<TOut>>;
-//             possibleNext = possibleNextPromiseOrValue as IteratorResult<IteratorResult<TOut>>;
-//             // console.log( '    possibleNext', possibleNext);
-//           }
-//         }
-//         // the value from the iterator must contain a valid response
-//         // console.log( '    next() will return', possibleNext.value);
-//         if (possibleNext.done) done = true;
-//         return possibleNext.value;
-//       };
-
-//       ////////////////////////////////////////////////////////////////////////////////
-//       // Here is the returned TPipeable & IterableIterator
-//       ////////////////////////////////////////////////////////////////////////////////
-//       const retVal = {
-//         // return the current (async?) iterator to make it an iterable iterator (so we can use for ... of)
-//         // since we can only know whether the output will be sync or async after the first next call,
-//         // we'll expose both iterator and asynciterator functions...
-//         [Symbol.iterator]: () => retVal,
-//         [Symbol.asyncIterator]: () => retVal,
-//         // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
-//         next: () => {
-//           if (nextInPromiseOrValue === undefined) {
-//             nextInPromiseOrValue = itIn.next();
-//             // only check this on the first next call ever (we don't allow mixing async and sync)
-//             isAsyncInput = isPromise(nextInPromiseOrValue);
-//           }
-
-//           if (!isAsyncInput && curNextFnResultPromiseOrValue === undefined) {
-//             nextIn = nextInPromiseOrValue as IteratorResult<any>;
-//             curNextFnResultPromiseOrValue = nextFn(nextIn, state, params);
-//             isAsyncNextFn = isPromise(curNextFnResultPromiseOrValue);
-//           }
-
-//           if (isAsyncInput || isAsyncNextFn || isAsyncNextFnResultIterator) {
-//             ////////////////////////////////////////////////////////////////////////////////
-//             // The async case
-//             ////////////////////////////////////////////////////////////////////////////////
-//             return generateNextReturnValAsync(false);
-//           } else {
-//             ////////////////////////////////////////////////////////////////////////////////
-//             // The 'maybe synchronous' case (depends on nextFn's returned iterator)
-//             ////////////////////////////////////////////////////////////////////////////////
-
-//             curNextFnResult = curNextFnResultPromiseOrValue as [Iterator<IteratorResult<TOut>>, TState];
-//             state = curNextFnResult[1];
-
-//             let outputIteratorNextCalled = false;
-
-//             if (possibleNextPromiseOrValue === undefined) {
-//               possibleNextPromiseOrValue = curNextFnResult[0].next();
-//               outputIteratorNextCalled = true;
-//             }
-
-//             if (isAsyncNextFnResultIterator === undefined) {
-//               isAsyncNextFnResultIterator = isPromise(possibleNextPromiseOrValue);
-//             }
-
-//             if (isAsyncNextFnResultIterator) {
-//               return generateNextReturnValAsync(outputIteratorNextCalled);
-//             } else {
-//               return generateNextReturnValSync(outputIteratorNextCalled);
-//             }
-//           }
-//         },
-//       };
-
-//       return itr8Proxy(retVal as any);
-//     }
-//   }
-// };
-
-// the type combining the result is complex, maybe we should create multiple
-// operatorFactory functions?
-
-type TNextFnResult<TOut, TState> =
-      { done: true } | ( { done: false, state?: TState } & ({} | { value: TOut } | { iterable: Iterable<TOut> }) )
-
-/**
- * An operator is a function that takes an iterator as input parameter,
- * and produces a new iterator, which allows easy chaining.
- *
- * This is a function that generates an operator that can work both on synchronous and
- * asynchronous iterators, by providing it with a single function of the form
- *
- * (nextOfPreviousIteratorInTheChain, state) => [newIteratorOfIteratorResults, newState] | Promise<[newIteratorOfIteratorResults, newState]>
- * and an initial state
- *
- * Watch out: newIterator should produce ItaratorResults that can be used directly as responses
- * to the next function cakll, so elements looking like: { value: ..., done: boolean } !!!
- *
- * newIterator can be 'empty', which actually means that no next results from the current
- * value of the input stream, and thus the function will be called again until our function
- * actually produces a response like [ newIterator, newState ] where newIterator.next()
- * actually produces a result)
- *
- * The state parameter is used to allow operators to have state, but not all operators need this.
- *
- * For example: a 'map' operator doesn't need state, but the 'skip' operator would need to keep
- * track of how many records have passed.
+ * * The operator params are the argument that is given to the operator function, like a number for
+ *   a 'take' operator, or the filter function for a 'filter' operator.
  *
  * @param nextFn
  * @param initialState
@@ -856,7 +632,7 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
 /**
  * Translate each element into something else by applying the fn function to each element.
  * 
- * The mapping function can be asynchronous!
+ * The mapping function can be asynchronous (in which case the resulting iterator will be asynchronous regardless of the input iterator)!
  *
  * @param it
  * @param fn
@@ -896,7 +672,8 @@ const map = operatorFactory<(any) => any, any, any, void>(
 
 /**
  * Only keep elements where the filter function returns true.
- * 
+ *
+ * The filter function can be asynchronous (in which case the resulting iterator will be asynchronous regardless of the input iterator)!
  */
 const filter = operatorFactory<(any) => boolean | Promise<boolean>, any, any, void>(
   (nextIn, state, filterFn) => {
@@ -935,7 +712,6 @@ const filter = operatorFactory<(any) => boolean | Promise<boolean>, any, any, vo
 /**
  * Skip the 'amount' first elements and return all the others unchanged.
  *
- * @param it
  * @param amount
  */
 const skip = operatorFactory<number, any, any, number>(
@@ -957,8 +733,8 @@ const skip = operatorFactory<number, any, any, number>(
 /**
  * Only take 'amount' elements and then stop.
  *
- * (Beware: if the source is an Observable or a stream, it will not known that we stopped,
- * so the buffer willkeep building up. The observable or stream should be closed by the user!)
+ * (Beware: if the source is an Observable or a stream, it will not know that we stopped,
+ * so the buffer will keep building up. The observable or stream should be closed by the user!)
  *
  * @param it
  * @param amount
@@ -980,8 +756,9 @@ const limit = operatorFactory<number, any, any, number>(
 // );
 
 /**
- * Group the incoming elements and push arrays/tuples of a certain number of elements
- * further into the next iterator
+ * Group the incoming elements so the output iterator will return arrays/tuples of a certain size.
+ * @example
+ * itr8FromArray([ 1, 2, 3, 4, 5, 6 ]).pipe(groupPer(2)) => [ [1, 2], [3, 4], [5, 6] ]
  */
 const groupPer = operatorFactory<number, any, any, {done: boolean, buffer: any[]}>(
   (nextIn: IteratorResult<any>, state:{ done: boolean, buffer:any[] }, batchSize:number) => {
@@ -1022,7 +799,8 @@ const groupPer = operatorFactory<number, any, any, {done: boolean, buffer: any[]
 
 /**
  * The incoming elements are arrays, and send out each element of the array 1 by one.
- * Example: [ [1, 2], [3, 4], [5, 6] ] => [ 1, 2, 3, 4, 5, 6 ]
+ * @example
+ * itr8FromArray([ [1, 2], [3, 4], [5, 6] ]).pipe(flatten()) => [ 1, 2, 3, 4, 5, 6 ]
  */
 const flatten = operatorFactory<void, any, any, void>(
   (nextIn, state, params) => {
@@ -1044,7 +822,8 @@ const flatten = operatorFactory<void, any, any, void>(
 
 /**
  * Output a single thing containing the sum of all values.
- *
+ * @example
+ * itr8FromArray([ 1, 2, 3, 4 ]).pipe(total()) => [ 10 ]
  * @param it
  * @param amount
  */
@@ -1082,7 +861,8 @@ const total = operatorFactory<void, number, number, { done: boolean, total: numb
 
 /**
  * On every item, output the total so far.
- *
+ * @example
+ * itr8FromArray([ 1, 2, 3, 4 ]).pipe(runningTotal()) => [ 1, 3, 6, 10 ]
  * @param it
  * @param amount
  */
@@ -1115,6 +895,8 @@ const runningTotal = operatorFactory<void, number, number, number>(
 
 /**
  * Takes all strings from the input and outputs them as single characters
+ * @example
+ * itr8FromArray([ 'hello', 'world' ]).pipe(sctringToChar()) => [ 'h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd' ]
  */
 const stringToChar = operatorFactory<void, string, string, void>(
     (nextIn: IteratorResult<string>, state) => {
@@ -1152,6 +934,10 @@ const stringToChar = operatorFactory<void, string, string, void>(
 
 /**
  * like string.split => output arrays of elements and use the given parameter as a delimiter
+ * @example
+ * itr8FromArray([ 'hello', '|', 'world' ]).pipe(split('|')) => [ ['hello'], ['world'] ]
+ * @example
+ * itr8FromArray([ 1, true, 2, 3, true, 4 ]).pipe(split(true)) => [ [1], [2,3], [4] ]
  */
 const split = operatorFactory<any, any, any, any[] | undefined>(
     (nextIn:any, state, delimiter) => {
@@ -1196,6 +982,7 @@ const split = operatorFactory<any, any, any, any[] | undefined>(
 
 /**
  * Simply delay every element by the given nr of milliseconds.
+ * (Will always produce an async iterator!).
  */
 const delay = operatorFactory<number, any, any, void>(
   (nextIn, state, timeout) => {
@@ -1211,6 +998,8 @@ const delay = operatorFactory<number, any, any, void>(
 /**
  * The input must be a stream of characters,
  * and the output will be 1 string for each line (using \n as the line separator)
+ * @example
+ * itr8FromArray([ 'h', 'e', 'l', 'l', 'o', '\n', 'w', 'o', 'r', 'l', 'd' ]).pipe(lineByLine()) => [ 'hello', 'world' ]
  *
  */
 const lineByLine = () => itr8Pipe(
@@ -1242,14 +1031,15 @@ const lineByLine = () => itr8Pipe(
 
 /**
  * produces a function that can be applied to an iterator and that will execute
- * the handler on each elemen
+ * the handler on each value.
  *
- * @todo allow an async handler on a synchronous iterator !!!
- *       (while keeping the sync handler on sync iterator synchronous)
- * @todo add parameters to configure the parallellism (default: 1)
- *       which would be useful for async handlers and whihc would replace a lot of the p-... utils
+ * The handler can be asynchronous!
+ * By default the next will only be handled when the current handler has finished.
+ * If you set options.concurrency to a higher value, you are allowing multiple handlers
+ * to run in parallel.
  *
  * @param handler
+ * @param options: { concurrency: number } will control how many async handler are alowed to run in parallel. Default: 1
  * @returns
  */
 const forEach = function<T=any>(handler:(T) => void | Promise<void>, options?:{ concurrency?:number }):((it:Iterator<T> | AsyncIterator<T>) => void) {

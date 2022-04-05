@@ -55,20 +55,27 @@ function itr8Pipe<TIn=any,TOut=any>(
  *  * a pipe(operator) function to allow for easy composition of transIt operators
  *    to an iterable
  *
- * We often need to read backwards due to the lack of a |> operator in Javascript/Typescript.
+ * We often need to read backwards (first filter, then map) due to the current lack of
+ * a |> operator in Javascript/Typescript.
+ * ```typescript
  *    map(mapFn)(
  *      filter(filterFn)(
  *        iterator
  *      )
  *    )
+ * ```
  * but due to the pipe function this would become
- *    iterator
- *      .pipe(map(mapFn))
+ * ```typescript
+ *    itr8Proxy(iterator)
  *      .pipe(filter(filterFn))
- * which is closer to the even more readable future syntax
+ *      .pipe(map(mapFn))
+ * ```
+ * which is closer to the even more readable (future?) syntax:
+ * ```typescript
  *    iterator
+ *      |> filter(filterFn)`
  *      |> map(mapFn)
- *      |> filter(filterFn)
+ * ```
  *
  * @param iterator
  * @returns an iterator augmented with auseful pipe function
@@ -231,7 +238,7 @@ function itr8ToArray<T>(iterator: Iterator<T> | AsyncIterator<T>): Array<T | any
 
 /**
  * Utility function that produces an iterator
- * producing integers starting an ending where you want,
+ * producing integers starting and ending where you want,
  * which is useful for trying out stuff without manually
  * having to create arrays.
  *
@@ -260,7 +267,7 @@ function itr8Range(from: number, to: number):TPipeable & IterableIterator<number
 
 /**
  * Utility function that produces an (async) iterator
- * producing integers starting an ending where you want,
+ * producing integers starting and ending where you want,
  * which is useful for trying out stuff without manually
  * having to create arrays.
  *
@@ -286,6 +293,8 @@ function itr8RangeAsync(from: number, to: number):TPipeable & AsyncIterableItera
 }
 
 export * from './transIterators'
+
+export { TPipeable, TTransIteratorSyncOrAsync, TNextFnResult } from './types'
 
 export {
   itr8Proxy,

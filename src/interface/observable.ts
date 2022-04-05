@@ -3,7 +3,7 @@ import { itr8Proxy } from '..';
 import { TPipeable } from '../types';
 
 /**
- * Turns an observable into an AsyncIterableIterator,
+ * Turns an Observable into an AsyncIterableIterator,
  * so we can use all itr8 operators on it.
  *
  * @param observable 
@@ -56,7 +56,7 @@ function itr8FromObservable<T>(observable:Observable<T>):TPipeable & AsyncIterab
 }
 
 /**
- * Turns an AsyncIterableIterator,
+ * Turns an AsyncIterableIterator into an Observable,
  * so we can use all RxJS operators on it.
  *
  * @param observable 

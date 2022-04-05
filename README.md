@@ -1,12 +1,19 @@
 # itr8
 
-DISCLAIMER: This is work in progress, and although a fair amount of functionality seems to work, things might still change along the way...
+DISCLAIMER: This is work in progress (including the docs), and although a fair amount of functionality seems to work, things might still change along the way...
 
 An experiment to create a unified interface over both [synchronous](https://www.javascripttutorial.net/es6/javascript-iterator/) and [asynchronous iterators](https://www.javascripttutorial.net/es-next/javascript-asynchronous-iterators/) such that the same iterator-operators (cfr. RxJS operators like filter, map, ...) can be used in various contexts (plain arrays, NodeJS streams, Observables, page-by-page database queries by writing an async generator function, page-by-age API queries, ...).
 
-If you work with 'batches' (getting multiple records at a time), but you still want to do record-per-record processing, this library will help you as well by also abstracting the batching logic away. This way, when your 'operator-chain' works on a simple array, it will also work on batches of these records. This way you can focus on the problem that is specific, instead of solving the same problem over and over again.
+## Who is it for?
 
-It is also easy to create your own (sync or async) operators so you are in no way limited to the operators provided in this library. In fact, I think the essence of this library lies in the operatorFactory function, rather than the implemented operators.
+If you ever found yourself in one of these situations, this library might be useful for you:
+ * You needed to do some filtering or mapping of some data (stored in an array for example), but the filter or map function is _asynchronous_. So instead of simply writing `araay.filter(...).map(...)` you had to add a bunch of code to make it work like you wanted (maybe using sindresorhus' promise-fun here and there to keep things under control). As a result, your code suddenly becomes hard to read, even if the problem you needed to solve was actually quite simple.
+ * You have some data manipulation that works properly over a small array, but now you have to apply it on a a huge file that doesn't fit in memory, and now you need to entirely rewrite your code to handle this new situation.
+ * You need to get some data from an API that is 'page-oriented' (it only returns a limited number of results, and in order to get the next set of results you need to do another call). You need some manipulation on each single element of the set. Now you need to write additional logic to apply your algorithm to every element of each batch that you are processing that has nothing to do with the core problem you are trying to solve.
+ * You were thrilled by RxJS, but found out it cannot be used easily when the data comes in at a higher pace than you can handle (files, db, API) and implementing pushback in RxJS feels 'wrong'.
+ * You've tried to implement a transform stream in NodeJS but found it quite cumbersome.
+ * In general: when you have the feeling you have solved the same problem a few too many times.
+ * You've used another library like IxJS, iter-tools or HighlandJS, but don't know how to write your own 'operators' in one of them.
 
 ## Why not RxJS, IxJS, iter-tools, HighlandJS, ...?
 
@@ -15,7 +22,7 @@ It is also easy to create your own (sync or async) operators so you are in no wa
 * iter-tools: same here, how to write your own operators?
 * HighlandJS is stream based, which makes it NodeJS only (at least without browserify). Also, streams are kind of cumbersome,a dn the sync and async iterator protocols are dead simple and part of the standard.
 
-So, while all these libraries have their meri, none of them convered my needs well enough, so at a certain point things became clear enough in my head to write my own library.
+So, while all these libraries have their merit, none of them convered my needs well enough, so at a certain point things became clear enough in my head to write my own library.
 ## Getting started
 
     npm install mrft/itr8
@@ -25,20 +32,6 @@ import * as itr8 from 'itr8'
 
 // create an iterator to start from
 const myIterator = itr8.range(0, 10_000_000); // or itr8.fromArray([...])
-
-// due to the current lack of the |> operator
-// we'll create our combined 'trans-iterator' with a utility function
-const transIt = itr8.itr8Pipe(
-    itr8.map((x) => x / 2),
-    itr8.filter((x) => x % 3 === 0),
-    itr8.skip(5),
-    itr8.limit(50),
-);
-
-// we can use standard JS 'for ... of' to loop over an iterable
-for (let x of transIt(myIterator)) {
-  console.log(x);
-}
 
 // All iterables returned by itr8 are also 'pipeable', meaning that each returned iterator also exposes a pipe function to add other operators to the chain
 const myTransformedIterator = itr8.itr8Proxy(myIterator)
@@ -57,32 +50,54 @@ const myTransformedIterator2 = itr8.itr8Proxy(myIterator)
     .pipe(itr8.skip(5))
     .pipe(itr8.limit(50))
 );
+
+// we can create a new 'trans-iterator' or operator by combining some existing operators with a utility function
+const transIt = itr8.itr8Pipe(
+    itr8.map((x) => x / 2),
+    itr8.filter((x) => x % 3 === 0),
+    itr8.skip(5),
+    itr8.limit(50),
+);
+
+// need to do something on every element, use forEach (yes it will handle async handlers as well, you can even control the concurrency easily)
+forEach(
+  async (id) => {
+    const descr = await getElementFromDisk(id);
+    console.log('element = ', descr);
+  },
+)
+(myTransformedIterator)
+// TODO: should be pipeable into forEach like this:
+// myTransformedIterator.pipe(
+//   forEach((element) => {
+//     console.log('element = ', element);
+//   }),
+// );
+
+// we can use standard JS 'for ... of' to loop over an iterable
+for (let x of myTransformedIterator2) {
+  console.log(x);
+}
+
 ```
 
 ## TODO
 
-* Finish the forEach, so it can:
-  * just work regardless whether the input iterator is sync or async
-  * can be an asynchronous function, making sure it will wait for the previous one to finish before taking the next (one of my frustrations with array.forEach)
-  * can be given options that allow for (limited or unlimited) parallelism
 * General code cleanup
 * Writing more and better documentation
 * Add more operators
   * debounce
   * throttle
+  * ...
 * Add more 'generators' for typical cases like file input, db paga-per-page processing?
-* Investigate if performance can be improved for async iterators by batching multiple records together in one promise, without exposing this to the user, such that they don't have to change their algorithm (= the chain of operators). Although this idea started as having to do with performance, it is actually quite powerful because the user can reuse the same algorithm on one-by-on or page-by-page streams, which keeps the code clean and only about the essence.
-  * Why: async is slower due to going thrpough the event loop multiple times, but if we put multiple items of the source stream together, the number of 'awaits' would drop significantly which should produce a big speedup (especially with long pipes of sync operators that happen to be called on an asyncronous input stream).
-  * I don't feel that supporting somethng weird like a SemiAsyncIterator (that can either produce the next value synchronously or return a promise) would be a good idea.
-  * I am thinking about just adding batch(size) and isBatch() operators (and maybe unBatch or deBatch to output the result as single items, and maybe reBatch for changing the batch size efficiently?) in the pipeline which would do the following: add an extra flag property to the iterator that is being produced such that the rest of the operators will know that the iterable they get as input actually represents single elements, such that the user should not 'think' in terms of the batchesbut in single elements (you don't want to force someone to change their algorithm significantly just for performance optimisations)
-    * batch(size) would take 'size' elements from the input and output batches of that size (+ add the flag so the next operator knows this)
-    * isBatch() would just add the flag, which is kind of like adding a flatten in between (already containing 'arrays' as the value in each next()'s value), but because you keep the elements together should be more efficient
-    * unBatch would effectively again produce an asyc iterator that outputs all the elements separately (if you wnat to use the iterator somewhere else, and not solely this library)
-    * reBatch would be like creating a new batch size (maybe input and output batch sizes differ) but not by using flatten().group() as that would produces an iterator outputting all elements separately in between, and that is not very efficient.
-  * CURRENT IMPLEMENTATION WILL GROW AND SHRINK BATCH SIZE depending on the operation (filter could shrink batches significatnly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always 'unBatch |> batch(size)' to force a new batch size, but it could be more efficient if the operatorFactory handles the batch size and keeps it constant throughtout the chain.
+* Further improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significatnly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always `unBatch |> batch(size)` to force a new batch size, but it could be more efficient if the operatorFactory handles the batch size and keeps it constant throughtout the chain.
 ## What is a transIterator?
 
 It is simply a function with an iterator as single argument which will return another iterator. So it transforms iterators, which is why I have called it transIterator (~transducers).
+
+### WHat is the difference between a transIterator and an operator?
+
+An operator is 'a function that generates a transIterator'. So for example filter(...) is an operator, because when called with an argument (the filter function) the result of that will be another function which is the transIterator.
 
 ## Writing your own operators
 
@@ -223,11 +238,39 @@ So this iterator will only return a value on the output iterator once the input 
 
 * The function given to operatorFactory can also return an ASYNC iterator (useful if you can only know each new elements after another async operation).
 
-## The reasoning behind it
+
+# Inspiration
+
+This section contains background info and random thoughts on how I ended up writing this library, so you can skip this...
+## What sparked the idea
+
+The idea for this came from my search for a unified way to handle gets from an API, data from files, data in arrays, and I got frustrated that I needed to use HighlandJS for the file thing, but that I couldn't easily use that same library for handling stuff I got from an API in NodeJS as well as in the browser.
+* RxJS, being push based and thus having no easy push-back mechanism, always seemed too limited to me for my use-case.
+* Some people claim that 'a pull is 2 pushes', and so theoretically they can solve these problems with RxJS, but that somehow seemed way too complex for me.
+* HighlandJS did a great job, but somehow streams always seemed to not be a good base (ever written a transform stream?) also due to streams being NodeJS specific.
+
+Now all anyone has to do is write a generator function for his use case, and they are good to go.
+
+It took me a while and a lot of reading to have a clear picture in my head of how I could unify everything I found online in one single solution.
+
+Some things that I read that helped me to get a better understanding:
+* [Design Patterns in Functional programming by Scott Wlaschin](https://www.youtube.com/watch?v=4jusLF_Xz7Q)
+* [You Could Have Invented Monads! (And Maybe You Already Have.)](http://blog.sigfpe.com/2006/08/you-could-have-invented-monads-and.html)
+* [Lossless backpressue in RxJS](https://itnext.io/lossless-backpressure-in-rxjs-b6de30a1b6d4)
+* Stuff about CSP which triggered me to understand better where generator functions could be useful.
+  * https://tgvashworth.com/2014/08/31/csp-and-transducers.html
+  * https://medium.com/free-code-camp/csp-vs-rxjs-what-you-dont-know-1542cd5dd100
+  * https://medium.com/javascript-scene/transducers-efficient-data-processing-pipelines-in-javascript-7985330fe73d
+  * https://dev.to/rasmusvhansen/rxjs-transducer---harness-the-power-of-rxjs-operators-1ai8
+  * https://github.com/rasmusvhansen/rxjs-transducer
+  * https://benlesh.medium.com/rxjs-observable-interop-with-promises-and-async-await-bebb05306875
+
+## The reasoning behind this library
+
 Quote: "So, a transducer is a function that transforms a reducer into another reducer, opening the doors of composition."
 
 And composition is what we all want, but there doesn't seem to be a single way to do things:
-* Libraries like RxJS (and IxJS for pull-based) solve it by inventing something new called Observables, and it doesn't seem easy to build your own operators.
+* Libraries like RxJS (and IxJS for pull-based) solve it by inventing something new called Observables.
 * Using transform streams is cumbersome!
 * Other libraries like HighlandJS do something similar to IxJS, but built upon NodeJS streams, which makes it non-browser-friendly (you'd need browserify).
 * A project called rxjs-transducer exists that tries to reuse the RxJS 'operators' in other contexts, but it seems about arrays and not iterators at first sight.
@@ -244,9 +287,14 @@ So here is another version of the schema on rxjs.dev that tries to explain what 
 |          | Single   | Multiple
 | -------- | ------   | --------
 | **Pull** | Function | Iterator
-| **Push** | Promise  | ~~Observable~~ Async Iterator
+| **Push** | Callback function | ~~Observable~~ Async Iterator
 
-(and the more I think about it, the lesser this schema makes sense to me at all)
+And the more I think about it, the lesser this schema makes sense to me at all, so maybe the schema should be something 3-dimensional and not 2-dimensional like:
+* You can get multiple results separated in space or time. Separated in space would be an array, separated in time would be Iterators or Observable.
+* A function can either return a result immediately or callback with the response. And that callback could be called once (Promise), or multiple times (Events and Observables).
+* A function can always return the same result (stateless) or a different result each time (stateful).
+I should try to get that in a nice schema somehow.
+
 
 My conclusion was: you could build something similar based on Iterators, and then you could create operators that work both on sync or async iterators, which solves all these problems with a single solution.
 In my view, if we create a set of functions that take some arguments as input, and that produces functions transforming an existing iterator into a new iterator, we have all we need.
@@ -265,44 +313,3 @@ We could then write a bunch of 'operators' which are simply functions taking an 
 function(...argumants) {
     return (itr:Iterator) => Iterator
 }
-
-# Thoughts
-
-It would be ideal if we could use the |> syntax so we could chain them in a readable way, but until that is the case, a pipe function that takes a number of tuples containing the operator and its arguments and links them together would solve that issue (like it's done in RxJS and many other places).
-
-    map(
-      filter(
-        itr,
-        isEven,
-      ),
-      incrementBy5,
-    )
-
-is harder to read than
-
-    itr |> filter(isEven) |> map(incrementBy5)
-
-but for now tha .pipe(...operator) method and itr8Pipe(...operators) will be a good enough alternative.
-# Inspiration
-
-The idea for this came from my search for a unified way to handle gets from an API, data from files, data in arrays, and I got frustrated that I needed to use HighlandJS for the file thing, but that I couldn't easily use that same library for handling stuff I got from an API in NodeJS as well as in the browser.
-* RxJS, being push based and thus having no easy push-back mechanism, always seemed too limited to me for my use-case.
-* Some people claim that 'a pull is 2 pushes', and so theoretically they can solve these problems with RxJS, but that somehow seemed way too complex for me.
-* HighlandJS did a great job, but somehow streams always seemed to not be a good base (ever written a transform stream?) also due to streams being NodeJS specific.
-
-Now all anyone has to do is write a generator function for his use case, and they are good to go.
-
-It took me a while and a lot of reading to have a clear picture in my head of how I could unify everything I found online in one single solution.
-
-Stuff that I read that helped me to get a better understanding:
-* [Design Patterns in Functional programming by Scott Wlaschin](https://www.youtube.com/watch?v=4jusLF_Xz7Q)
-* [You Could Have Invented Monads! (And Maybe You Already Have.)](http://blog.sigfpe.com/2006/08/you-could-have-invented-monads-and.html)
-* [Lossless backpressue in RxJS](https://itnext.io/lossless-backpressure-in-rxjs-b6de30a1b6d4)
-* Stuff about CSP which triggered me to understand better where generator functions could be useful.
-  * https://tgvashworth.com/2014/08/31/csp-and-transducers.html
-  * https://medium.com/free-code-camp/csp-vs-rxjs-what-you-dont-know-1542cd5dd100
-  * https://medium.com/javascript-scene/transducers-efficient-data-processing-pipelines-in-javascript-7985330fe73d
-  * https://dev.to/rasmusvhansen/rxjs-transducer---harness-the-power-of-rxjs-operators-1ai8
-  * https://github.com/rasmusvhansen/rxjs-transducer
-  * https://benlesh.medium.com/rxjs-observable-interop-with-promises-and-async-await-bebb05306875
-
