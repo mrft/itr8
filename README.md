@@ -36,14 +36,6 @@ const myTransformedIterator2 = itr8.itr8Proxy(myIterator)
     .pipe(itr8.limit(50))
 );
 
-// we can create a new 'trans-iterator' or operator by combining some existing operators with a utility function
-const transIt = itr8.itr8Pipe(
-    itr8.map((x) => x / 2),
-    itr8.filter((x) => x % 3 === 0),
-    itr8.skip(5),
-    itr8.limit(50),
-);
-
 // use forEach to do something with every element (it will handle async handlers as well, you can even control the concurrency easily)
 forEach(
   async (id) => {
@@ -63,6 +55,16 @@ forEach(
 for (let x of myTransformedIterator2) {
   console.log(x);
 }
+
+// we can create a new 'transIterator' by combining some existing operators with a utility function
+const transIt = itr8.itr8Pipe(
+    itr8.map((x) => x / 2),
+    itr8.filter((x) => x % 3 === 0),
+    itr8.skip(5),
+    itr8.limit(50),
+);
+// an 'operator' is a function that produces as transIterator
+const myOperator = () => transIt;
 ```
 You, can find some more [documentation](#documentation) further in this file.
 
