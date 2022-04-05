@@ -4,36 +4,46 @@ import { itr8FromIterable, itr8FromString, itr8Pipe, itr8Proxy } from './';
 
 /**
  * This operator will simply produce the same output, but the new Iterator will be marked
- * as in itr8batch iterator.
+ * as an itr8batch iterator, assuming that each value the iterator produces will be an array
+ * (or to be more precise, and Iterable).
+ * 
+ * From that point onwards, all operators (like filter or map) will work on each element
+ * of the inner array, instead of the array itself.
  *
- * What is this: well, as soon as one iterator in the chain is asynchronous,
+ * itr8ToArray also handles batches properly so it will return a single array and not an array of arrays!
+ *
+ * @example
+ * ```typescript
+ *    itr8FromArray([ [1, 2], [3, 4], [5, 6] ])
+ *      .pipe(asBatch()) // same as input but flagged as batch
+ *      .pipe(map(x => x + 1)) // will work on the numbers and not on the arrays
+ *```
+ *
+ * When can this be useful?
+ * As soon as one iterator in the chain is asynchronous,
  * the entire chain will become asynchronous. That means that all the callbacks
  * for all the promises will have a severe performance impact.
  *
  * What we'll do is try to get the number of promises to be awaited in practice down by
  * grouping multiple elements together.
  * So instead of Promise<IteratorResult<...>> we will actually get Promise<Iterator<...>>
- * (this must be a synchronous iterator of course, like a simple array!)
+ * (this must be a synchronous iterator, like a simple array!)
  * which will lead to a lot less promises to await (every next step in the iterator chain would
  * otherwise be another promise even if all the intermediate operations could be handled
  * synchronously).
  * So by batching them together for example per 10, we would effectively await 10 times less
  * promises.
  *
- * But the whole idea is, that for subsequent processing, we are still treating the elements in
- * the 'inner iterator' as single elements, such that for example a filter or map, would not suddenly
- * operate on the array, but on the single element!
- *
- * Technically, it is just a flag to tell the operatirs that follow to treat the
+ * Technically, it is just a flag to tell the operators that follow to treat the
  * 'elements of the array' as elements of the iterator itself.
  *
  * There are 2 ways to start batching: either you already have batches (for example because
  * you get them per 100 from an API), or you have individual elements that should be put together.
  *
- * WARNING: this function is currently impure as it will change the input iterator!!!
+ * WARNING: this function is currently impure as it will modify the input iterator!!!
  */
-const asBatch = function<T>():TTransIteratorSyncOrAsync<T> {
-  return (it:IterableIterator<T> | AsyncIterableIterator<T>) => {
+const asBatch = function <T extends Iterable<any>>(): TTransIteratorSyncOrAsync<T> {
+  return (it: IterableIterator<T> | AsyncIterableIterator<T>) => {
     const retVal = itr8Proxy(it);
     retVal['itr8Batch'] = true;
     // retVal[Symbol.for('itr8Batch')] = true;
@@ -45,10 +55,19 @@ const asBatch = function<T>():TTransIteratorSyncOrAsync<T> {
  * This operator should construct a 'batched' iterator, from an existing iterator
  * where all elements are single values.
  *
+ * Please read the asBatch documentation for more info about what 'batching' does.
+ *
+ * @example
+ * ```typescript
+ *    itr8FromArray([ 1, 2, 3, 4, 5, 6 ])
+ *      .pipe(batch(2)) // technically means [ [1, 2], [3, 4], [5, 6] ] flagged as batch
+ *      .pipe(map(x => x + 1)) // will still work on the numbers and not on the arrays
+ *```
+ *
  * @param batchSize
  * @returns
  */
-const batch = function<T>(batchSize:number):TTransIteratorSyncOrAsync<T> {
+const batch = function <T>(batchSize: number): TTransIteratorSyncOrAsync<T> {
   return itr8Pipe(
     groupPer(batchSize),
     asBatch(),
@@ -60,11 +79,12 @@ const batch = function<T>(batchSize:number):TTransIteratorSyncOrAsync<T> {
  * This operator should remove the 'batched' flag from the iterator, without
  * making other changes, so after doing this the 'inner' arrays will be exposed.
  *
- * @param batchSize
+ * Please read the asBatch documentation for more info about what 'batching' does.
+ *
  * @returns
  */
-const asNoBatch = function<T>():TTransIteratorSyncOrAsync<T> {
-  return (it:IterableIterator<T> | AsyncIterableIterator<T>) => {
+const asNoBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
+  return (it: IterableIterator<T> | AsyncIterableIterator<T>) => {
     const retVal = itr8Proxy(it);
     delete retVal['itr8Batch'];
     return retVal;
@@ -74,10 +94,18 @@ const asNoBatch = function<T>():TTransIteratorSyncOrAsync<T> {
 /**
  * This operator should deconstruct a 'batched' iterator into a 'normal' (single value) iterator.
  *
+ * @example
+ * ```typescript
+ *    itr8FromArray([ [1, 2], [3, 4], [5, 6] ])
+ *      .pipe(asBatch()) // same as input but flagged as batch
+ *      .pipe(unBatch()) // [ 1, 2, 3, 4, 5, 6 ] and the batch flag is removed
+ *```
+ * So it's like 'flatten' combined with the removal of the batch flag!
+ *
  * @param batchSize
  * @returns
  */
-const unBatch = function<T>():TTransIteratorSyncOrAsync<T> {
+const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
   return itr8Pipe(
     asNoBatch(),
     flatten(),
@@ -85,11 +113,17 @@ const unBatch = function<T>():TTransIteratorSyncOrAsync<T> {
 };
 
 /**
- * An operator is a function that takes an iterator as input parameter,
- * and produces a new iterator, which allows easy chaining.
- *
- * This is a function that generates an operator that can work both on synchronous and
- * asynchronous iterators, by providing it with a single function of the form
+ * An operator is 'a function that generates a transIterator'.
+ * So for example filter(...) is an operator, because when called with an argument
+ * (the filter function) the result of that will be another function which is the transIterator.
+ * 
+ * A transIterator is simply a function with an iterator as single argument which will return
+ * another iterator. This way we can easily 'build a chain of mulitple transIterators'.
+ * So it transforms iterators, which is why I have called it transIterator (~transducers).
+ * 
+ * operatorFactory is a function that generates an operator that generates transIterators that
+ * will work both on synchronous and asynchronous iterators.
+ * The factory needs to be provided with a single function of the form:
  *
  * ```typescript
  * (nextOfPreviousIteratorInTheChain, state, operatorParams) => TNextFnResult | Promise<[TNextFnResult]>
@@ -103,26 +137,29 @@ const unBatch = function<T>():TTransIteratorSyncOrAsync<T> {
  * track of how many records have passed.
  * * The operator params are the argument that is given to the operator function, like a number for
  *   a 'take' operator, or the filter function for a 'filter' operator.
+ * 
+ * Check the readme for some examples on how to write your own operators by using the operatorFactory
+ * (or check the source code as all the available operators have been built using this function).
  *
  * @param nextFn
  * @param initialState
  * @returns a funtion taking an iterator (and optionally some argument) as input and that has an iterator as output
  */
-const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
-  nextFn: (nextIn:IteratorResult<TIn>, state:any, params:any) =>
-          TNextFnResult<TOut, TState> | Promise<TNextFnResult<TOut, TState>>,
+const operatorFactory = function <TParams = any, TIn = any, TOut = any, TState = any>(
+  nextFn: (nextIn: IteratorResult<TIn>, state: any, params: any) =>
+    TNextFnResult<TOut, TState> | Promise<TNextFnResult<TOut, TState>>,
   initialState: TState,
-):(params:TParams) => TTransIteratorSyncOrAsync<TIn, TOut> {
-  return function(params:TParams):TTransIteratorSyncOrAsync<TIn, TOut> {
-    const operatorFunction = (itIn:Iterator<TIn> | AsyncIterator<TIn>, pState:TState) => {
-      let nextInPromiseOrValue:IteratorResult<TIn> | Promise<IteratorResult<TIn>> | undefined = undefined;
+): (params: TParams) => TTransIteratorSyncOrAsync<TIn, TOut> {
+  return function (params: TParams): TTransIteratorSyncOrAsync<TIn, TOut> {
+    const operatorFunction = (itIn: Iterator<TIn> | AsyncIterator<TIn>, pState: TState) => {
+      let nextInPromiseOrValue: IteratorResult<TIn> | Promise<IteratorResult<TIn>> | undefined = undefined;
       // let nextIn: IteratorResult<TIn> | undefined = undefined;
-      let isAsyncInput:boolean | undefined = undefined;
+      let isAsyncInput: boolean | undefined = undefined;
       function updateNextInPromiseOrValue() {
         nextInPromiseOrValue = itIn.next();
         if (isAsyncInput === undefined) isAsyncInput = isPromise(nextInPromiseOrValue);
       }
-      let isAsyncNextFn:boolean | undefined = undefined;
+      let isAsyncNextFn: boolean | undefined = undefined;
       // let state = pState !== undefined ? pState : initialState;
       let state = pState;
 
@@ -131,7 +168,7 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
       //       | undefined
       //   = undefined;
 
-      let currentOutputIterator:Iterator<TOut> | AsyncIterator<TOut> | undefined = undefined;
+      let currentOutputIterator: Iterator<TOut> | AsyncIterator<TOut> | undefined = undefined;
       // let isAsyncCurrentOutputIterator:boolean | undefined = undefined;
       let done = false;
 
@@ -175,7 +212,7 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
             return generateNextReturnValAsync(false);
           }
           const nextIn = nextInPromiseOrValue as IteratorResult<any>;
-          const curNextFnResult = nextFn(nextIn as IteratorResult<TIn>, state, params) as TNextFnResult<TOut,TState>;
+          const curNextFnResult = nextFn(nextIn as IteratorResult<TIn>, state, params) as TNextFnResult<TOut, TState>;
           if (isAsyncNextFn === undefined) isAsyncNextFn = isPromise(curNextFnResult);
           if (isAsyncNextFn) {
             return generateNextReturnValAsync(false, curNextFnResult);
@@ -256,7 +293,7 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
             curNextFnResultPromiseOrValue = nextFn(nextIn as IteratorResult<TIn>, state, params);
           }
           if (isAsyncNextFn === undefined) isAsyncNextFn = isPromise(curNextFnResultPromiseOrValue);
-          const curNextFnResult = (isAsyncNextFn ? await curNextFnResultPromiseOrValue : curNextFnResultPromiseOrValue) as TNextFnResult<TOut,TState>;
+          const curNextFnResult = (isAsyncNextFn ? await curNextFnResultPromiseOrValue : curNextFnResultPromiseOrValue) as TNextFnResult<TOut, TState>;
           if ('state' in curNextFnResult) state = curNextFnResult.state as TState;
 
           if (curNextFnResult.done) {
@@ -309,7 +346,7 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
               return generateNextBatchReturnValAsync(false, resultIterator, possibleNext);
             } else {
               let n = possibleNext;
-              let resultArray:TOut[] = [];
+              let resultArray: TOut[] = [];
               while (!n.done) {
                 resultArray.push(n.value);
                 n = resultIterator.next();
@@ -331,7 +368,7 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
        * @param callUpdateNextInPromiseOrValue if nextIn has been set already before calling this function, set this to false
        * @returns
        */
-      const generateNextBatchReturnValAsync = async (callUpdateNextInPromiseOrValue = true, innerIterator?:AsyncIterator<TOut>, innerIteratorFirstPromise?:Promise<any>) => {
+      const generateNextBatchReturnValAsync = async (callUpdateNextInPromiseOrValue = true, innerIterator?: AsyncIterator<TOut>, innerIteratorFirstPromise?: Promise<any>) => {
         let doUpdateNextInPromiseOrValue = callUpdateNextInPromiseOrValue;
         let inputInnerIterator = innerIterator;
         let inputInnerPossibleNext = innerIteratorFirstPromise;
@@ -358,7 +395,7 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
               resultIterator = operatorFunction(innerIterator, state);
             }
 
-            let resultArray:any[] = [];
+            let resultArray: any[] = [];
             let possibleNext;
             if (inputInnerPossibleNext !== undefined) {
               possibleNext = inputInnerPossibleNext;
@@ -427,11 +464,11 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
       return itr8Proxy(retVal as any);
     };
 
-    return (itIn:Iterator<TIn> | AsyncIterator<TIn>) => operatorFunction(itIn, initialState);
+    return (itIn: Iterator<TIn> | AsyncIterator<TIn>) => operatorFunction(itIn, initialState);
   }
 };
 
-// The previous version that did not support batched iteratord
+// The previous version that did not support batched iterators
 // const nonBatchableOperatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
 //   nextFn: (nextIn:IteratorResult<TIn>, state:any, params:any) =>
 //           TNextFnResult<TOut, TState> | Promise<TNextFnResult<TOut, TState>>,
@@ -630,15 +667,17 @@ const operatorFactory = function<TParams=any, TIn=any, TOut=any, TState=any>(
 
 
 /**
- * Translate each element into something else by applying the fn function to each element.
+ * Translate each element into something else by applying the supplied mapping function
+ * to each element.
  * 
- * The mapping function can be asynchronous (in which case the resulting iterator will be asynchronous regardless of the input iterator)!
+ * The mapping function can be asynchronous (in which case the resulting iterator will be
+ * asynchronous regardless of the input iterator)!
  *
  * @param it
  * @param fn
  */
 const map = operatorFactory<(any) => any, any, any, void>(
-  (nextIn, state, nextFn:(TIn) => any | Promise<any>) => {
+  (nextIn, state, nextFn: (TIn) => any | Promise<any>) => {
     if (nextIn.done) {
       return { done: true };
     } else {
@@ -673,12 +712,13 @@ const map = operatorFactory<(any) => any, any, any, void>(
 /**
  * Only keep elements where the filter function returns true.
  *
- * The filter function can be asynchronous (in which case the resulting iterator will be asynchronous regardless of the input iterator)!
+ * The filter function can be asynchronous (in which case the resulting iterator will be
+ * asynchronous regardless of the input iterator)!
  */
 const filter = operatorFactory<(any) => boolean | Promise<boolean>, any, any, void>(
   (nextIn, state, filterFn) => {
     if (nextIn.done) return { done: true };
-    
+
     const result = filterFn(nextIn.value);
     if (isPromise(result)) {
       return (async () => {
@@ -692,22 +732,6 @@ const filter = operatorFactory<(any) => boolean | Promise<boolean>, any, any, vo
   },
   undefined,
 );
-// const filter = operatorFactory<(any) => boolean, any, any, void>(
-//   (nextIn, state, filterFn) => {
-//     if (nextIn.done) return { done: true };
-//     if (filterFn(nextIn.value)) return { done: false, value: nextIn.value };
-//     return { done: false };
-//   },
-//   undefined,
-// );
-
-// operatorFactory<(any) => boolean, any, any, null>(
-//   (nextIn: IteratorResult<any>, state, filterFn:(any) => boolean) => ([
-//     nextIn.done || filterFn(nextIn.value) ? itr8FromSingleValue(nextIn) : itr8FromArray([]),
-//     state,
-//   ]),
-//   null,
-// );
 
 /**
  * Skip the 'amount' first elements and return all the others unchanged.
@@ -717,18 +741,11 @@ const filter = operatorFactory<(any) => boolean | Promise<boolean>, any, any, vo
 const skip = operatorFactory<number, any, any, number>(
   (nextIn, state, params) => {
     if (nextIn.done) return { done: true };
-    if (state < params) return { done: false, state: state + 1};
+    if (state < params) return { done: false, state: state + 1 };
     return { done: false, value: nextIn.value };
   },
   0,
 );
-// operatorFactory<number, any, any, number>(
-//   (nextIn: IteratorResult<any>, state:number, itemsToSkip:number) => ([
-//     itr8FromArray(state > itemsToSkip ? [nextIn] : []),
-//     state + 1,
-//   ]),
-//   1,
-// );
 
 /**
  * Only take 'amount' elements and then stop.
@@ -742,26 +759,22 @@ const skip = operatorFactory<number, any, any, number>(
 const limit = operatorFactory<number, any, any, number>(
   (nextIn, state, params) => {
     if (nextIn.done) return { done: true };
-    if (state < params) return { done: false, value: nextIn.value, state: state + 1};
+    if (state < params) return { done: false, value: nextIn.value, state: state + 1 };
     return { done: true };
   },
   0,
 );
-// operatorFactory<number, any, any, number>(
-//   (nextIn: IteratorResult<any>, state:number, limit:number) => ([
-//     itr8FromSingleValue(state < limit ? nextIn : { value: undefined, done: true }),
-//     state + 1,
-//   ]),
-//   0,
-// );
 
 /**
  * Group the incoming elements so the output iterator will return arrays/tuples of a certain size.
  * @example
- * itr8FromArray([ 1, 2, 3, 4, 5, 6 ]).pipe(groupPer(2)) => [ [1, 2], [3, 4], [5, 6] ]
+ * ```typescript
+ *    itr8FromArray([ 1, 2, 3, 4, 5, 6 ])
+ *      .pipe(groupPer(2)) // => [ [1, 2], [3, 4], [5, 6] ]
+ * ```
  */
-const groupPer = operatorFactory<number, any, any, {done: boolean, buffer: any[]}>(
-  (nextIn: IteratorResult<any>, state:{ done: boolean, buffer:any[] }, batchSize:number) => {
+const groupPer = operatorFactory<number, any, any, { done: boolean, buffer: any[] }>(
+  (nextIn: IteratorResult<any>, state: { done: boolean, buffer: any[] }, batchSize: number) => {
     if (state.done || nextIn.done && state.buffer.length === 0) {
       return { done: true };
     } else if (nextIn.done) {
@@ -771,7 +784,7 @@ const groupPer = operatorFactory<number, any, any, {done: boolean, buffer: any[]
     }
     return { done: false, state: { ...state, buffer: [...state.buffer, nextIn.value] } };
   },
-  { done: false, buffer:[] },
+  { done: false, buffer: [] },
 );
 // operatorFactory<number, any, any, {done: boolean, buffer: any[]}>(
 //   (nextIn: IteratorResult<any>, state:{ done: boolean, buffer:any[] }, batchSize:number) => {
@@ -800,7 +813,10 @@ const groupPer = operatorFactory<number, any, any, {done: boolean, buffer: any[]
 /**
  * The incoming elements are arrays, and send out each element of the array 1 by one.
  * @example
- * itr8FromArray([ [1, 2], [3, 4], [5, 6] ]).pipe(flatten()) => [ 1, 2, 3, 4, 5, 6 ]
+ * ```typescript
+ *    itr8FromArray([ [1, 2], [3, 4], [5, 6] ])
+ *      .pipe(flatten()) // => [ 1, 2, 3, 4, 5, 6 ]
+ * ```
  */
 const flatten = operatorFactory<void, any, any, void>(
   (nextIn, state, params) => {
@@ -809,26 +825,20 @@ const flatten = operatorFactory<void, any, any, void>(
   },
   undefined,
 );
-//  operatorFactory<void, Array<any>, any, void>(
-//   (nextIn: IteratorResult<any>, state) => {
-//     return [
-//       itr8FromArray(nextIn.done ? [nextIn] : nextIn.value.map((v) => ({ value: v, done: false }))),
-//       state,
-//     ];
-//   },
-//   undefined,
-// );
 
 
 /**
  * Output a single thing containing the sum of all values.
  * @example
- * itr8FromArray([ 1, 2, 3, 4 ]).pipe(total()) => [ 10 ]
+ * ```typescript
+ *    itr8FromArray([ 1, 2, 3, 4 ])
+ *      .pipe(total()) // => [ 10 ]
+ * ```
  * @param it
  * @param amount
  */
 const total = operatorFactory<void, number, number, { done: boolean, total: number }>(
-  (nextIn: IteratorResult<any>, state:{ done: boolean, total: number }) => {
+  (nextIn: IteratorResult<any>, state: { done: boolean, total: number }) => {
     if (state.done) {
       return { done: true };
     } else if (nextIn.done) {
@@ -838,36 +848,20 @@ const total = operatorFactory<void, number, number, { done: boolean, total: numb
   },
   { done: false, total: 0 },
 );
-// operatorFactory<void, number, number, { done: boolean, total: number }>(
-//   (nextIn: IteratorResult<any>, state:{ done: boolean, total: number }) => {
-//     if (state.done) {
-//       return [
-//         itr8FromSingleValue({ done: true, value: undefined }),
-//         state,
-//       ];
-//     } else if (nextIn.done) {
-//       return [
-//         itr8FromSingleValue({ done: false, value: state.total }),
-//         { ...state, done: true },
-//       ];
-//     }
-//     return [
-//       itr8FromArray([]),
-//       { ...state, total: state.total + nextIn.value },
-//     ];
-//   },
-//   { done: false, total: 0 },
-// );
 
 /**
  * On every item, output the total so far.
  * @example
- * itr8FromArray([ 1, 2, 3, 4 ]).pipe(runningTotal()) => [ 1, 3, 6, 10 ]
+ * ```typescript
+ *    itr8FromArray([ 1, 2, 3, 4 ])
+ *      .pipe(runningTotal())  // => [ 1, 3, 6, 10 ]
+ * ```
+ *
  * @param it
  * @param amount
  */
 const runningTotal = operatorFactory<void, number, number, number>(
-  (nextIn: IteratorResult<any>, state:number) => {
+  (nextIn: IteratorResult<any>, state: number) => {
     if (nextIn.done) {
       return { done: true };
     }
@@ -896,89 +890,51 @@ const runningTotal = operatorFactory<void, number, number, number>(
 /**
  * Takes all strings from the input and outputs them as single characters
  * @example
- * itr8FromArray([ 'hello', 'world' ]).pipe(sctringToChar()) => [ 'h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd' ]
+ * ```typescript
+ *    itr8FromArray([ 'hello', 'world' ])
+ *      .pipe(sctringToChar()) // => [ 'h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd' ]
+ * ```
  */
 const stringToChar = operatorFactory<void, string, string, void>(
-    (nextIn: IteratorResult<string>, state) => {
-      if (nextIn.done) {
-        return { done: true };
-      }
-      return {
-        done: false,
-        iterable: itr8FromString(nextIn.value),
-      };
-    },
-    undefined,
-  );
-
-// operatorFactory<void, string, string, void>(
-//   (nextIn: IteratorResult<string>, state) => {
-//     if (nextIn.done) {
-//       return [
-//         itr8FromSingleValue({ done: true, value: undefined }),
-//         state,
-//       ];
-//     }
-//     const chars = itr8FromString(nextIn.value);
-//     return [
-//       (function * () {
-//         for (let c of chars) {
-//           yield { done: false, value: c };
-//         }
-//       })(),
-//       state,
-//     ];
-//   },
-//   undefined,
-// );
+  (nextIn: IteratorResult<string>, state) => {
+    if (nextIn.done) {
+      return { done: true };
+    }
+    return {
+      done: false,
+      iterable: itr8FromString(nextIn.value),
+    };
+  },
+  undefined,
+);
 
 /**
  * like string.split => output arrays of elements and use the given parameter as a delimiter
  * @example
- * itr8FromArray([ 'hello', '|', 'world' ]).pipe(split('|')) => [ ['hello'], ['world'] ]
+ * ```typescript
+ *    itr8FromArray([ 'hello', '|', 'world' ])
+ *      .pipe(split('|')) // => [ ['hello'], ['world'] ]
+ * ```
  * @example
- * itr8FromArray([ 1, true, 2, 3, true, 4 ]).pipe(split(true)) => [ [1], [2,3], [4] ]
+ * ```typescript
+ *    itr8FromArray([ 1, true, 2, 3, true, 4 ])
+ *      .pipe(split(true)) // => [ [1], [2,3], [4] ]
+ * ```
  */
 const split = operatorFactory<any, any, any, any[] | undefined>(
-    (nextIn:any, state, delimiter) => {
-      if (nextIn.done) {
-        if (state === undefined) {
-          return { done: true };
-        }
-        return { done: false, value: state, state: undefined };
-      } else if (nextIn.value === delimiter) {
-        return { done: false, value: state || [], state: [] };
+  (nextIn: any, state, delimiter) => {
+    if (nextIn.done) {
+      if (state === undefined) {
+        return { done: true };
       }
-      return { done: false, state: [...(state === undefined ? [] : state), nextIn.value] };
-    },
-    undefined,
-  );
-// operatorFactory<any, any, any, any[] | undefined>(
-//   (nextIn:any, state, delimiter) => {
-//     if (nextIn.done) {
-//       if (state === undefined) {
-//         return [
-//           itr8FromSingleValue(nextIn),
-//           undefined,
-//         ];
-//       }
-//       return [
-//         itr8FromSingleValue({ done: false, value: state }),
-//         undefined,
-//       ];
-//     } else if (nextIn.value === delimiter) {
-//       return [
-//         itr8FromSingleValue({ done: false, value: state || [] }),
-//         [],
-//       ];
-//     }
-//     return [
-//       itr8FromArray([]),
-//       [...(state === undefined ? [] : state), nextIn.value],
-//     ];
-//   },
-//   undefined,
-// );
+      return { done: false, value: state, state: undefined };
+    } else if (nextIn.value === delimiter) {
+      return { done: false, value: state || [], state: [] };
+    }
+    return { done: false, state: [...(state === undefined ? [] : state), nextIn.value] };
+  },
+  undefined,
+);
 
 /**
  * Simply delay every element by the given nr of milliseconds.
@@ -999,7 +955,10 @@ const delay = operatorFactory<number, any, any, void>(
  * The input must be a stream of characters,
  * and the output will be 1 string for each line (using \n as the line separator)
  * @example
- * itr8FromArray([ 'h', 'e', 'l', 'l', 'o', '\n', 'w', 'o', 'r', 'l', 'd' ]).pipe(lineByLine()) => [ 'hello', 'world' ]
+ * ```typescript
+ *    itr8FromArray([ 'h', 'e', 'l', 'l', 'o', '\n', 'w', 'o', 'r', 'l', 'd' ])
+ *      .pipe(lineByLine()) // => [ 'hello', 'world' ]
+ * ```
  *
  */
 const lineByLine = () => itr8Pipe(
@@ -1042,10 +1001,10 @@ const lineByLine = () => itr8Pipe(
  * @param options: { concurrency: number } will control how many async handler are alowed to run in parallel. Default: 1
  * @returns
  */
-const forEach = function<T=any>(handler:(T) => void | Promise<void>, options?:{ concurrency?:number }):((it:Iterator<T> | AsyncIterator<T>) => void) {
-  return (it:Iterator<T>) => {
+const forEach = function <T = any>(handler: (T) => void | Promise<void>, options?: { concurrency?: number }): ((it: Iterator<T> | AsyncIterator<T>) => void) {
+  return (it: Iterator<T>) => {
     const maxRunningHandlers = options?.concurrency || 1;
-    let runningHandlers:Set<Promise<void>> = new Set();
+    let runningHandlers: Set<Promise<void>> = new Set();
 
     let nextPromiseOrValue = it.next();
     if (isPromise(nextPromiseOrValue)) {
@@ -1082,7 +1041,7 @@ const forEach = function<T=any>(handler:(T) => void | Promise<void>, options?:{ 
         const handlerPossiblePromise = handler(next.value);
         if (isPromise(handlerPossiblePromise)) {
           return (async () => {
-            let handlerPossiblePromiseIn:Promise<void> | undefined = handlerPossiblePromise;
+            let handlerPossiblePromiseIn: Promise<void> | undefined = handlerPossiblePromise;
             while (!next.done) {
               // TODO: add a try catch so errors can be handled properly?
               // or maybe we should leave it to the user???

@@ -4,34 +4,17 @@ DISCLAIMER: This is work in progress (including the docs), and although a fair a
 
 An experiment to create a unified interface over both [synchronous](https://www.javascripttutorial.net/es6/javascript-iterator/) and [asynchronous iterators](https://www.javascripttutorial.net/es-next/javascript-asynchronous-iterators/) such that the same iterator-operators (cfr. RxJS operators like filter, map, ...) can be used in various contexts (plain arrays, NodeJS streams, Observables, page-by-page database queries by writing an async generator function, page-by-age API queries, ...).
 
-## Who is it for?
-
-If you ever found yourself in one of these situations, this library might be useful for you:
- * You needed to do some filtering or mapping of some data (stored in an array for example), but the filter or map function is _asynchronous_. So instead of simply writing `araay.filter(...).map(...)` you had to add a bunch of code to make it work like you wanted (maybe using sindresorhus' promise-fun here and there to keep things under control). As a result, your code suddenly becomes hard to read, even if the problem you needed to solve was actually quite simple.
- * You have some data manipulation that works properly over a small array, but now you have to apply it on a a huge file that doesn't fit in memory, and now you need to entirely rewrite your code to handle this new situation.
- * You need to get some data from an API that is 'page-oriented' (it only returns a limited number of results, and in order to get the next set of results you need to do another call). You need some manipulation on each single element of the set. Now you need to write additional logic to apply your algorithm to every element of each batch that you are processing that has nothing to do with the core problem you are trying to solve.
- * You were thrilled by RxJS, but found out it cannot be used easily when the data comes in at a higher pace than you can handle (files, db, API) and implementing pushback in RxJS feels 'wrong'.
- * You've tried to implement a transform stream in NodeJS but found it quite cumbersome.
- * In general: when you have the feeling you have solved the same problem a few too many times.
- * You've used another library like IxJS, iter-tools or HighlandJS, but don't know how to write your own 'operators' in one of them.
-
-## Why not RxJS, IxJS, iter-tools, HighlandJS, ...?
-
-* RxJS, being push-based, with no easy pushback mechanism wold not solve the issue for me.
-* IxJS I found too cumbersome (the docs were not clear enough for me), and I didn't see how to write my own operators (as opposed to RxJS that explains how to do that very well in the docs)
-* iter-tools: same here, how to write your own operators?
-* HighlandJS is stream based, which makes it NodeJS only (at least without browserify). Also, streams are kind of cumbersome,a dn the sync and async iterator protocols are dead simple and part of the standard.
-
-So, while all these libraries have their merit, none of them convered my needs well enough, so at a certain point things became clear enough in my head to write my own library.
 ## Getting started
 
+```bash
     npm install mrft/itr8
+```
 
 ```typescript
 import * as itr8 from 'itr8'
 
 // create an iterator to start from
-const myIterator = itr8.range(0, 10_000_000); // or itr8.fromArray([...])
+const myIterator = itr8.itr8Range(0, 10_000_000); // or itr8.fromArray([...])
 
 // All iterables returned by itr8 are also 'pipeable', meaning that each returned iterator also exposes a pipe function to add other operators to the chain
 const myTransformedIterator = itr8.itr8Proxy(myIterator)
@@ -78,11 +61,35 @@ forEach(
 for (let x of myTransformedIterator2) {
   console.log(x);
 }
-
 ```
+You, can find some more [documentation](#documentation) further in this file.
+
+## Who is this library for?
+
+If you ever found yourself in one of these situations, this library might be useful for you:
+ * You needed to do some filtering or mapping of some data (stored in an array for example), but the filter or map function is _asynchronous_. So instead of simply writing `araay.filter(...).map(...)` you had to add a bunch of code to make it work like you wanted (maybe using sindresorhus' promise-fun here and there to keep things under control). As a result, your code suddenly becomes hard to read, even if the problem you needed to solve was actually quite simple.
+ * You have some data manipulation that works properly over a small array, but now you have to apply it on a a huge file that doesn't fit in memory, and now you need to entirely rewrite your code to handle this new situation.
+ * You need to get some data from an API that is 'page-oriented' (it only returns a limited number of results, and in order to get the next set of results you need to do another call). You need some manipulation on each single element of the set. Now you need to write additional logic to apply your algorithm to every element of each batch that you are processing that has nothing to do with the core problem you are trying to solve.
+ * You were thrilled by RxJS, but found out it cannot be used easily when the data comes in at a higher pace than you can handle (files, db, API) and implementing pushback in RxJS feels 'wrong'.
+ * You've tried to implement a transform stream in NodeJS but found it quite cumbersome.
+ * In general: when you have the feeling you have solved the same problem a few too many times.
+ * You've used another library like IxJS, iter-tools or HighlandJS, but don't know how to write your own 'operators' in one of them.
+
+### Why not RxJS, IxJS, iter-tools, HighlandJS, ...?
+
+* RxJS, being push-based, with no easy pushback mechanism wold not solve the issue for me.
+* IxJS I found too cumbersome (the docs were not clear enough for me), and I didn't see how to write my own operators (as opposed to RxJS that explains how to do that very well in the docs)
+* iter-tools: same here, how to write your own operators?
+* HighlandJS is stream based, which makes it NodeJS only (at least without browserify). Also, streams are kind of cumbersome,a dn the sync and async iterator protocols are dead simple and part of the standard.
+
+So, while all these libraries have their merit, none of them convered my needs well enough, so at a certain point things became clear enough in my head to write my own library.
 
 ## TODO
 
+* Piping should have better typing (like RxJS does it)
+* Piping should only care whether the output type of the first and the input type of the next match
+  so that we are not only limited to transIterators, this way the last steo of the pipe could be
+  forEach. Right now calling forEach is still clunky.
 * General code cleanup
 * Writing more and better documentation
 * Add more operators
@@ -91,11 +98,16 @@ for (let x of myTransformedIterator2) {
   * ...
 * Add more 'generators' for typical cases like file input, db paga-per-page processing?
 * Further improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significatnly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always `unBatch |> batch(size)` to force a new batch size, but it could be more efficient if the operatorFactory handles the batch size and keeps it constant throughtout the chain.
+
+
+# Documentation
+
+Also check https://mrft.github.io/itr8
 ## What is a transIterator?
 
 It is simply a function with an iterator as single argument which will return another iterator. So it transforms iterators, which is why I have called it transIterator (~transducers).
 
-### WHat is the difference between a transIterator and an operator?
+### What is the difference between a transIterator and an operator?
 
 An operator is 'a function that generates a transIterator'. So for example filter(...) is an operator, because when called with an argument (the filter function) the result of that will be another function which is the transIterator.
 
@@ -111,7 +123,7 @@ Let's use the same example as is used in the [RxJS tutorial](https://netbasal.co
 It can be created with the filter operator, like this:
 
 ```typescript
-const filterNil = filter((x) => x !== undefined && x !== null)
+const filterNil = () => filter((x) => x !== undefined && x !== null)
 ```
 
 Another example: a 'regroup' operator can be created by combining flatten and groupPer. This is where the `itr8Pipe(...)` method will come in handy.
@@ -119,7 +131,7 @@ So to turn [ [ 1, 2 ], [ 3, 4 ], [ 5, 6 ] ] into [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
 You'll want the regroup(3) operator (3 being the new 'rowSize').
 
 ```typescript
-const redim = (rowSize:number) => itr8Pipe(
+const regroup = (rowSize:number) => itr8Pipe(
     flatten(),
     groupPer(rowSize),
 );
