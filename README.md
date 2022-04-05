@@ -6,10 +6,12 @@ An experiment to create a unified interface over both [synchronous](https://www.
 
 ## Getting started
 
+Install the module using npm
 ```bash
     npm install mrft/itr8
 ```
 
+And then import it in your source code file:
 ```typescript
 import * as itr8 from 'itr8'
 
@@ -42,7 +44,7 @@ const transIt = itr8.itr8Pipe(
     itr8.limit(50),
 );
 
-// need to do something on every element, use forEach (yes it will handle async handlers as well, you can even control the concurrency easily)
+// use forEach to do something with every element (it will handle async handlers as well, you can even control the concurrency easily)
 forEach(
   async (id) => {
     const descr = await getElementFromDisk(id);
