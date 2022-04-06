@@ -1,5 +1,5 @@
 import { Observable, from } from 'rxjs';
-import { itr8Proxy } from '..';
+import { itr8Proxy, itr8Pushable } from '..';
 import { TPipeable } from '../types';
 
 /**
@@ -10,49 +10,63 @@ import { TPipeable } from '../types';
  * @returns 
  */
 function itr8FromObservable<T>(observable:Observable<T>):TPipeable & AsyncIterableIterator<T> {
-  let buffer:any[] = [];
-
-  let currentResolve;
-  let currentReject;
-  let currentDataPromise;
-
-  const createNewCurrentDataPromise = () => {
-    currentDataPromise = new Promise((resolve, reject) => {
-      currentResolve = resolve;
-      currentReject = reject;
-    });
-    buffer.push(currentDataPromise);
-  }
-
-  createNewCurrentDataPromise();
-
+  const retVal = itr8Pushable();
   observable.subscribe({
     next(data) {
-      currentResolve(data);
-      createNewCurrentDataPromise();
+      retVal.push(data);
     },
     error(err) {
-      console.error('[observable] something wrong occurred: ' + err);
+      retVal.push(Promise.reject(`[observable] something wrong occurred: ${err}`));
     },
     complete() {
-      currentResolve(undefined);
+      retVal.done();
     }
   });
+  return retVal as TPipeable & AsyncIterableIterator<T>;
 
-  const retVal = {
-    [Symbol.asyncIterator]: () => retVal,
-    next: async () => {
-      if (buffer.length > 0) {
-        const [firstOfBufferPromise, ...restOfBuffer] = buffer;
-        buffer = restOfBuffer;
-        const asyncNext = await firstOfBufferPromise;
-        return { value: asyncNext, done: asyncNext === undefined };
-      } else {
-        throw new Error('[itr8FromObservable] No elements in the buffer?')
-      }
-    },
-  }
-  return itr8Proxy(retVal);
+  // let buffer:any[] = [];
+
+  // let currentResolve;
+  // let currentReject;
+  // let currentDataPromise;
+
+  // const createNewCurrentDataPromise = () => {
+  //   currentDataPromise = new Promise((resolve, reject) => {
+  //     currentResolve = resolve;
+  //     currentReject = reject;
+  //   });
+  //   buffer.push(currentDataPromise);
+  // }
+
+  // createNewCurrentDataPromise();
+
+  // observable.subscribe({
+  //   next(data) {
+  //     currentResolve(data);
+  //     createNewCurrentDataPromise();
+  //   },
+  //   error(err) {
+  //     console.error('[observable] something wrong occurred: ' + err);
+  //   },
+  //   complete() {
+  //     currentResolve(undefined);
+  //   }
+  // });
+
+  // const retVal = {
+  //   [Symbol.asyncIterator]: () => retVal,
+  //   next: async () => {
+  //     if (buffer.length > 0) {
+  //       const [firstOfBufferPromise, ...restOfBuffer] = buffer;
+  //       buffer = restOfBuffer;
+  //       const asyncNext = await firstOfBufferPromise;
+  //       return { value: asyncNext, done: asyncNext === undefined };
+  //     } else {
+  //       throw new Error('[itr8FromObservable] No elements in the buffer?')
+  //     }
+  //   },
+  // }
+  // return itr8Proxy(retVal);
 }
 
 /**

@@ -1,6 +1,6 @@
 import { isPromise } from 'util/types';
 import { TNextFnResult, TTransIteratorSyncOrAsync } from "./types";
-import { itr8FromIterable, itr8FromString, itr8Pipe, itr8Proxy } from './';
+import { itr8FromIterable, itr8FromString, itr8Pipe, itr8Proxy, itr8Pushable } from './';
 
 /**
  * This operator will simply produce the same output, but the new Iterator will be marked
@@ -145,7 +145,7 @@ const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
  * @param initialState
  * @returns a funtion taking an iterator (and optionally some argument) as input and that has an iterator as output
  */
-const itr8OperatorFactory = function <TParams = any, TIn = any, TOut = any, TState = any>(
+const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TState = any>(
   nextFn: (nextIn: IteratorResult<TIn>, state: any, params: any) =>
     TNextFnResult<TOut, TState> | Promise<TNextFnResult<TOut, TState>>,
   initialState: TState,
@@ -676,7 +676,7 @@ const itr8OperatorFactory = function <TParams = any, TIn = any, TOut = any, TSta
  * @param it
  * @param fn
  */
-const map = itr8OperatorFactory<(any) => any, any, any, void>(
+const map = itr8OperatorFactory<any, any, (any) => any, void>(
   (nextIn, state, nextFn: (TIn) => any | Promise<any>) => {
     if (nextIn.done) {
       return { done: true };
@@ -699,15 +699,6 @@ const map = itr8OperatorFactory<(any) => any, any, any, void>(
   },
   undefined,
 );
-// const map = itr8OperatorFactory(
-//   (nextIn, state, params) => (nextIn.done
-//     ? { done: true }
-//     : {
-//       done: false,
-//       value: params(nextIn.value),
-//     }),
-//   null,
-// );
 
 /**
  * Only keep elements where the filter function returns true.
@@ -715,7 +706,7 @@ const map = itr8OperatorFactory<(any) => any, any, any, void>(
  * The filter function can be asynchronous (in which case the resulting iterator will be
  * asynchronous regardless of the input iterator)!
  */
-const filter = itr8OperatorFactory<(any) => boolean | Promise<boolean>, any, any, void>(
+const filter = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, void>(
   (nextIn, state, filterFn) => {
     if (nextIn.done) return { done: true };
 
@@ -738,7 +729,7 @@ const filter = itr8OperatorFactory<(any) => boolean | Promise<boolean>, any, any
  *
  * @param amount
  */
-const skip = itr8OperatorFactory<number, any, any, number>(
+const skip = itr8OperatorFactory<any, any, number, number>(
   (nextIn, state, params) => {
     if (nextIn.done) return { done: true };
     if (state < params) return { done: false, state: state + 1 };
@@ -756,7 +747,7 @@ const skip = itr8OperatorFactory<number, any, any, number>(
  * @param it
  * @param amount
  */
-const limit = itr8OperatorFactory<number, any, any, number>(
+const limit = itr8OperatorFactory<any, any, number, number>(
   (nextIn, state, params) => {
     if (nextIn.done) return { done: true };
     if (state < params) return { done: false, value: nextIn.value, state: state + 1 };
@@ -773,7 +764,7 @@ const limit = itr8OperatorFactory<number, any, any, number>(
  *      .pipe(groupPer(2)) // => [ [1, 2], [3, 4], [5, 6] ]
  * ```
  */
-const groupPer = itr8OperatorFactory<number, any, any, { done: boolean, buffer: any[] }>(
+const groupPer = itr8OperatorFactory<any, any, number, { done: boolean, buffer: any[] }>(
   (nextIn: IteratorResult<any>, state: { done: boolean, buffer: any[] }, batchSize: number) => {
     if (state.done || nextIn.done && state.buffer.length === 0) {
       return { done: true };
@@ -786,29 +777,6 @@ const groupPer = itr8OperatorFactory<number, any, any, { done: boolean, buffer: 
   },
   { done: false, buffer: [] },
 );
-// itr8OperatorFactory<number, any, any, {done: boolean, buffer: any[]}>(
-//   (nextIn: IteratorResult<any>, state:{ done: boolean, buffer:any[] }, batchSize:number) => {
-
-//     if (state.done || nextIn.done && state.buffer.length === 0) {
-//       return [
-//         itr8FromSingleValue({ value: undefined, done: true }),
-//         state,
-//       ];
-//     } else if (nextIn.done) {
-//       return [
-//         itr8FromSingleValue({ value: state.buffer, done: false }),
-//         { done: true, buffer: [] }
-//       ];
-//     } else if (state.buffer.length + 1 === batchSize) {
-//       return [
-//         itr8FromSingleValue({ value: [...state.buffer, nextIn.value], done: false }),
-//         { done: false, buffer: [] },
-//       ]
-//     }
-//     return [itr8FromArray([]), { ...state, buffer: [...state.buffer, nextIn.value] }];
-//   },
-//   { done: false, buffer:[] },
-// );
 
 /**
  * The incoming elements are arrays, and send out each element of the array 1 by one.
@@ -818,7 +786,7 @@ const groupPer = itr8OperatorFactory<number, any, any, { done: boolean, buffer: 
  *      .pipe(flatten()) // => [ 1, 2, 3, 4, 5, 6 ]
  * ```
  */
-const flatten = itr8OperatorFactory<void, any, any, void>(
+const flatten = itr8OperatorFactory<any, any, void, void>(
   (nextIn, state, params) => {
     if (nextIn.done) return { done: true };
     return { done: false, iterable: nextIn.value };
@@ -837,7 +805,7 @@ const flatten = itr8OperatorFactory<void, any, any, void>(
  * @param it
  * @param amount
  */
-const total = itr8OperatorFactory<void, number, number, { done: boolean, total: number }>(
+const total = itr8OperatorFactory<number, number, void, { done: boolean, total: number }>(
   (nextIn: IteratorResult<any>, state: { done: boolean, total: number }) => {
     if (state.done) {
       return { done: true };
@@ -860,7 +828,7 @@ const total = itr8OperatorFactory<void, number, number, { done: boolean, total: 
  * @param it
  * @param amount
  */
-const runningTotal = itr8OperatorFactory<void, number, number, number>(
+const runningTotal = itr8OperatorFactory<number, number, void, number>(
   (nextIn: IteratorResult<any>, state: number) => {
     if (nextIn.done) {
       return { done: true };
@@ -881,7 +849,7 @@ const runningTotal = itr8OperatorFactory<void, number, number, number>(
  * @param it
  * @param amount
  */
-const max = itr8OperatorFactory<void, number, number, { done: boolean, max: number }>(
+const max = itr8OperatorFactory<number, number, void, { done: boolean, max: number }>(
   (nextIn: IteratorResult<any>, state: { done: boolean, max: number }) => {
     if (state.done) {
       return { done: true };
@@ -903,7 +871,7 @@ const max = itr8OperatorFactory<void, number, number, { done: boolean, max: numb
  * @param it
  * @param amount
  */
-const min = itr8OperatorFactory<void, number, number, { done: boolean, min: number }>(
+const min = itr8OperatorFactory<number, number, void, { done: boolean, min: number }>(
   (nextIn: IteratorResult<any>, state: { done: boolean, min: number }) => {
     if (state.done) {
       return { done: true };
@@ -932,7 +900,7 @@ const min = itr8OperatorFactory<void, number, number, { done: boolean, min: numb
  * @param it
  * @param amount
  */
- const sort = itr8OperatorFactory<((a:any, b:any) => number) | void, any, any, { done: boolean, list: any[] }>(
+ const sort = itr8OperatorFactory<any, any, ((a:any, b:any) => number) | void, { done: boolean, list: any[] }>(
   (nextIn: IteratorResult<any>, state: { done: boolean, list: any[] }, sortFn) => {
     if (state.done) {
       return { done: true };
@@ -958,7 +926,7 @@ const min = itr8OperatorFactory<void, number, number, { done: boolean, min: numb
  *      .pipe(sctringToChar()) // => [ 'h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd' ]
  * ```
  */
-const stringToChar = itr8OperatorFactory<void, string, string, void>(
+const stringToChar = itr8OperatorFactory<string, string, void, void>(
   (nextIn: IteratorResult<string>, state) => {
     if (nextIn.done) {
       return { done: true };
@@ -1003,7 +971,7 @@ const split = itr8OperatorFactory<any, any, any, any[] | undefined>(
  * Simply delay every element by the given nr of milliseconds.
  * (Will always produce an async iterator!).
  */
-const delay = itr8OperatorFactory<number, any, any, void>(
+const delay = itr8OperatorFactory<any, any, number, void>(
   (nextIn, state, timeout) => {
     return new Promise<any>(
       (resolve, reject) => {
@@ -1039,8 +1007,30 @@ const lineByLine = () => itr8Pipe(
  * So when a few events happen quickly, only the first one will be handled,
  * and the next ones will be ignored until enough time (x ms) has passed with
  * the previously handled event.
+ *
+ * This is a special operator that cannot be implemented wit the operatorFactory,
+ * but is built by combining forEach and itr8Pushable
  */
 // const throttle:TTransIteratorAsync<any,any> = (it)
+const throttle = (throttleMilliseconds:number) => {
+  return <T>(it:Iterator<T> | AsyncIterator<T>) => {
+    const itOut = itr8Pushable<T>();
+    setImmediate(async () => {
+      let previousTimestamp = -Infinity;
+      await forEach(
+        (nextValue) => {
+          const currentTimestamp = Date.now();
+          if (currentTimestamp - previousTimestamp > throttleMilliseconds) {
+            itOut.push(nextValue);
+          }
+          previousTimestamp = currentTimestamp;
+        }
+      )(it);
+      itOut.done();
+    });
+    return itOut;
+  }
+};
 
 /**
  * Only useful on async iterators.
@@ -1048,8 +1038,29 @@ const lineByLine = () => itr8Pipe(
  * Wait for x milliseconds of 'no events' before firing one.
  * So an event will either not be handled (busy period),
  * or handled after the calm period (so with a delay of x milliseconds)
+ * 
+ * This is a special operator that cannot be implemented wit the operatorFactory,
+ * but is built by combining forEach and itr8Pushable
  */
-// const debounce = ()
+const debounce = (cooldownMilliseconds:number) => {
+  return <T>(it:Iterator<T> | AsyncIterator<T>) => {
+    const itOut = itr8Pushable<T>();
+    setImmediate(async () => {
+      let timer;
+      await forEach(
+        (nextValue) => {
+          clearTimeout(timer);
+          timer = setTimeout(
+            () => { itOut.push(nextValue) },
+            cooldownMilliseconds,
+          );
+        }
+      )(it);
+      itOut.done();
+    });
+    return itOut;
+  }
+};
 
 /**
  * produces a function that can be applied to an iterator and that will execute
@@ -1159,6 +1170,8 @@ export {
   split,
   delay,
   lineByLine,
+  debounce,
+  throttle,
 
   forEach,
 

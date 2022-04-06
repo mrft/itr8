@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as zlib from 'zlib';
 
 import * as itr8 from '../src';
-import { asNoBatch, lineByLine, itr8OperatorFactory as itr8OperatorFactory, unBatch } from '../src';
+import { asNoBatch, lineByLine, itr8OperatorFactory as itr8OperatorFactory, unBatch, debounce, throttle } from '../src';
 import { itr8FromStream, itr8ToReadableStream } from '../src/interface/stream'
 import { itr8FromObservable, itr8ToObservable } from '../src/interface/observable'
 import { hrtime } from 'process';
@@ -400,6 +400,39 @@ describe('itr8 test suite', () => {
       );
     });
 
+    it('itr8Pushable works properly', async () => {
+      const pushIt = itr8.itr8Pushable();
+      setImmediate(async () => {
+        pushIt.push(1);
+        await sleep(1);
+        pushIt.push('a');
+        pushIt.push(2);
+        await sleep(1);
+        pushIt.push('b');
+        await sleep(1);
+        pushIt.done();
+      });
+      assert.deepEqual(
+        await itr8.itr8ToArray(pushIt),
+        [1, 'a', 2, 'b'],
+      );
+
+      // now test if the buffer limit works as well
+      const pushIt2 = itr8.itr8Pushable(3);
+      pushIt2.push(1); // buffer should contain 1 item
+      pushIt2.push(2); // buffer should contain 2 items [1, 2]
+      assert.deepEqual(await pushIt2.next(), { value: 1 }); // buffer should contain 1 item [2]
+      pushIt2.push(3); // buffer should contain 2 items [2, 3]
+      pushIt2.push(4); // buffer should contain 3 items [2, 3, 4]
+      pushIt2.push(5); // buffer should contain 3 items still, and 2 should be removed [3, 4, 5]
+      // so the current next() call should return value 3 instead of 2
+      assert.deepEqual(await pushIt2.next(), { value: 3 }); // buffer should contain 2 items [4, 5]
+      assert.deepEqual(await pushIt2.next(), { value: 4 }); // buffer should contain 1 item [5]
+      assert.deepEqual(await pushIt2.next(), { value: 5 }); // buffer should contain 0 items []
+      setTimeout(() => pushIt2.done(), 1); // in a while, tellus it's done
+      assert.deepEqual((await pushIt2.next()).done, true); // buffer should contain 0 items []
+    });
+
     it('can pipe TransIterators together and everything should work as expected', () => {
       const range: any = itr8.itr8Range(1, 1000);
 
@@ -578,93 +611,92 @@ describe('itr8 test suite', () => {
         a,
       );
     });
-
   });
 
-  describe('our own \'operators\'', () => {
-    it('map(...) operator works properly', async () => {
-      const plusOne = (a) => a + 1;
-      const wrapString = (s) => `<-- ${s} -->`
-      // our mapping function should also support async mapping functions as argument !!!
-      const wrapStringAsync = async (s) => `<-- ${s} -->`
+  describe('our own iterator-to-something-else converters', () => {
+    // it('map(...) operator works properly', async () => {
+    //   const plusOne = (a) => a + 1;
+    //   const wrapString = (s) => `<-- ${s} -->`
+    //   // our mapping function should also support async mapping functions as argument !!!
+    //   const wrapStringAsync = async (s) => `<-- ${s} -->`
 
-      // itr8.map(plusOne)(itr8.itr8Range(4, 7));
+    //   // itr8.map(plusOne)(itr8.itr8Range(4, 7));
 
-      // synchronous
-      assert.deepEqual(
-        itr8.itr8ToArray(itr8.map(plusOne)(itr8.itr8Range(4, 7))),
-        [5, 6, 7, 8],
-        'map synchronous plusOne fails',
-      );
+    //   // synchronous
+    //   assert.deepEqual(
+    //     itr8.itr8ToArray(itr8.map(plusOne)(itr8.itr8Range(4, 7))),
+    //     [5, 6, 7, 8],
+    //     'map synchronous plusOne fails',
+    //   );
 
-      assert.deepEqual(
-        itr8.itr8ToArray(itr8.map(wrapString)(itr8.itr8Range(4, 7))),
-        ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
-        'map synchronous wrapString fails',
-      );
+    //   assert.deepEqual(
+    //     itr8.itr8ToArray(itr8.map(wrapString)(itr8.itr8Range(4, 7))),
+    //     ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
+    //     'map synchronous wrapString fails',
+    //   );
 
-      // asynchronous
-      assert.deepEqual(
-        await itr8.itr8ToArray(itr8.map(plusOne)(itr8.itr8RangeAsync(4, 7))),
-        [5, 6, 7, 8],
-        'map asynchronous plusOne fails',
-      );
+    //   // asynchronous
+    //   assert.deepEqual(
+    //     await itr8.itr8ToArray(itr8.map(plusOne)(itr8.itr8RangeAsync(4, 7))),
+    //     [5, 6, 7, 8],
+    //     'map asynchronous plusOne fails',
+    //   );
 
-      assert.deepEqual(
-        await itr8.itr8ToArray(itr8.map(wrapString)(itr8.itr8RangeAsync(4, 7))),
-        ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
-        'map asynchronous wrapString fails',
-      );
+    //   assert.deepEqual(
+    //     await itr8.itr8ToArray(itr8.map(wrapString)(itr8.itr8RangeAsync(4, 7))),
+    //     ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
+    //     'map asynchronous wrapString fails',
+    //   );
 
-      assert.deepEqual(
-        await itr8.itr8ToArray(itr8.map(wrapStringAsync)(itr8.itr8RangeAsync(4, 7))),
-        ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
-        'map asynchronous wrapString fails',
-      );
-    });
+    //   assert.deepEqual(
+    //     await itr8.itr8ToArray(itr8.map(wrapStringAsync)(itr8.itr8RangeAsync(4, 7))),
+    //     ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
+    //     'map asynchronous wrapString fails',
+    //   );
+    // });
 
-    it('filter(...) operator works properly', async () => {
-      const isEven = (a) => a % 2 === 0;
-      assert.deepEqual(
-        itr8.itr8ToArray(itr8.filter(isEven)(itr8.itr8Range(0, 7))),
-        [0, 2, 4, 6],
-      );
+    // it('filter(...) operator works properly', async () => {
+    //   const isEven = (a) => a % 2 === 0;
+    //   assert.deepEqual(
+    //     itr8.itr8ToArray(itr8.filter(isEven)(itr8.itr8Range(0, 7))),
+    //     [0, 2, 4, 6],
+    //   );
 
-      const moreThan5 = (a) => a > 5;
-      assert.deepEqual(
-        itr8.itr8ToArray(itr8.filter(moreThan5)(itr8.itr8Range(0, 7))),
-        [6, 7],
-      );
+    //   const moreThan5 = (a) => a > 5;
+    //   assert.deepEqual(
+    //     itr8.itr8ToArray(itr8.filter(moreThan5)(itr8.itr8Range(0, 7))),
+    //     [6, 7],
+    //   );
 
-      const moreThan5Async = async (a) => a > 5;
-      assert.deepEqual(
-        await itr8.itr8ToArray(itr8.filter(moreThan5Async)(itr8.itr8Range(0, 7))),
-        [6, 7],
-      );
+    //   const moreThan5Async = async (a) => a > 5;
+    //   assert.deepEqual(
+    //     await itr8.itr8ToArray(itr8.filter(moreThan5Async)(itr8.itr8Range(0, 7))),
+    //     [6, 7],
+    //   );
 
-    });
+    // });
 
-    it('skip(...) operator works properly', () => {
-      assert.deepEqual(
-        itr8.itr8ToArray(itr8.skip(5)(itr8.itr8Range(1, 7))),
-        [6, 7],
-      );
-    });
+    // it('skip(...) operator works properly', () => {
+    //   assert.deepEqual(
+    //     itr8.itr8ToArray(itr8.skip(5)(itr8.itr8Range(1, 7))),
+    //     [6, 7],
+    //   );
+    // });
 
-    it('limit(...) operator works properly', async () => {
-      // sync
-      assert.deepEqual(
-        itr8.itr8ToArray(itr8.limit(5)(itr8.itr8Range(1, 7) as Iterator<number>)),
-        [1, 2, 3, 4, 5],
-      );
+    // it('limit(...) operator works properly', async () => {
+    //   // sync
+    //   assert.deepEqual(
+    //     itr8.itr8ToArray(itr8.limit(5)(itr8.itr8Range(1, 7) as Iterator<number>)),
+    //     [1, 2, 3, 4, 5],
+    //   );
 
-      assert.deepEqual(
-        itr8.itr8ToArray(itr8.limit(5)(itr8.itr8Range(1, 3) as Iterator<number>)),
-        [1, 2, 3],
-        'limit should return the entire input when the limit is set higher than the total nr of elements in the input',
-      );
+    //   assert.deepEqual(
+    //     itr8.itr8ToArray(itr8.limit(5)(itr8.itr8Range(1, 3) as Iterator<number>)),
+    //     [1, 2, 3],
+    //     'limit should return the entire input when the limit is set higher than the total nr of elements in the input',
+    //   );
 
-    });
+    // });
 
     it('itr8ToReadableStream works properly', async () => {
 
@@ -995,6 +1027,55 @@ describe('itr8 test suite', () => {
           itr8.itr8FromArrayAsync(input2).pipe(lineByLine()),
         ),
         expected2,
+      );
+    });
+
+    it('debounce(...) operator works properly', async () => {
+      const pushIt = itr8.itr8Pushable();
+      setImmediate(async () => {
+        pushIt.push(1);
+        await sleep(1);
+        pushIt.push(2);
+        pushIt.push(3);
+        await sleep(3);
+        pushIt.push(4);
+        await sleep(3);
+        pushIt.done();
+      });
+      assert.deepEqual(
+        await itr8.itr8ToArray(
+          pushIt.pipe(
+            debounce(2),
+          ),
+        ),
+        [3, 4],
+      );
+    });
+
+    it('throttle(...) operator works properly', async () => {
+      const pushIt = itr8.itr8Pushable();
+      setImmediate(async () => {
+        pushIt.push(1);
+        await sleep(1);
+        pushIt.push(2);
+        pushIt.push(3);
+        await sleep(3);
+        pushIt.push(4);
+        pushIt.push(5);
+        pushIt.push(6);
+        await sleep(3);
+        pushIt.push(7);
+        await sleep(1);
+        pushIt.push(8);
+        pushIt.done();
+      });
+      assert.deepEqual(
+        await itr8.itr8ToArray(
+          pushIt.pipe(
+            throttle(2),
+          ),
+        ),
+        [1, 4, 7],
       );
     });
 

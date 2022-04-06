@@ -1,6 +1,5 @@
 // https://www.typescriptlang.org/play?#code/MYewdgzgLgBAhgLjAVwLYCMCmAnA2gXRgF4ZcBGAGhgCYqBmKgFnwG4AoUSWdBabASzABzAsVIBycJnFVxUAO4gZcgBbZM02QDMQybONZs2W5GGBR+4GFBABJKDjg3sAHgAqAPgAUiAILZsOABPdw8ASgR7R2dQmABvNhgkmHUoPTB4XABlIIwQABsAOn4HQOd8LzD2AF8jEzMLKxLokGw3EH9AkM8vZrLWyNKnVtCIzuDYhOSYfMxYdQhkfNgSAnZp2dgwdeT5FX5ZmC8AQi8Mkj7h7EKwTAAPKEqwwoATKTD4xOnkhaWoQoADsgICozoUAG5wfLITBVL5JWrTVLpFKYRbLGpGYymcyWMAAKhScGEmC80Dg2CgSDQWGwVEwYBe1IwOA+U2S-C0R3JlJgLhgDJebPh3x02COmxg-DEPKgLClfJIgvl-AA1Krhd8tTAgvxMPkXlKdlrEclqgL8hBMJ9tTAxRK5gqSLKVTAPErGSqALRezW25K6-WG-jG76mhFsWpsAD00ZgnAgBUwhXyICEXlwhSzgRJXgYAHYwvg4bH4+BE7MU2mM1nCjmhKSAKwUahFuFGUsJpNV9OXZztcZBLw2KL9bA+MKT9gccuwPpieukhgATnbUCCAOtbjcOYgL2QwBw7lsYAobgA8sgoB4xL0hs5Bi1XG4Tx4qLWARS4KgIAh4GAgg+Igb1HK53Eva9pwTWBUDgAEEG3Xd90PVxiSCCg0JvEh6lxcBCTvR8xxcFAWWwN87TABAvDuBA0KAm86JtZJJVuB4TzEEobnuR44WmPYDlJY5WKgE9XneJitUDA0KLObjRMhaFYVDaZhPYi5-mEypQ1qKNoJgWCAWoBCd2JPcDyPNCMIArCjhKQiwJI2lyK0SjqNogD6P-QDiBvdkkmRbAMj875hL-SofIk-09NU84pQ07itJFW09OweznAAJTRP5iJpHAbOC-1kgUmE-xc2S2LACEoRhMIKCSwqYDeW4-xisTbjqhqYHDf0AoybBlLNEVzTgCAYFAmJHLyyMjD0rQDlKYykPM1CAKsoIbJwxoCVsqlxpGTCqBcqiaMY4CYHQEAk2JP0khYuTYs4zTeN2fZZhOVqmthSLpk5I4yta4rYRu-0pMNAHqswAaI1tGKOPih5EumHSZtnGAQC0LQrSpRDTOQizVswsRNrxfC7L2lb1qob9dDAKlJuwYG7oquGuIR57bsdUBTFKMQAAZQ34t6hPutqvoK5IudpnAxElnnVRgMgoalLkvFl6WGNQGmoGB21QZgcHFKV7qVPulmnu06aZy4GZ+FQOyccgPGKbWjacS20ndvvfbrKpzXueZWlGcdWH1NZnjQ0lNXxRIfmRUFwSPvE8WkijmWtel+XFfqpJftV9PxRcEhqe5nXtT1g2YSN7P9dN0PzaGy2YzjYm8JgAF+E3Lxa1wEB4IdsyUKp7AhDQBkoF-GBCDCFHrbgagifmnAvAM4c7C98c4Fqo4aPpzy7hgTOt7c3eIv3m9Wyg8tu1TXt14HAJgh8Vt2y7Ssb7vJ9766Lx0cxuZV-Jl4dAW9n4vyvm-asfZWhf0fvkW2JQAHryASAycVQgA
 
-import { TimeInterval } from 'rxjs/internal/operators/timeInterval';
 import { isPromise } from 'util/types';
 import { TPipeable, TTransIteratorSyncOrAsync } from './types';
 
@@ -194,8 +193,79 @@ function itr8FromSingleValueAsync<T>(v: any): TPipeable & AsyncIterableIterator<
   );
 }
 
+
 /**
- * Turns an itr8 into an array
+ * Creates an AsyncIterableIterator, that also exposes a push(...) method
+ * that can be used to push values into it (for example based on events).
+ * The done method can be used to indicate that no more elements will follow.
+ *
+ * The bufferSize parameter defines how large the buffer is that will hold the
+ * messages until they are pulled by a next() call. The oldest messages will be
+ * dropped if no one is consuming the iterator fast enough.
+ *
+ * @param observable 
+ * @returns 
+ */
+function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T> & { push:(T) => void, done:() => void } {
+  let buffer:any[] = [];
+
+  let currentResolve;
+  let currentReject;
+  let currentDataPromise;
+  let done = false;
+
+  const createNewCurrentDataPromise = () => {
+    currentDataPromise = new Promise((resolve, reject) => {
+      currentResolve = resolve;
+      currentReject = reject;
+    });
+    buffer.push(currentDataPromise);
+    while (bufferSize !== undefined && buffer.length > bufferSize + 1) {
+        // remove the oldest one from the buffer
+        buffer.shift();
+    }
+  }
+
+  createNewCurrentDataPromise();
+
+  const retVal = {
+    [Symbol.asyncIterator]: () => retVal,
+    next: async () => {
+      if (done) {
+        return { done: true };
+      }
+      if (buffer.length > 0) {
+        // const [firstOfBufferPromise, ...restOfBuffer] = buffer;
+        // buffer = restOfBuffer;
+        const firstOfBufferPromise = buffer.shift();
+        const asyncNext = await firstOfBufferPromise;
+        return asyncNext;
+      } else {
+        throw new Error('[itr8FromObservable] No elements in the buffer?')
+      }
+    },
+    push: (value:T) => {
+      currentResolve({ value });
+      createNewCurrentDataPromise();
+    },
+    done: () => {
+      currentResolve({ done: true });
+      createNewCurrentDataPromise();
+      done = true;
+    },
+  };
+
+  return itr8Proxy(retVal as AsyncIterableIterator<T>) as TPipeable & AsyncIterableIterator<T> & { push:(T) => void, done:() => void };
+}
+
+
+
+/**
+ * Turns an itr8 into an array.
+ * 
+ * It supports 'batched' interators as well, and will output an array of single values
+ * (and not an array of arrays).
+ * 
  * @param iterator
  * @returns an array
  */
@@ -242,7 +312,7 @@ function itr8ToArray<T>(iterator: Iterator<T> | AsyncIterator<T>): Array<T | any
  * which is useful for trying out stuff without manually
  * having to create arrays.
  *
- * 'from' can be less than 'to', in which case the iterator will count down
+ * 'from' can be higher than 'to', in which case the iterator will count down
  *
  * @param start start index
  * @param end end index
@@ -271,7 +341,7 @@ function itr8Range(from: number, to: number):TPipeable & IterableIterator<number
  * which is useful for trying out stuff without manually
  * having to create arrays.
  *
- * 'from' can be less than 'to', in which case the iterator will count down
+ * 'from' can be higher than 'to', in which case the iterator will count down
  *
  * @param start start index
  * @param end end index
@@ -305,6 +375,7 @@ export {
   itr8FromArrayAsync,
   itr8FromString,
   itr8FromStringAsync,
+  itr8Pushable,
   itr8Range,
   itr8RangeAsync,
   itr8ToArray,
