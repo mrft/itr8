@@ -6,7 +6,7 @@ import { itr8FromIterable, itr8FromString, itr8Pipe, itr8Proxy, itr8Pushable } f
  * This operator will simply produce the same output, but the new Iterator will be marked
  * as an itr8batch iterator, assuming that each value the iterator produces will be an array
  * (or to be more precise, and Iterable).
- * 
+ *
  * From that point onwards, all operators (like filter or map) will work on each element
  * of the inner array, instead of the array itself.
  *
@@ -116,11 +116,11 @@ const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
  * An operator is 'a function that generates a transIterator'.
  * So for example filter(...) is an operator, because when called with an argument
  * (the filter function) the result of that will be another function which is the transIterator.
- * 
+ *
  * A transIterator is simply a function with an iterator as single argument which will return
  * another iterator. This way we can easily 'build a chain of mulitple transIterators'.
  * So it transforms iterators, which is why I have called it transIterator (~transducers).
- * 
+ *
  * itr8OperatorFactory is a function that generates an operator that generates transIterators that
  * will work both on synchronous and asynchronous iterators.
  * The factory needs to be provided with a single function of the form:
@@ -137,7 +137,7 @@ const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
  * track of how many records have passed.
  * * The operator params are the argument that is given to the operator function, like a number for
  *   a 'take' operator, or the filter function for a 'filter' operator.
- * 
+ *
  * Check the readme for some examples on how to write your own operators by using the itr8OperatorFactory
  * (or check the source code as all the available operators have been built using this function).
  *
@@ -669,7 +669,7 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
 /**
  * Translate each element into something else by applying the supplied mapping function
  * to each element.
- * 
+ *
  * The mapping function can be asynchronous (in which case the resulting iterator will be
  * asynchronous regardless of the input iterator)!
  *
@@ -1030,8 +1030,8 @@ const throttle = (throttleMilliseconds:number) => {
           const currentTimestamp = Date.now();
           if (currentTimestamp - previousTimestamp > throttleMilliseconds) {
             itOut.push(nextValue);
+            previousTimestamp = currentTimestamp;
           }
-          previousTimestamp = currentTimestamp;
         }
       )(it);
       itOut.done();

@@ -1096,9 +1096,11 @@ describe('itr8 test suite', () => {
         pushIt.push(3);
         await sleep(3);
         pushIt.push(4);
+        await sleep(1);
         pushIt.push(5);
+        await sleep(1);
         pushIt.push(6);
-        await sleep(3);
+        await sleep(2);
         pushIt.push(7);
         await sleep(1);
         pushIt.push(8);
@@ -1107,7 +1109,7 @@ describe('itr8 test suite', () => {
       assert.deepEqual(
         await itr8.itr8ToArray(
           pushIt.pipe(
-            throttle(2),
+            throttle(3),
           ),
         ),
         [1, 4, 7],
