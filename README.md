@@ -84,7 +84,7 @@ const transIt = itr8.itr8Pipe(
 // an 'operator' is a function that produces as transIterator
 const myOperator = () => transIt;
 
-myIterator.pipe(
+myIterator().pipe(
   myOperator(),
 );
 // myIterator.pipe(transIt) would work as well but always using 'operators' would be a good convention

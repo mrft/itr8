@@ -841,6 +841,46 @@ describe('itr8 test suite', () => {
       );
     });
 
+    it('every(...) operator works properly', async () => {
+      const isEven = (a) => a % 2 === 0;
+      assert.deepEqual(
+        itr8.itr8Range(0, 7).pipe(
+          itr8.every(isEven),
+          itr8.itr8ToArray
+        ),
+        [false],
+      );
+
+      const moreThan5 = (a) => a > 5;
+      assert.deepEqual(
+        await itr8.itr8RangeAsync(10, 35).pipe(
+          itr8.every(moreThan5),
+          itr8.itr8ToArray
+        ),
+        [true],
+      );
+    });
+
+    it('some(...) operator works properly', async () => {
+      const isEven = (a) => a % 2 === 0;
+      assert.deepEqual(
+        itr8.itr8Range(0, 7).pipe(
+          itr8.some(isEven),
+          itr8.itr8ToArray
+        ),
+        [true],
+      );
+
+      const moreThan5 = (a) => a > 5;
+      assert.deepEqual(
+        await itr8.itr8RangeAsync(4, -3).pipe(
+          itr8.some(moreThan5),
+          itr8.itr8ToArray
+        ),
+        [false],
+      );
+    });
+
     it('skip(...) operator works properly', () => {
       assert.deepEqual(
         itr8.itr8ToArray(itr8.skip(5)(itr8.itr8Range(1, 7))),

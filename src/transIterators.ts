@@ -727,6 +727,57 @@ const filter = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>
 );
 
 /**
+ * Return true if every item returns true on the test function.
+ *
+ * The filter function can be asynchronous (in which case the resulting iterator will be
+ * asynchronous regardless of the input iterator)!
+ */
+const every = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, { done: boolean }>(
+  (nextIn, state, filterFn) => {
+    if (state.done) return { done: true };
+    if (nextIn.done) return { done: false, value: true, state: { done: true } };
+
+    const result = filterFn(nextIn.value);
+    if (isPromise(result)) {
+      return (async () => {
+        if (await result) return { done: false, state: { done: false } };
+        return { done: false, value: result, state: { done: true } };
+        })();
+    } else {
+      if (result) return { done: false, state: { done: false } };
+      return { done: false, value: result, state: { done: true } };
+    }
+  },
+  { done: false },
+);
+
+/**
+ * Return true if at least 1 item returns true on the test function.
+ *
+ * The filter function can be asynchronous (in which case the resulting iterator will be
+ * asynchronous regardless of the input iterator)!
+ */
+ const some = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, { done: boolean }>(
+  (nextIn, state, filterFn) => {
+    if (state.done) return { done: true };
+    if (nextIn.done) return { done: false, value: false, state: { done: true } };
+
+    const result = filterFn(nextIn.value);
+    if (isPromise(result)) {
+      return (async () => {
+        if (await result) return { done: false, value: result, state: { done: true } };
+        return { done: false, state: { done: false } };
+        })();
+    } else {
+      if (result) return { done: false, value: result, state: { done: true } };
+      return { done: false, state: { done: false } };
+    }
+  },
+  { done: false },
+);
+
+
+/**
  * Skip the 'amount' first elements and return all the others unchanged.
  *
  * @param amount
@@ -1277,6 +1328,11 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
 export {
   map,
   filter,
+
+  // boolean
+  every,
+  some,
+
   skip,
   limit,
   groupPer,
