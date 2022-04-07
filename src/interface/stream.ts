@@ -5,9 +5,9 @@ import { TPipeable } from '../types';
 
 /**
  * Transforms a stream into an async itr8.
- * 
+ *
  * To open a file as an iterator:
- * 
+ *
  * itr8FromStream(fs.createReadStream("D://data.txt"));
  *
  * How it works: the stream.on data handler will put everything in a buffer

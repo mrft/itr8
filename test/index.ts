@@ -272,14 +272,11 @@ const transItToName = (transIt) => {
     .filter(([_, t]) => t === transIt);
   return filtered[0][0];
 }
-
-
-
-
-
-
-
-
+////////////////////////////////////////////////////////////////////////////////
+//
+// The actual test suite start here
+//
+////////////////////////////////////////////////////////////////////////////////
 
 describe('first test the util functions used in the test suite', () => {
   it('Check if arrayToStream really produces a readable nodejs stream', async () => {
@@ -434,15 +431,13 @@ describe('itr8 test suite', () => {
     });
 
     it('can pipe TransIterators together and everything should work as expected', () => {
-      const range: any = itr8.itr8Range(1, 1000);
-
       const transIt = itr8.itr8Pipe(
         itr8.skip(5),
         itr8.limit(10),
         itr8.map((x) => x * 2),
       );
 
-      const result: number[] = itr8.itr8ToArray(transIt(range)) as number[];
+      const result: number[] = itr8.itr8ToArray(transIt(itr8.itr8Range(1, 1000))) as number[];
 
       assert.equal(
         result[0],
@@ -452,6 +447,46 @@ describe('itr8 test suite', () => {
         result.length,
         10,
       );
+
+      const transIt2 = itr8.itr8Pipe(
+        itr8.skip(5),
+        itr8.limit(10),
+        itr8.map((x) => x * 2),
+      );
+
+      const result2: number[] = itr8.itr8ToArray(transIt2(itr8.itr8Range(1, 1000))) as number[];
+
+      assert.equal(
+        result2[0],
+        6 * 2,
+      );
+      assert.equal(
+        result2.length,
+        10,
+      );
+
+
+      assert.deepEqual(
+        itr8.itr8Range(1, 1000).pipe(
+          itr8.limit(3),
+          itr8.map((x) => x * 2),
+          itr8.itr8ToArray,
+        ),
+        [2, 4, 6],
+      );
+
+      let r:any[] = [];
+      itr8.itr8Range(1, 1000).pipe(
+        itr8.limit(3),
+        itr8.map((x) => x * 2),
+        itr8.forEach((x) => { r.push(x) }),
+      ),
+
+      assert.deepEqual(
+        r,
+        [2, 4, 6],
+      );
+
     });
   });
 
@@ -1510,6 +1545,8 @@ describe('itr8 test suite', () => {
         await testRepeatEach(true, transIts.opr8RepeatEachSyncAsync);
         await testRepeatEach(true, transIts.opr8RepeatEachAsyncAsync);
       });
+
+
     });
   });
 
@@ -1525,16 +1562,16 @@ describe('itr8 test suite', () => {
 
         // we'll put all elements in an array and check that
         let result1: any[] = [];
-        itr8.forEach(
-          (x) => {
-            result1.push(x);
-          }
-        )(
-          itr8.itr8Range(4, 7)
-            .pipe(
-              itr8.map(plusOne),
+        itr8.itr8Range(4, 7)
+          .pipe(
+            itr8.map(plusOne),
+
+            itr8.forEach(
+              (x) => {
+                result1.push(x);
+              }
             ),
-        );
+          );
 
         // synchronous
         assert.deepEqual(
@@ -1543,14 +1580,14 @@ describe('itr8 test suite', () => {
         );
 
         let result2: any[] = [];
-        await itr8.forEach(async (x) => {
-          console.log('----', x);
-          result2.push(x);
-        })(
-          itr8.itr8Range(4, 7).pipe(
+        await itr8.itr8Range(4, 7)
+          .pipe(
             itr8.map(wrapString),
-          ),
-        );
+            itr8.forEach(async (x) => {
+              console.log('----', x);
+              result2.push(x);
+            }),
+          );
 
         assert.deepEqual(
           result2,
@@ -1559,13 +1596,14 @@ describe('itr8 test suite', () => {
 
         // asynchronous
         let result3: any[] = [];
-        await itr8.forEach(
-          (x) => { result3.push(x); }
-        )(
-          itr8.itr8RangeAsync(4, 7).pipe(
+        await itr8.itr8RangeAsync(4, 7)
+          .pipe(
             itr8.map(plusOne),
-          ),
-        );
+          ).pipe(
+            itr8.forEach(
+              (x) => { result3.push(x); }
+            ),
+          );
 
         assert.deepEqual(
           result3,
@@ -1573,15 +1611,18 @@ describe('itr8 test suite', () => {
         );
 
         let result4: any[] = [];
-        await itr8.forEach(
-          async (x) => {
-            result4.push(x);
-          }
-        )(
-          itr8.itr8RangeAsync(4, 7).pipe(
+        await itr8.itr8RangeAsync(4, 7)
+          .pipe(
             itr8.map(wrapString),
-          ),
-        );
+          )
+          .pipe(
+            itr8.forEach(
+              async (x) => {
+                result4.push(x);
+              }
+            )
+          );
+
         assert.deepEqual(
           result4,
           ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
@@ -1607,12 +1648,11 @@ describe('itr8 test suite', () => {
           counter -= 1;
         };
 
-        await itr8.forEach(forEachHandler, { concurrency: 4 })(
-          itr8.itr8Range(4, 1)
-            .pipe(
-              itr8.map(pow2), // => 16, 9, 4, 1
-            ),
-        );
+        await itr8.itr8Range(4, 1)
+          .pipe(
+            itr8.map(pow2), // => 16, 9, 4, 1
+            itr8.forEach(forEachHandler, { concurrency: 4 }),
+          );
 
         assert.equal(maxCounter, 4);
 
@@ -1626,18 +1666,49 @@ describe('itr8 test suite', () => {
         result1 = [];
         counter = 0;
         maxCounter = 0;
-        await itr8.forEach(forEachHandler, { concurrency: 2 })(
-          itr8.itr8Range(4, 1)
-            .pipe(
-              itr8.map(pow2), // => 16, 9, 4, 1
-            ),
-        );
+        await itr8.itr8Range(4, 1)
+          .pipe(
+            itr8.map(pow2), // => 16, 9, 4, 1
+            itr8.forEach(forEachHandler, { concurrency: 2 }),
+          );
 
         assert.equal(maxCounter, 2);
 
         assert.deepEqual(
           result1,
           [9, 4, 1, 16],
+        );
+      });
+
+      it.skip('forEach(...) method works properly on a batched iterator', async () => {
+        const plusOne = (a) => a + 1;
+        const pow2 = (a) => a * a;
+        const wrapString = (s) => `<-- ${s} -->`
+
+
+        // we'll put all elements in an array and check that
+        let result1: any[] = [];
+        let counter = 0;
+        let maxCounter = 0;
+        const forEachHandler = async (x) => {
+          counter += 1;
+          maxCounter = Math.max(maxCounter, counter);
+          result1.push(x);
+          counter -= 1;
+        };
+
+        await itr8.itr8Range(4, 1)
+          .pipe(
+            itr8.map(pow2), // => 16, 9, 4, 1
+            itr8.batch(2),
+            itr8.forEach(forEachHandler),
+          );
+
+        assert.equal(maxCounter, 1);
+
+        assert.deepEqual(
+          result1,
+          [16, 9, 4, 1],
         );
       });
     });

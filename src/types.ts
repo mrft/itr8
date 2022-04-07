@@ -2,7 +2,13 @@
  * Anything with a pipe method.
  */
 type TPipeable<TIn=any, TOut=any> = {
-  pipe: (op:TTransIteratorSyncOrAsync<TIn, TOut>, ...moreOperators:Array<TTransIteratorSyncOrAsync<TIn, TOut>>) => TPipeable & (IterableIterator<TOut> | AsyncIterableIterator<TOut>),
+  // TODO: improve to get compiler errors when 2 functions are not chainable because the types don't match
+  // but how to do this in a tpe definition? in a class defintion you can add multiple method definitions
+  // as you can see here in some RxJS code: https://github.com/ReactiveX/rxjs/blob/f174d38554d404f21f98ab1079a101e80d777e95/src/internal/Observable.ts#L338-L404
+  // pipe: <A,B>(fn1:(A) => B) => B,
+  // pipe: <A,B,C>(fn1:(A) => B,fn1:(B) => C) => C,
+  pipe: (...params:any) => any,
+  //    (op:TTransIteratorSyncOrAsync<TIn, TOut>, ...moreOperators:Array<TTransIteratorSyncOrAsync<TIn, TOut>>) => TPipeable & (IterableIterator<TOut> | AsyncIterableIterator<TOut>),
 }
 
 type TTransIterator<TIn, TOut> = (iterator: Iterator<TIn>, ...params: any) => Iterator<TOut> /* | AsyncGenerator<TOut> */;

@@ -1010,6 +1010,14 @@ const lineByLine = () => itr8Pipe(
  *
  * This is a special operator that cannot be implemented wit the operatorFactory,
  * but is built by combining forEach and itr8Pushable
+ *
+ * REMARK: it will always create an unbatched iterator, regardless of the input
+ *
+ * WARNING: right now forEach (which this is based on) doesn't respect a batched iterator
+ * yet which doesn't comply with the behaviour of other operations, and thus should be changed.
+ * (if batched, forEach should be called with individual items, not the underlying arrays!)
+ * It can be worked around for now by using unbatch before doing a forEach.
+
  */
 // const throttle:TTransIteratorAsync<any,any> = (it)
 const throttle = (throttleMilliseconds:number) => {
@@ -1038,9 +1046,16 @@ const throttle = (throttleMilliseconds:number) => {
  * Wait for x milliseconds of 'no events' before firing one.
  * So an event will either not be handled (busy period),
  * or handled after the calm period (so with a delay of x milliseconds)
- * 
+ *
  * This is a special operator that cannot be implemented wit the operatorFactory,
- * but is built by combining forEach and itr8Pushable
+ * but is built by combining forEach and itr8Pushable.
+ *
+ * REMARK: it will always create an unbatched iterator, regardless of the input
+ *
+ * WARNING: right now forEach (which this is based on) doesn't respect a batched iterator
+ * yet which doesn't comply with the behaviour of other operations, and thus should be changed.
+ * (if batched, forEach should be called with individual items, not the underlying arrays!)
+ * It can be worked around for now by using unbatch before doing a forEach.
  */
 const debounce = (cooldownMilliseconds:number) => {
   return <T>(it:Iterator<T> | AsyncIterator<T>) => {
@@ -1070,6 +1085,11 @@ const debounce = (cooldownMilliseconds:number) => {
  * By default the next will only be handled when the current handler has finished.
  * If you set options.concurrency to a higher value, you are allowing multiple handlers
  * to run in parallel.
+ *
+ * WARNING: right now forEach doesn't respect a batched iterator yet which doesn't comply with
+ * the behaviour of other operations, and thus should be changed.
+ * (if batched, forEach should be called with individual items, not the underlying arrays!)
+ * It can be worked around for now by using unbatch before doing a forEach.
  *
  * @param handler
  * @param options: { concurrency: number } will control how many async handler are alowed to run in parallel. Default: 1

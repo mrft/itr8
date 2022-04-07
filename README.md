@@ -15,11 +15,20 @@ And then import it in your source code file:
 ```typescript
 import * as itr8 from 'itr8'
 
-// create an iterator to start from
-const myIterator = itr8.itr8Range(0, 10_000_000); // or itr8.fromArray([...])
+// create an iterator to start from with a utilyti function
+const myIterator = () => itr8.itr8Range(0, 10_000_000); // or itr8.fromArray([...])
+
+// or create your own Iterator or AsyncIterator (for example with a generator function)
+function* myGeneratorFunction() {
+  for (let i = 0; i < 10_000_000; i++) {
+    yield i;
+  }
+}
+// 'itr8Proxy' is only needed to make .pipe work which is just very convenient
+const myOwnIterator = () => itr8.itr8Proxy(myGeneratorFunction());
 
 // All iterables returned by itr8 are also 'pipeable', meaning that each returned iterator also exposes a pipe function to add other operators to the chain
-const myTransformedIterator = itr8.itr8Proxy(myIterator)
+const myTransformedIterator = itr8.itr8Proxy(myIterator())
     .pipe(
         itr8.map((x) => x / 2),
         itr8.filter((x) => x % 3 === 0),
@@ -29,7 +38,7 @@ const myTransformedIterator = itr8.itr8Proxy(myIterator)
 );
 
 // this will work as well (because pipe produces another 'pipeable')
-const myTransformedIterator2 = itr8.itr8Proxy(myIterator)
+const myTransformedIterator2 = itr8.itr8Proxy(myIterator())
     .pipe(itr8.map((x) => x / 2))
     .pipe(itr8.filter((x) => x % 3 === 0))
     .pipe(itr8.skip(5))
@@ -37,19 +46,28 @@ const myTransformedIterator2 = itr8.itr8Proxy(myIterator)
 );
 
 // use forEach to do something with every element (it will handle async handlers as well, you can even control the concurrency easily)
-forEach(
-  async (id) => {
-    const descr = await getElementFromDisk(id);
-    console.log('element = ', descr);
-  },
+myTransformedIterator.pipe(
+  forEach(
+    async (id) => {
+      const descr = await getElementFromDisk(id);
+      console.log('element = ', descr);
+    },
+  )
 )
-(myTransformedIterator)
-// TODO: should be pipeable into forEach like this:
-// myTransformedIterator.pipe(
-//   forEach((element) => {
-//     console.log('element = ', element);
-//   }),
-// );
+
+// or simply pipe everything together including the forEach at the end!
+myIterator().pipe(
+  itr8.map((x) => x / 2),
+  itr8.filter((x) => x % 3 === 0),
+  itr8.skip(5),
+  itr8.limit(50),
+  itr8.forEach(
+    async (id) => {
+      const descr = await getElementFromDisk(id);
+      console.log('element = ', descr);
+    },
+  ),
+);
 
 // we can use standard JS 'for ... of' to loop over an iterable
 for (let x of myTransformedIterator2) {
@@ -65,8 +83,16 @@ const transIt = itr8.itr8Pipe(
 );
 // an 'operator' is a function that produces as transIterator
 const myOperator = () => transIt;
+
+myIterator.pipe(
+  myOperator(),
+);
+// myIterator.pipe(transIt) would work as well but always using 'operators' would be a good convention
 ```
-You, can find some more [documentation](#documentation) further in this file.
+You, can find some more [documentation](#documentation) further in this file or go straight to
+[the github site about itr8](https://mrft.github.io/itr8)
+
+You can see more working examples in the future in this [replit playground](https://replit.com/@mrft1/itr8-playground#index.ts)
 
 ## Who is this library for?
 
@@ -81,7 +107,8 @@ If you ever found yourself in one of these situations, this library might be use
 
 ### Why not RxJS, IxJS, iter-tools, HighlandJS, ...?
 
-* RxJS, being push-based, with no easy pushback mechanism wold not solve the issue for me.
+* RxJS, being push-based, with no easy pushback mechanism would not solve the issue for me.
+  On the other hand, any problem that RxJS will solve can also be solved with (async) iterators.
 * IxJS I found too cumbersome (the docs were not clear enough for me), and I didn't see how to write my own operators (as opposed to RxJS that explains how to do that very well in the docs)
 * iter-tools: same here, how to write your own operators?
 * HighlandJS is stream based, which makes it NodeJS only (at least without browserify). Also, streams are kind of cumbersome, and the sync and async iterator protocols are dead simple and part of the standard.
@@ -90,18 +117,17 @@ So, while all these libraries have their merit, none of them convered my needs w
 
 ## TODO
 
-* Piping should have better typing (like RxJS does it)
-* Piping should only care whether the output type of the first and the input type of the next match
-  so that we are not only limited to transIterators, this way the last step of the pipe could be
-  forEach. Right now calling forEach is still clunky.
+* Piping should have better typing (like RxJS does it?) to make sure you get hints if you are trying to pipe functions together whose output and input types do not match.
 * General code cleanup
-* Writing more and better documentation
-* Add more operators
-  * debounce
-  * throttle
-  * ...
+  * Should we create 'categories' of operators so people do not have to include the entire library?
+    (for example delay, throttle, debounce under operators/timeBased and maybe max, min, average, pctl(...), total, ... under operators/numeric)
+* Writing more and better documentation and example to show what can be done.
+* Add some more useful operators
+  * a 'zip' operator
+  * gzip/gunzip?
+  * we'll probably find some inspiration in the RxJS library
 * Add more 'generators' for typical cases like file input, db paga-per-page processing?
-* Further improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significatnly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always `unBatch |> batch(size)` to force a new batch size, but it could be more efficient if the itr8OperatorFactory handles the batch size and keeps it constant throughtout the chain.
+* Further improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significantly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always `unBatch |> batch(size)` to force a new batch size, but it could be more efficient if the itr8OperatorFactory handles the batch size and keeps it constant throughtout the chain.
 
 
 # Documentation
@@ -313,7 +339,7 @@ I should try to get that in a nice schema somehow.
 
 
 My conclusion was: you could build something similar based on Iterators, and then you could create operators that work both on sync or async iterators, which solves all these problems with a single solution.
-In my view, if we create a set of functions that take some arguments as input, and that produces functions transforming an existing iterator into a new iterator, we have all we need.
+In my view, if we create a set of functions that take some arguments as input, and that produces functions transforming an existing iterator into a new iterator, we have all we need. And since it is pull-based it doesn't matter if the producer is faster, but it also means we can handle any situation that RxJS can handle, because it means we can definitely handle all 'reactive' cases where the producer is slower than the consumer.
 
 But because not all iterators can produce the data synchronously, we will need to make sure all of them can handle *both synchronous and asynchronous* iterators (where a 'next()' call will return a Promise). This will allow us to support streams, as well as Observables (+ all the basics like arrays). Actually [NodeJs streams are already AsyncIterables](https://nodejs.org/api/stream.html#stream_streams_compatibility_with_async_generators_and_async_iterators) right now, so we don't even need a helper funtion to use them as a source!
 

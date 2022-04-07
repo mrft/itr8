@@ -38,16 +38,72 @@ const itr8ProxyHandler:ProxyHandler<IterableIterator<any>> = {
  *
  * @param params a list of transIterators
  */
-function itr8Pipe<TIn=any,TOut=any>(
-  first:TTransIteratorSyncOrAsync,
-  ...params:Array<TTransIteratorSyncOrAsync>
-):TTransIteratorSyncOrAsync<TIn, TOut> {
-  const [second, ...rest] = params;
-  return second
-    ? itr8Pipe((it:Iterator<any>) => itr8Proxy(second(first(it))), ...rest)
-    : (it:Iterator<any>) => itr8Proxy(first(it));
-  ;
+// function itr8Pipe<TIn=any,TOut=any>(
+//   first:TTransIteratorSyncOrAsync,
+//   ...params:Array<TTransIteratorSyncOrAsync>
+// ):TTransIteratorSyncOrAsync<TIn, TOut> {
+//   const [second, ...rest] = params;
+//   return second
+//     ? itr8Pipe((it:Iterator<any>) => itr8Proxy(second(first(it))), ...rest)
+//     : (it:Iterator<any>) => itr8Proxy(first(it));
+//   ;
+// }
+
+// /**
+//  * A more generic pipe function that takes multiple functions as input
+//  * and outputs a single function where input = input of the first function
+//  * and output = output where every funtion has been applied to the output of the previous on.
+//  *
+//  * So itr8Pipe(f1:(A)=>B, f2:(B)=>C, f3:(C)=>D) returns (a:A):D => f3(f2(f1(a)))
+//  *
+//  * @param first
+//  * @param params
+//  * @returns
+//  */
+// COPY-PASTED FROM RxJS source code
+// export function pipe<T, A>(fn1: UnaryFunction<T, A>): UnaryFunction<T, A>;
+// export function pipe<T, A, B>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>): UnaryFunction<T, B>;
+// export function pipe<T, A, B, C>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>): UnaryFunction<T, C>;
+// export function pipe<T, A, B, C, D>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>): UnaryFunction<T, D>;
+// export function pipe<T, A, B, C, D, E>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>): UnaryFunction<T, E>;
+// export function pipe<T, A, B, C, D, E, F>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>): UnaryFunction<T, F>;
+// export function pipe<T, A, B, C, D, E, F, G>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>): UnaryFunction<T, G>;
+// export function pipe<T, A, B, C, D, E, F, G, H>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>, fn8: UnaryFunction<G, H>): UnaryFunction<T, H>;
+// export function pipe<T, A, B, C, D, E, F, G, H, I>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>, fn8: UnaryFunction<G, H>, fn9: UnaryFunction<H, I>): UnaryFunction<T, I>;
+// export function pipe<T, A, B, C, D, E, F, G, H, I>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>, fn8: UnaryFunction<G, H>, fn9: UnaryFunction<H, I>, ...fns: UnaryFunction<any, any>[]): UnaryFunction<T, {}>;
+//
+// export function itr8Pipe2<A,B>(fn1:(A) => B):(A) => B;
+// export function itr8Pipe2<A,B,C>(fn1:(A) => B, fn2:(B) => C):(A) => C;
+// export function itr8Pipe2<A,B,C,D>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D):(A) => D;
+// export function itr8Pipe2<A,B,C,D,E>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D, fn4:(D) => E):(A) => E;
+/*export*/ function itr8Pipe<A=any,B=any>(
+  first:(A) => B,
+  ...params:Array<(any) => any>
+):any {
+  if (params.length === 0) {
+    return first;
+  } else {
+    return params.reduce<(any) => any>(
+      (acc, cur) => {
+        return (arg) => cur(acc(arg))
+      },
+      first,
+    );
+  };
 }
+
+function itr8PipeArray(
+  params:Array<(any) => any>
+):any {
+  return params.reduce<(any) => any>(
+    (acc, cur) => {
+      return (arg) => cur(acc(arg))
+    },
+    (x) => x,
+  );
+}
+
+
 
 /**
  * This will wrap the sync or async iterator and adds:
@@ -99,8 +155,14 @@ function itr8Proxy<PTIterator extends IterableIterator<any> | AsyncIterableItera
   //   iterator[x] = TransIt[x](iterator);
   // }
   let retVal = (iterator as TPipeable & PTIterator);
-  retVal.pipe = (transIt:TTransIteratorSyncOrAsync, ...moreTransits:Array<TTransIteratorSyncOrAsync>) => {
-    return itr8Proxy(itr8Pipe(transIt, ...moreTransits)(iterator));
+  // retVal.pipe = (transIt:TTransIteratorSyncOrAsync, ...moreTransits:Array<TTransIteratorSyncOrAsync>) => {
+  //   return itr8Proxy(itr8Pipe(transIt, ...moreTransits)(iterator));
+  // }
+  retVal.pipe = <A=any,B=any>(
+    fn1:((a:TPipeable & (IterableIterator<A> | AsyncIterableIterator<A>)) => B),
+    ...moreFns:Array<(any) => any>
+  ) => {
+    return itr8PipeArray([fn1, ...moreFns])(iterator);
   }
   return retVal;
 }
@@ -203,8 +265,8 @@ function itr8FromSingleValueAsync<T>(v: any): TPipeable & AsyncIterableIterator<
  * messages until they are pulled by a next() call. The oldest messages will be
  * dropped if no one is consuming the iterator fast enough.
  *
- * @param observable 
- * @returns 
+ * @param observable
+ * @returns
  */
 function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T> & { push:(T) => void, done:() => void } {
   let buffer:any[] = [];
@@ -262,10 +324,10 @@ function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T
 
 /**
  * Turns an itr8 into an array.
- * 
+ *
  * It supports 'batched' interators as well, and will output an array of single values
  * (and not an array of arrays).
- * 
+ *
  * @param iterator
  * @returns an array
  */
