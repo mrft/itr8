@@ -141,6 +141,8 @@ const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
  * Check the readme for some examples on how to write your own operators by using the itr8OperatorFactory
  * (or check the source code as all the available operators have been built using this function).
  *
+ * BEWARE: NEVER MODIFY THE STATE OBJECT (or any of its children!), ALWAYS RETURN A NEW VALUE!
+ *
  * @param nextFn
  * @param initialState
  * @returns a funtion taking an iterator (and optionally some argument) as input and that has an iterator as output
@@ -840,6 +842,104 @@ const runningTotal = itr8OperatorFactory<number, number, void, number>(
 );
 
 /**
+ * Output the percentile(x)
+ * @example
+ * ```typescript
+ *    itr8Range(1,100)
+ *      .pipe(percentile(95))  // => [ 95 ]
+ * ```
+ *
+ * @param it
+ * @param amount
+ */
+const percentile = itr8OperatorFactory<number, number, number, { done: boolean, count: number, topArray: number[] }>(
+  (nextIn, state, percentage) => {
+    if (state.done) return { done: true };
+    if (nextIn.done) return { done: false, value: state.topArray[0], state: { ...state, done: true } };
+    const newCount = state.count + 1;
+    const newTopArraySize = Math.floor((100 - percentage) / 100 * newCount) + 1;
+    const newTopArray = [...state.topArray, nextIn.value];
+    newTopArray.sort((a, b) => a - b);
+    while (newTopArraySize < newTopArray.length) {
+      newTopArray.shift();
+    }
+    // console.log('value', nextIn.value, 'percentage', percentage, 'count', state.count, 'newTopArraySize', newTopArraySize, 'state.topArray', state.topArray);
+    return { done: false, state: { ...state, count: newCount, topArray: newTopArray } };
+  },
+  { done: false, count: 0, topArray: [] },
+);
+
+/**
+ * On every item, output the percentile(x) so far
+ * @example
+ * ```typescript
+ *    itr8Range(1,10)
+ *      .pipe(percentile(50))  // => [ 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5 ]
+ * ```
+ *
+ * @param it
+ * @param amount
+ */
+const runningPercentile = itr8OperatorFactory<number, number, number, { count: number, topArray: number[] }>(
+  (nextIn, state, percentage) => {
+    if (nextIn.done) return { done: true };
+    const newCount = state.count + 1;
+    const newTopArraySize = Math.floor((100 - percentage) / 100 * newCount) + 1;
+    const newTopArray = [...state.topArray, nextIn.value];
+    newTopArray.sort((a, b) => a - b);
+    while (newTopArraySize < newTopArray.length) {
+      newTopArray.shift();
+    }
+    // console.log('value', nextIn.value, 'percentage', percentage, 'count', state.count, 'newTopArraySize', newTopArraySize, 'state.topArray', state.topArray);
+    return { done: false, state: { ...state, count: newCount, topArray: newTopArray }, value: newTopArray[0] };
+  },
+  { count: 0, topArray: [] },
+);
+
+/**
+ * Output the average.
+ * @example
+ * ```typescript
+ *    itr8Range(1,100)
+ *      .pipe(average())  // => [ 50 ]
+ * ```
+ *
+ * @param it
+ * @param amount
+ */
+ const average = itr8OperatorFactory<number, number, void, { done: boolean, count: number, sum: number }>(
+  (nextIn, state, params) => {
+    if (state.done) return { done: true };
+    if (nextIn.done) return { done: false, value: state.sum / state.count, state: { ...state, done: true } };
+    const newCount = state.count + 1;
+    const newSum = state.sum + nextIn.value;
+    return { done: false, state: { ...state, count: newCount, sum: newSum } };
+  },
+  { done: false, count: 0, sum: 0 },
+);
+
+/**
+ * On every item, output the average so far
+ * @example
+ * ```typescript
+ *    itr8Range(1,10)
+ *      .pipe(runningAverage())  // => [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5]
+ * ```
+ *
+ * @param it
+ * @param amount
+ */
+const runningAverage = itr8OperatorFactory<number, number, void, { done: boolean, count: number, sum: number }>(
+  (nextIn, state, params) => {
+    if (nextIn.done) return { done: true };
+    const newCount = state.count + 1;
+    const newSum = state.sum + nextIn.value;
+    return { done: false, state: { ...state, count: newCount, sum: newSum }, value: newSum / newCount };
+  },
+  { done: false, count: 0, sum: 0 },
+);
+
+/**
  * Output a single thing which is the highest of all values.
  * @example
  * ```typescript
@@ -1185,6 +1285,11 @@ export {
   runningTotal,
   min,
   max,
+  percentile,
+  runningPercentile,
+  average,
+  runningAverage,
+
   sort,
   stringToChar,
   split,

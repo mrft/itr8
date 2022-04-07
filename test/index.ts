@@ -966,6 +966,104 @@ describe('itr8 test suite', () => {
       );
     });
 
+    it('percentile(...) operator works properly', async () => {
+      // sync
+      assert.deepEqual(
+        itr8.itr8Range(1,100).pipe(
+          itr8.percentile(50),
+          itr8.itr8ToArray
+        ),
+        [50],
+      );
+
+      assert.deepEqual(
+        itr8.itr8Range(1,100).pipe(
+          itr8.percentile(90),
+          itr8.itr8ToArray
+        ),
+        [90],
+      );
+
+
+      assert.deepEqual(
+        itr8.itr8Range(1,100).pipe(
+          itr8.percentile(95),
+          itr8.itr8ToArray
+        ),
+        [95],
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8RangeAsync(1,100).pipe(
+          itr8.percentile(95),
+          itr8.itr8ToArray
+        ),
+        [95],
+      );
+    });
+
+    it('runningPercentile(...) operator works properly', async () => {
+      // sync
+      assert.deepEqual(
+        itr8.itr8Range(1,10).pipe(
+          itr8.runningPercentile(50),
+          itr8.itr8ToArray
+        ),
+        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8RangeAsync(1,10).pipe(
+          itr8.runningPercentile(90),
+          itr8.itr8ToArray
+        ),
+        [1,2,3,4,5,6,7,8,9,9],
+      );
+    });
+
+    it('average(...) operator works properly', async () => {
+      // sync
+      assert.deepEqual(
+        itr8.itr8Range(1,10).pipe(
+          itr8.average(),
+          itr8.itr8ToArray
+        ),
+        [5.5],
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1,2,2,4,3]).pipe(
+          itr8.average(),
+          itr8.itr8ToArray
+        ),
+        [2.4],
+      );
+    });
+
+    it('runningAverage(...) operator works properly', async () => {
+      // sync
+      assert.deepEqual(
+        itr8.itr8Range(1,10).pipe(
+          itr8.runningAverage(),
+          itr8.itr8ToArray
+        ),
+        [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5],
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1,2,2,4,3]).pipe(
+          itr8.runningAverage(),
+          itr8.itr8ToArray
+        ),
+        [1, 1.5, 1.6666666666666667, 2.25, 2.4],
+      );
+    });
+
+
     it('sort(...) operator works properly', async () => {
       // sync
       assert.deepEqual(
