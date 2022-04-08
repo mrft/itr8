@@ -257,13 +257,15 @@ function itr8FromSingleValueAsync<T>(v: any): TPipeable & AsyncIterableIterator<
 
 
 /**
- * Creates an AsyncIterableIterator, that also exposes a push(...) method
- * that can be used to push values into it (for example based on events).
- * The done method can be used to indicate that no more elements will follow.
+ * Creates an AsyncIterableIterator, that also exposes
+ * * a push(...) method that can be used to push values into it (for example based on events).
+ * * a done() method that can be used to indicate that no more values will follow.
  *
- * The bufferSize parameter defines how large the buffer is that will hold the
+ * The optional bufferSize parameter defines how large the buffer is that will hold the
  * messages until they are pulled by a next() call. The oldest messages will be
  * dropped if no one is consuming the iterator fast enough.
+ *
+ * If no bufferSize is specified, the buffer will keep growing indefinitely.
  *
  * @param observable
  * @returns
