@@ -1820,7 +1820,7 @@ describe('itr8 test suite', () => {
         );
       });
 
-      it.skip('forEach(...) method works properly on a batched iterator', async () => {
+      it('forEach(...) method works properly on a batched iterator', async () => {
         const plusOne = (a) => a + 1;
         const pow2 = (a) => a * a;
         const wrapString = (s) => `<-- ${s} -->`

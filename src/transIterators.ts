@@ -41,6 +41,8 @@ import { itr8FromIterable, itr8FromString, itr8Pipe, itr8Proxy, itr8Pushable } f
  * you get them per 100 from an API), or you have individual elements that should be put together.
  *
  * WARNING: this function is currently impure as it will modify the input iterator!!!
+ *
+ * @category operators/batch
  */
 const asBatch = function <T extends Iterable<any>>(): TTransIteratorSyncOrAsync<T> {
   return (it: IterableIterator<T> | AsyncIterableIterator<T>) => {
@@ -66,6 +68,8 @@ const asBatch = function <T extends Iterable<any>>(): TTransIteratorSyncOrAsync<
  *
  * @param batchSize
  * @returns
+ *
+ * @category operators/batch
  */
 const batch = function <T>(batchSize: number): TTransIteratorSyncOrAsync<T> {
   return itr8Pipe(
@@ -82,6 +86,8 @@ const batch = function <T>(batchSize: number): TTransIteratorSyncOrAsync<T> {
  * Please read the asBatch documentation for more info about what 'batching' does.
  *
  * @returns
+ *
+ * @category operators/batch
  */
 const asNoBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
   return (it: IterableIterator<T> | AsyncIterableIterator<T>) => {
@@ -104,6 +110,8 @@ const asNoBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
  *
  * @param batchSize
  * @returns
+ *
+ * @category operators/batch
  */
 const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
   return itr8Pipe(
@@ -146,6 +154,8 @@ const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
  * @param nextFn
  * @param initialState
  * @returns a funtion taking an iterator (and optionally some argument) as input and that has an iterator as output
+ *
+ * @category operators/factory
  */
 const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TState = any>(
   nextFn: (nextIn: IteratorResult<TIn>, state: any, params: any) =>
@@ -677,6 +687,8 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
  *
  * @param it
  * @param fn
+ *
+ * @category operators/general
  */
 const map = itr8OperatorFactory<any, any, (any) => any, void>(
   (nextIn, state, nextFn: (TIn) => any | Promise<any>) => {
@@ -707,6 +719,8 @@ const map = itr8OperatorFactory<any, any, (any) => any, void>(
  *
  * The filter function can be asynchronous (in which case the resulting iterator will be
  * asynchronous regardless of the input iterator)!
+ *
+ * @category operators/general
  */
 const filter = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, void>(
   (nextIn, state, filterFn) => {
@@ -729,8 +743,16 @@ const filter = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>
 /**
  * Return true if every item returns true on the test function.
  *
+ * @example
+ * ```typescript
+ *    itr8FromArray([ 1, 2, 3, 4, 5, 6 ])
+ *      .pipe(every((x) => x > 2)) // => [ false ]
+ * ```
+ *
  * The filter function can be asynchronous (in which case the resulting iterator will be
  * asynchronous regardless of the input iterator)!
+ *
+ * @category operators/boolean
  */
 const every = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, { done: boolean }>(
   (nextIn, state, filterFn) => {
@@ -754,10 +776,18 @@ const every = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>,
 /**
  * Return true if at least 1 item returns true on the test function.
  *
+ * @example
+ * ```typescript
+ *    itr8FromArray([ 1, 2, 3, 4, 5, 6 ])
+ *      .pipe(some((x) => x > 2)) // => [ true ]
+ * ```
+ *
  * The filter function can be asynchronous (in which case the resulting iterator will be
  * asynchronous regardless of the input iterator)!
+ *
+ * @category operators/boolean
  */
- const some = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, { done: boolean }>(
+const some = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, { done: boolean }>(
   (nextIn, state, filterFn) => {
     if (state.done) return { done: true };
     if (nextIn.done) return { done: false, value: false, state: { done: true } };
@@ -781,6 +811,8 @@ const every = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>,
  * Skip the 'amount' first elements and return all the others unchanged.
  *
  * @param amount
+ *
+ * @category operators/general
  */
 const skip = itr8OperatorFactory<any, any, number, number>(
   (nextIn, state, params) => {
@@ -799,6 +831,8 @@ const skip = itr8OperatorFactory<any, any, number, number>(
  *
  * @param it
  * @param amount
+ *
+ * @category operators/general
  */
 const limit = itr8OperatorFactory<any, any, number, number>(
   (nextIn, state, params) => {
@@ -816,6 +850,8 @@ const limit = itr8OperatorFactory<any, any, number, number>(
  *    itr8FromArray([ 1, 2, 3, 4, 5, 6 ])
  *      .pipe(groupPer(2)) // => [ [1, 2], [3, 4], [5, 6] ]
  * ```
+ *
+ * @category operators/general
  */
 const groupPer = itr8OperatorFactory<any, any, number, { done: boolean, buffer: any[] }>(
   (nextIn: IteratorResult<any>, state: { done: boolean, buffer: any[] }, batchSize: number) => {
@@ -838,6 +874,8 @@ const groupPer = itr8OperatorFactory<any, any, number, { done: boolean, buffer: 
  *    itr8FromArray([ [1, 2], [3, 4], [5, 6] ])
  *      .pipe(flatten()) // => [ 1, 2, 3, 4, 5, 6 ]
  * ```
+ *
+ * @category operators/general
  */
 const flatten = itr8OperatorFactory<any, any, void, void>(
   (nextIn, state, params) => {
@@ -857,6 +895,8 @@ const flatten = itr8OperatorFactory<any, any, void, void>(
  * ```
  * @param it
  * @param amount
+ *
+ * @category operators/numeric
  */
 const total = itr8OperatorFactory<number, number, void, { done: boolean, total: number }>(
   (nextIn: IteratorResult<any>, state: { done: boolean, total: number }) => {
@@ -880,6 +920,8 @@ const total = itr8OperatorFactory<number, number, void, { done: boolean, total: 
  *
  * @param it
  * @param amount
+ *
+ * @category operators/numeric
  */
 const runningTotal = itr8OperatorFactory<number, number, void, number>(
   (nextIn: IteratorResult<any>, state: number) => {
@@ -902,6 +944,8 @@ const runningTotal = itr8OperatorFactory<number, number, void, number>(
  *
  * @param it
  * @param amount
+ *
+ * @category operators/numeric
  */
 const percentile = itr8OperatorFactory<number, number, number, { done: boolean, count: number, topArray: number[] }>(
   (nextIn, state, percentage) => {
@@ -930,6 +974,8 @@ const percentile = itr8OperatorFactory<number, number, number, { done: boolean, 
  *
  * @param it
  * @param amount
+ *
+ * @category operators/numeric
  */
 const runningPercentile = itr8OperatorFactory<number, number, number, { count: number, topArray: number[] }>(
   (nextIn, state, percentage) => {
@@ -957,6 +1003,8 @@ const runningPercentile = itr8OperatorFactory<number, number, number, { count: n
  *
  * @param it
  * @param amount
+ *
+ * @category operators/numeric
  */
  const average = itr8OperatorFactory<number, number, void, { done: boolean, count: number, sum: number }>(
   (nextIn, state, params) => {
@@ -979,6 +1027,8 @@ const runningPercentile = itr8OperatorFactory<number, number, number, { count: n
  *
  * @param it
  * @param amount
+ *
+ * @category operators/numeric
  */
 const runningAverage = itr8OperatorFactory<number, number, void, { done: boolean, count: number, sum: number }>(
   (nextIn, state, params) => {
@@ -999,6 +1049,8 @@ const runningAverage = itr8OperatorFactory<number, number, void, { done: boolean
  * ```
  * @param it
  * @param amount
+ *
+ * @category operators/numeric
  */
 const max = itr8OperatorFactory<number, number, void, { done: boolean, max: number }>(
   (nextIn: IteratorResult<any>, state: { done: boolean, max: number }) => {
@@ -1021,6 +1073,8 @@ const max = itr8OperatorFactory<number, number, void, { done: boolean, max: numb
  * ```
  * @param it
  * @param amount
+ *
+ * @category operators/numeric
  */
 const min = itr8OperatorFactory<number, number, void, { done: boolean, min: number }>(
   (nextIn: IteratorResult<any>, state: { done: boolean, min: number }) => {
@@ -1050,6 +1104,8 @@ const min = itr8OperatorFactory<number, number, void, { done: boolean, min: numb
  * ```
  * @param it
  * @param amount
+ *
+ * @category operators/general
  */
  const sort = itr8OperatorFactory<any, any, ((a:any, b:any) => number) | void, { done: boolean, list: any[] }>(
   (nextIn: IteratorResult<any>, state: { done: boolean, list: any[] }, sortFn) => {
@@ -1076,6 +1132,8 @@ const min = itr8OperatorFactory<number, number, void, { done: boolean, min: numb
  *    itr8FromArray([ 'hello', 'world' ])
  *      .pipe(sctringToChar()) // => [ 'h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd' ]
  * ```
+ *
+ * @category operators/strings
  */
 const stringToChar = itr8OperatorFactory<string, string, void, void>(
   (nextIn: IteratorResult<string>, state) => {
@@ -1102,6 +1160,8 @@ const stringToChar = itr8OperatorFactory<string, string, void, void>(
  *    itr8FromArray([ 1, true, 2, 3, true, 4 ])
  *      .pipe(split(true)) // => [ [1], [2,3], [4] ]
  * ```
+ *
+ * @category operators/general
  */
 const split = itr8OperatorFactory<any, any, any, any[] | undefined>(
   (nextIn: any, state, delimiter) => {
@@ -1121,6 +1181,8 @@ const split = itr8OperatorFactory<any, any, any, any[] | undefined>(
 /**
  * Simply delay every element by the given nr of milliseconds.
  * (Will always produce an async iterator!).
+ *
+ * @category operators/timeBased
  */
 const delay = itr8OperatorFactory<any, any, number, void>(
   (nextIn, state, timeout) => {
@@ -1142,6 +1204,7 @@ const delay = itr8OperatorFactory<any, any, number, void>(
  *      .pipe(lineByLine()) // => [ 'hello', 'world' ]
  * ```
  *
+ * @category operators/strings
  */
 const lineByLine = () => itr8Pipe(
   stringToChar(),
@@ -1168,9 +1231,9 @@ const lineByLine = () => itr8Pipe(
  * yet which doesn't comply with the behaviour of other operations, and thus should be changed.
  * (if batched, forEach should be called with individual items, not the underlying arrays!)
  * It can be worked around for now by using unbatch before doing a forEach.
-
+ *
+ * @category operators/timeBased
  */
-// const throttle:TTransIteratorAsync<any,any> = (it)
 const throttle = (throttleMilliseconds:number) => {
   return <T>(it:Iterator<T> | AsyncIterator<T>) => {
     const itOut = itr8Pushable<T>();
@@ -1207,6 +1270,8 @@ const throttle = (throttleMilliseconds:number) => {
  * yet which doesn't comply with the behaviour of other operations, and thus should be changed.
  * (if batched, forEach should be called with individual items, not the underlying arrays!)
  * It can be worked around for now by using unbatch before doing a forEach.
+ *
+ * @category operators/timeBased
  */
 const debounce = (cooldownMilliseconds:number) => {
   return <T>(it:Iterator<T> | AsyncIterator<T>) => {
@@ -1237,43 +1302,62 @@ const debounce = (cooldownMilliseconds:number) => {
  * If you set options.concurrency to a higher value, you are allowing multiple handlers
  * to run in parallel.
  *
- * WARNING: right now forEach doesn't respect a batched iterator yet which doesn't comply with
- * the behaviour of other operations, and thus should be changed.
- * (if batched, forEach should be called with individual items, not the underlying arrays!)
- * It can be worked around for now by using unbatch before doing a forEach.
+ * REMARK: forEach respects a batched iterator so it will operate on each individual element.
+ * To work on the batches, use asNoBatch before piping into forEach.
  *
  * @param handler
  * @param options: { concurrency: number } will control how many async handler are alowed to run in parallel. Default: 1
  * @returns
+ *
  */
 const forEach = function <T = any>(handler: (T) => void | Promise<void>, options?: { concurrency?: number }): ((it: Iterator<T> | AsyncIterator<T>) => void) {
   return (it: Iterator<T>) => {
+    const isBatch = it['itr8Batch'] === true;
+
     const maxRunningHandlers = options?.concurrency || 1;
     let runningHandlers: Set<Promise<void>> = new Set();
+    const waitForOpenSpot = async () => {
+      // wait for an open spot if the max amount of running handlers is reached
+      if (runningHandlers.size >= maxRunningHandlers) {
+        try {
+          await Promise.race(runningHandlers);
+        } catch (e) {
+          // ignore this we only want to know there is an open spot again
+        }
+      }
+    }
+    const addToRunningHandlersList = (handlerPossiblePromise: Promise<void>) => {
+      // add it to the running handlers list
+      runningHandlers.add(handlerPossiblePromise);
+      handlerPossiblePromise.finally(() => {
+        runningHandlers.delete(handlerPossiblePromise);
+      });
+    }
 
     let nextPromiseOrValue = it.next();
     if (isPromise(nextPromiseOrValue)) {
-      return (async () => {
-        let next = (await nextPromiseOrValue) as IteratorResult<any>;
-        while (!next.done) {
-          // TODO: add a try catch so errors can be handled properly?
-          // or maybe we should leave it to the user???
-          const handlerPossiblePromise = handler(next.value);
-          if (isPromise(handlerPossiblePromise)) {
-            // add it to the running handlers list
-            runningHandlers.add(handlerPossiblePromise);
-            handlerPossiblePromise.finally(() => {
-              runningHandlers.delete(handlerPossiblePromise);
-            });
+      const nextPromise = nextPromiseOrValue;
 
-            // wait for an open spot if the max amount of running handlers is reached
-            if (runningHandlers.size >= maxRunningHandlers) {
-              try {
-                await Promise.race(runningHandlers);
-              } catch (e) {
-                // ignore this we only want to know there is an open spot again
-              }
+      const handleNext = async (nextValue) => {
+        await waitForOpenSpot();
+
+        // TODO: add a try catch so errors can be handled properly?
+        // or maybe we should leave it to the user???
+        const handlerPossiblePromise = handler(nextValue);
+
+        if (isPromise(handlerPossiblePromise)) {
+          addToRunningHandlersList(handlerPossiblePromise);
+        }
+      }
+      return (async () => {
+        let next = (await nextPromise) as IteratorResult<any>;
+        while (!next.done) {
+          if (isBatch) {
+            for (let v of next.value as unknown as Iterable<any>) {
+              await handleNext(v);
             }
+          } else {
+            await handleNext(next.value);
           }
           next = await it.next();
         }
@@ -1283,29 +1367,40 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
     } else {
       let next = nextPromiseOrValue;
       if (!next.done) {
-        const handlerPossiblePromise = handler(next.value);
+        let handlerPossiblePromise:Promise<void> | void;
+        let batchIterator;
+        if (isBatch) {
+          batchIterator = itr8FromIterable(next.value as unknown as Iterable<any>);
+          // we make the assumption that there will not be empty batches!!!
+          let n = batchIterator.next();
+          handlerPossiblePromise = handler(n.value);
+        } else {
+          handlerPossiblePromise = handler(next.value);
+        }
         if (isPromise(handlerPossiblePromise)) {
           return (async () => {
             let handlerPossiblePromiseIn: Promise<void> | undefined = handlerPossiblePromise;
             while (!next.done) {
-              // TODO: add a try catch so errors can be handled properly?
-              // or maybe we should leave it to the user???
-              const handlerPossiblePromise = handlerPossiblePromiseIn || handler(next.value) as Promise<void>;
-              handlerPossiblePromiseIn = undefined;
+              await waitForOpenSpot();
 
-              // add it to the running handlers list
-              runningHandlers.add(handlerPossiblePromise);
-              handlerPossiblePromise.finally(() => {
-                runningHandlers.delete(handlerPossiblePromise);
-              });
-
-              // wait for an open spot if the max amount of running handlers is reached
-              if (runningHandlers.size >= maxRunningHandlers) {
-                try {
-                  await Promise.race(runningHandlers);
-                } catch (e) {
-                  // ignore this we only want to know there is an open spot again
+              if (isBatch) {
+                if (handlerPossiblePromiseIn !== undefined) {
+                  addToRunningHandlersList(handlerPossiblePromiseIn);
+                  handlerPossiblePromiseIn = undefined;
                 }
+                let subIterator = batchIterator || itr8FromIterable(next.value as unknown as Iterable<any>);
+                batchIterator = undefined;
+                for (let v of subIterator) {
+                  const handlerPromise = handler(v) as Promise<void>;
+                  addToRunningHandlersList(handlerPromise);
+                }
+              } else {
+                // TODO: add a try catch so errors can be handled properly?
+                // or maybe we should leave it to the user???
+                const handlerPromise = handlerPossiblePromiseIn || handler(next.value) as Promise<void>;
+                handlerPossiblePromiseIn = undefined;
+
+                addToRunningHandlersList(handlerPromise);
               }
               next = it.next();
             }
@@ -1315,7 +1410,13 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
         } else {
           next = it.next();
           while (!next.done) {
-            handler(next.value);
+            if (isBatch) {
+              for (let v of next.value as unknown as Iterable<any>) {
+                handler(v);
+              }
+            } else {
+              handler(next.value);
+            }
             next = it.next();
             // console.log('[forEach] next', next);
           }
