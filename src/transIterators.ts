@@ -151,6 +151,14 @@ const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
  *
  * BEWARE: NEVER MODIFY THE STATE OBJECT (or any of its children!), ALWAYS RETURN A NEW VALUE!
  *
+ * QUESTION: would it be better to have an initial state producing function instead of an initial
+ *  state?
+ *  This way, even if nextFn would modify the state, it wouldn't mess with other instances
+ *  of the same operator? Because if we'd like to deep clone the initial state ourselves, we might
+ *  end up with some complex cases when classes are involved (I hope no one who's interested in
+ *  this library will want to use classes in their state, because the library is more 'functional
+ *  programming' oriented)
+ *
  * @param nextFn
  * @param initialState
  * @returns a funtion taking an iterator (and optionally some argument) as input and that has an iterator as output
@@ -764,7 +772,7 @@ const every = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>,
       return (async () => {
         if (await result) return { done: false, state: { done: false } };
         return { done: false, value: result, state: { done: true } };
-        })();
+      })();
     } else {
       if (result) return { done: false, state: { done: false } };
       return { done: false, value: result, state: { done: true } };
@@ -797,7 +805,7 @@ const some = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, 
       return (async () => {
         if (await result) return { done: false, value: result, state: { done: true } };
         return { done: false, state: { done: false } };
-        })();
+      })();
     } else {
       if (result) return { done: false, value: result, state: { done: true } };
       return { done: false, state: { done: false } };
@@ -1006,7 +1014,7 @@ const runningPercentile = itr8OperatorFactory<number, number, number, { count: n
  *
  * @category operators/numeric
  */
- const average = itr8OperatorFactory<number, number, void, { done: boolean, count: number, sum: number }>(
+const average = itr8OperatorFactory<number, number, void, { done: boolean, count: number, sum: number }>(
   (nextIn, state, params) => {
     if (state.done) return { done: true };
     if (nextIn.done) return { done: false, value: state.sum / state.count, state: { ...state, done: true } };
@@ -1107,7 +1115,7 @@ const min = itr8OperatorFactory<number, number, void, { done: boolean, min: numb
  *
  * @category operators/general
  */
- const sort = itr8OperatorFactory<any, any, ((a:any, b:any) => number) | void, { done: boolean, list: any[] }>(
+const sort = itr8OperatorFactory<any, any, ((a: any, b: any) => number) | void, { done: boolean, list: any[] }>(
   (nextIn: IteratorResult<any>, state: { done: boolean, list: any[] }, sortFn) => {
     if (state.done) {
       return { done: true };
@@ -1227,15 +1235,10 @@ const lineByLine = () => itr8Pipe(
  *
  * REMARK: it will always create an unbatched iterator, regardless of the input
  *
- * WARNING: right now forEach (which this is based on) doesn't respect a batched iterator
- * yet which doesn't comply with the behaviour of other operations, and thus should be changed.
- * (if batched, forEach should be called with individual items, not the underlying arrays!)
- * It can be worked around for now by using unbatch before doing a forEach.
- *
  * @category operators/timeBased
  */
-const throttle = (throttleMilliseconds:number) => {
-  return <T>(it:Iterator<T> | AsyncIterator<T>) => {
+const throttle = (throttleMilliseconds: number) => {
+  return <T>(it: Iterator<T> | AsyncIterator<T>) => {
     const itOut = itr8Pushable<T>();
     setImmediate(async () => {
       let previousTimestamp = -Infinity;
@@ -1266,15 +1269,10 @@ const throttle = (throttleMilliseconds:number) => {
  *
  * REMARK: it will always create an unbatched iterator, regardless of the input
  *
- * WARNING: right now forEach (which this is based on) doesn't respect a batched iterator
- * yet which doesn't comply with the behaviour of other operations, and thus should be changed.
- * (if batched, forEach should be called with individual items, not the underlying arrays!)
- * It can be worked around for now by using unbatch before doing a forEach.
- *
  * @category operators/timeBased
  */
-const debounce = (cooldownMilliseconds:number) => {
-  return <T>(it:Iterator<T> | AsyncIterator<T>) => {
+const debounce = (cooldownMilliseconds: number) => {
+  return <T>(it: Iterator<T> | AsyncIterator<T>) => {
     const itOut = itr8Pushable<T>();
     setImmediate(async () => {
       let timer;
@@ -1293,6 +1291,83 @@ const debounce = (cooldownMilliseconds:number) => {
   }
 };
 
+
+/**
+ * Probably only useful on async iterators.
+ *
+ * Instead of only asking for the next value of the incoming iterator when a next call comes in,
+ * make sure to do one or more next calls to the incoming iterator up-front, to decrease the
+ * waiting time.
+ *
+ * This one can be useful, when the result needs to do some I/O (for example an API get
+ * or a DB fetch), and processing also takes up a certain amount of time due to I/O.
+ * In this case, it makes sense to already do the next call on the incoming iterator up-front,
+ * so that it will hopefully already have resolved by the time you need it for processing.
+ *
+ * Nothing will be done before the first next call, but after the first next call the iterator
+ * will always try to have a buffer with the given amount of prefetched results (which will be
+ * impossible to achieve if processing is generally faster than fetching).
+ *
+ * forEach actually by default acts like it has a prefetch of 1, but imagine a case where the
+ * processing time can vary significantly. Then, when processing takes a long time, by prefetching
+ * more than one you can make sure that there is no waiting time for the next (maybe very fast)
+ * processing to start because the promises they act upon are already resolved by the time they
+ * are needed.
+ *
+ * When a single call produces multiple results (example: 'page-by-page' queries on a db), it
+ * probably makes the most sense to use prefetch(...) before asBatch(...).
+ *
+ * REMARK: it will always create an unbatched iterator, regardless of the input
+ *
+ * @category operators/async
+ */
+const prefetch = (amount: number) => {
+  return <T>(it: Iterator<T> | AsyncIterator<T>):Iterator<T> | AsyncIterator<T> => {
+    let inputs:Array<Promise<IteratorResult<T>> | IteratorResult<T>> = [];
+    let isAsyncInput:boolean;
+    const addInputIfNeeded = async () => {
+      if (inputs.length < amount) {
+        if (isAsyncInput && inputs.length > 0) await inputs[0];
+        const next = it.next();
+        if (isPromise(next)) {
+          // console.log('     add another (async) input, current nr of inputs = ', inputs.length, ' < ', amount);
+          isAsyncInput = true;
+          next.then((n) => {
+            if (!n.done) {
+              // console.log('  then: call addInputIfNeeded(), current nr of inputs = ', inputs.length, ' < ', amount);
+              addInputIfNeeded();
+            }
+          });
+        }
+        inputs.push(next);
+      }
+    }
+
+    const retVal = {
+      [Symbol.asyncIterator]: () => retVal as AsyncIterableIterator<T>,
+      [Symbol.iterator]: () => retVal as IterableIterator<T>,
+      next: () => {
+        // console.log('  next: call addInputIfNeeded(), current nr of inputs = ', inputs.length, ' < ', amount);
+        addInputIfNeeded();
+        if (inputs.length > 0) {
+          const [firstInput, ...remainingInputs] = inputs;
+          inputs = remainingInputs;
+          // console.log('  next: call 2 to addInputIfNeeded(), current nr of inputs = ', inputs.length, ' < ', amount);
+          addInputIfNeeded();
+          // console.log('  next: return ', firstInput);
+          return firstInput;
+        }
+        return isAsyncInput
+          ? Promise.resolve({ done: true, value: undefined }) as Promise<IteratorResult<T>>
+          : { done: true, value: undefined } as IteratorResult<T>;
+      }
+    };
+
+    return itr8Proxy(retVal as any);
+  }
+};
+
+
 /**
  * produces a function that can be applied to an iterator and that will execute
  * the handler on each value.
@@ -1301,6 +1376,11 @@ const debounce = (cooldownMilliseconds:number) => {
  * By default the next will only be handled when the current handler has finished.
  * If you set options.concurrency to a higher value, you are allowing multiple handlers
  * to run in parallel.
+ * But the next() will already be called while the (async) handler is still handling the current
+ * result, which optimizes things by not waiting for the processing to finish, before asking for
+ * the next one. Instead we'll first be asking for the next one, and then start processing of the
+ * current one. This will waste less time than using 'for await (... of ...)' while still
+ * processing things in the expected order!
  *
  * REMARK: forEach respects a batched iterator so it will operate on each individual element.
  * To work on the batches, use asNoBatch before piping into forEach.
@@ -1367,7 +1447,7 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
     } else {
       let next = nextPromiseOrValue;
       if (!next.done) {
-        let handlerPossiblePromise:Promise<void> | void;
+        let handlerPossiblePromise: Promise<void> | void;
         let batchIterator;
         if (isBatch) {
           batchIterator = itr8FromIterable(next.value as unknown as Iterable<any>);
@@ -1452,8 +1532,11 @@ export {
   split,
   delay,
   lineByLine,
+
   debounce,
   throttle,
+
+  prefetch,
 
   forEach,
 
