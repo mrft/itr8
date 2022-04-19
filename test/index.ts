@@ -896,6 +896,109 @@ describe('itr8 test suite', () => {
 
     });
 
+    it('zip(...) operator works properly', async () => {
+      // sync source iterator, sync param iterator
+      assert.deepEqual(
+        itr8.itr8FromArray([1, 2, 3, 4]).pipe(
+          itr8.zip(itr8.itr8FromArray(['a', 'b', 'c', 'd'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c'], [4, 'd']],
+      );
+
+      assert.deepEqual(
+        itr8.itr8FromArray([1, 2, 3]).pipe(
+          itr8.zip(itr8.itr8FromArray(['a', 'b', 'c', 'd'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c']],
+      );
+
+      assert.deepEqual(
+        itr8.itr8FromArray([1, 2, 3, 4]).pipe(
+          itr8.zip(itr8.itr8FromArray(['a', 'b', 'c'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c'], [4, undefined]],
+      );
+
+      // async source iterator, sync param iterator
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1, 2, 3, 4]).pipe(
+          itr8.zip(itr8.itr8FromArray(['a', 'b', 'c', 'd'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c'], [4, 'd']],
+      );
+
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1, 2, 3]).pipe(
+          itr8.zip(itr8.itr8FromArray(['a', 'b', 'c', 'd'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c']],
+      );
+
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1, 2, 3, 4]).pipe(
+          itr8.zip(itr8.itr8FromArray(['a', 'b', 'c'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c'], [4, undefined]],
+      );
+
+      // sync source iterator, async param iterator
+      assert.deepEqual(
+        await itr8.itr8FromArray([1, 2, 3, 4]).pipe(
+          itr8.zip(itr8.itr8FromArrayAsync(['a', 'b', 'c', 'd'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c'], [4, 'd']],
+      );
+
+      assert.deepEqual(
+        await itr8.itr8FromArray([1, 2, 3]).pipe(
+          itr8.zip(itr8.itr8FromArrayAsync(['a', 'b', 'c', 'd'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c']],
+      );
+
+      assert.deepEqual(
+        await itr8.itr8FromArray([1, 2, 3, 4]).pipe(
+          itr8.zip(itr8.itr8FromArrayAsync(['a', 'b', 'c'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c'], [4, undefined]],
+      );
+
+      // async source iterator, async param iterator
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1, 2, 3, 4]).pipe(
+          itr8.zip(itr8.itr8FromArrayAsync(['a', 'b', 'c', 'd'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c'], [4, 'd']],
+      );
+
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1, 2, 3]).pipe(
+          itr8.zip(itr8.itr8FromArrayAsync(['a', 'b', 'c', 'd'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c']],
+      );
+
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1, 2, 3, 4]).pipe(
+          itr8.zip(itr8.itr8FromArrayAsync(['a', 'b', 'c'])),
+          itr8.itr8ToArray
+        ),
+        [[1, 'a'], [2, 'b'], [3, 'c'], [4, undefined]],
+      );
+    });
+
+
     it('every(...) operator works properly', async () => {
       const isEven = (a) => a % 2 === 0;
       assert.deepEqual(
