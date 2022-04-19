@@ -736,8 +736,8 @@ const map = itr8OperatorFactory<any, any, (any) => any, void>(
  *      .pipe(reduce({ reducer: (acc, cur) => acc + cur, initialValue: 0 }) // => [ 10 ]
  * ```
  *
- * The reduce function should be allowed to be asynchronous later on (in which case the resulting iterator will be asynchronous
- * regardless of the input iterator), but for now only synchronous reducer functions are allowed!
+ * The reduce function can be an asynchronous function (in which case the resulting
+ * iterator will be asynchronous regardless of the input iterator)!
  *
  * @param reducerAndInitValue: an object of the form { initialValue: any, reducer: (accumulator:any, currentValue:any, presentIndex?: number) => any }
  *
@@ -761,12 +761,25 @@ const reduce = itr8OperatorFactory<
       return { done: false, value: acc, state: { ...state, done: true } }
     };
 
+    const reduced = params.reducer(acc, nextIn.value, state.index);
+    if (isPromise(reduced)) {
+      return (async () => ({
+        done: false,
+        state: {
+          ...state,
+          index: state.index + 1,
+          accumulator: await reduced,
+        }
+      }))();
+    }
+
+    // synchronous
     return {
       done: false,
       state: {
         ...state,
         index: state.index + 1,
-        accumulator: params.reducer(acc, nextIn.value, state.index),
+        accumulator: reduced,
       }
     };
   },

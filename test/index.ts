@@ -883,6 +883,17 @@ describe('itr8 test suite', () => {
         [5],
       );
 
+      // async reducer function works as well
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8.itr8RangeAsync(0, 4).pipe(
+          itr8.reduce({
+            reducer: async (acc:number, cur:number) => { await sleep(1); return acc + cur },
+            initialValue: 0,
+          }),
+        )),
+        [10],
+      );
+
     });
 
     it('every(...) operator works properly', async () => {
@@ -1273,25 +1284,25 @@ describe('itr8 test suite', () => {
       const pushIt = itr8.itr8Pushable();
       setImmediate(async () => {
         pushIt.push(1);
-        await sleep(1);
+        await sleep(1 * 5);
         pushIt.push(2);
         pushIt.push(3);
-        await sleep(3);
+        await sleep(3 * 5);
         pushIt.push(4);
-        await sleep(1);
+        await sleep(1 * 5);
         pushIt.push(5);
-        await sleep(1);
+        await sleep(1 * 5);
         pushIt.push(6);
-        await sleep(2);
+        await sleep(2 * 5);
         pushIt.push(7);
-        await sleep(1);
+        await sleep(1 * 5);
         pushIt.push(8);
         pushIt.done();
       });
       assert.deepEqual(
         await itr8.itr8ToArray(
           pushIt.pipe(
-            throttle(3),
+            throttle(3 * 5),
           ),
         ),
         [1, 4, 7],
@@ -1926,6 +1937,7 @@ describe('itr8 test suite', () => {
       it('forEach(...) method works properly with an async handler ( + concurrency can be controlled)', async () => {
         const plusOne = (a) => a + 1;
         const pow2 = (a) => a * a;
+        const pow = (power:number) => (a) => power === 1 ? a : pow(power - 1)(a) * a;
         const wrapString = (s) => `<-- ${s} -->`
 
 
@@ -1944,9 +1956,9 @@ describe('itr8 test suite', () => {
           counter -= 1;
         };
 
-        await itr8.itr8Range(4, 1)
+        await itr8.itr8Range(5, 2)
           .pipe(
-            itr8.map(pow2), // => 16, 9, 4, 1
+            itr8.map(pow(2)), // => 25 16 9 4
             itr8.forEach(forEachHandler, { concurrency: 4 }),
           );
 
@@ -1954,7 +1966,7 @@ describe('itr8 test suite', () => {
 
         assert.deepEqual(
           result1,
-          [1, 4, 9, 16],
+          [4, 9, 16, 25],
         );
 
         // now we'll use a different concurrency,
@@ -1962,9 +1974,9 @@ describe('itr8 test suite', () => {
         result1 = [];
         counter = 0;
         maxCounter = 0;
-        await itr8.itr8Range(4, 1)
+        await itr8.itr8Range(5, 2)
           .pipe(
-            itr8.map(pow2), // => 16, 9, 4, 1
+            itr8.map(pow(2)), // => 25, 16, 9, 4
             itr8.forEach(forEachHandler, { concurrency: 2 }),
           );
 
@@ -1972,7 +1984,7 @@ describe('itr8 test suite', () => {
 
         assert.deepEqual(
           result1,
-          [9, 4, 1, 16],
+          [16, 25, 9, 4],
         );
       });
 
@@ -2142,38 +2154,52 @@ describe('itr8 test suite', () => {
     it('compare the speed of native arrays with the iterator versions', () => {
       const myLimit = 200;
 
-      const startIt = hrtime();
-      const resultIt: number[] = itr8.itr8ToArray(
-        // transIt(itr8.itr8Range(1, 10_000)),
-        itr8.itr8Range(1, 10_000)
-          .pipe(itr8.map((x) => x / 2))
-          .pipe(itr8.filter((x) => x % 3 === 0))
-          .pipe(itr8.skip(5))
-          .pipe(itr8.limit(myLimit)),
-      ) as number[];
-      const durationIt = hrtimeToMilliseconds(hrtime(startIt));
+      let resultIt:number[] = [];
+      const avgDurationIt = itr8.itr8Range(0, 10).pipe(
+        itr8.map((x) => {
+          const start = hrtime();
+          resultIt = itr8.itr8ToArray(
+            // transIt(itr8.itr8Range(1, 10_000)),
+            itr8.itr8Range(1, 10_000)
+              .pipe(itr8.map((x) => x / 2))
+              .pipe(itr8.filter((x) => x % 3 === 0))
+              .pipe(itr8.skip(5))
+              .pipe(itr8.limit(myLimit)),
+          ) as number[];
+          const duration = hrtimeToMilliseconds(hrtime(start));
+          return duration;
+        }),
+        itr8.average(),
+      ).next().value;
 
-      const startArr = hrtime();
-      const resultArr: number[] = (itr8.itr8ToArray(itr8.itr8Range(1, 10_000)) as number[])
-        .map((x) => x / 2)
-        .filter((x) => x % 3 === 0)
-        .slice(5)
-        .slice(0, myLimit)
-        ;
-      const durationArr = hrtimeToMilliseconds(hrtime(startArr));
+      let resultArr:number[] = [];
+      const avgDurationArr = itr8.itr8Range(0, 10).pipe(
+        itr8.map((x) => {
+          const start = hrtime();
+          resultArr = (itr8.itr8ToArray(itr8.itr8Range(1, 10_000)) as number[])
+            .map((x) => x / 2)
+            .filter((x) => x % 3 === 0)
+            .slice(5)
+            .slice(0, myLimit)
+            ;
+          const duration = hrtimeToMilliseconds(hrtime(start));
+          return duration;
+        }),
+        itr8.average(),
+      ).next().value;
 
-      console.log('      - [native arrays versus iterators]', 'itr8 took', durationIt, 'array took', durationArr);
+      console.log('      - [native arrays versus iterators]', 'itr8 took', avgDurationIt, `(${resultIt.length} results)`, 'array took', avgDurationArr, `(${resultArr.length} results)`);
 
       assert.equal(resultIt.length, resultArr.length);
       assert.deepEqual(resultIt, resultArr);
 
       // iterators should be faster than creating the intermediate arrays
-      assert.isBelow(durationIt, durationArr);
+      assert.isBelow(avgDurationIt, avgDurationArr);
     });
 
     it('compare the speed of async iterator versus batched async iterator (batched should be faster ?)', async () => {
       const size = 10_000; // size of the input range
-      const batchSize = 100;
+      const batchSize = 200;
 
       // the speed difference should become more apparent with every added operator !
       const myOperations = itr8.itr8Pipe(
@@ -2181,32 +2207,54 @@ describe('itr8 test suite', () => {
         itr8.filter((x) => x % 3 === 0),
         transIts.opr8RepeatEachSyncSync(3),
         itr8.map((x) => x - 1),
+        itr8.map((x) => `value: ${x}`),
         itr8.skip(5),
       );
 
-      const startIt = hrtime();
-      const resultIt: number[] = await itr8.itr8ToArray(
-        itr8.itr8RangeAsync(1, size)
-          .pipe(myOperations)
-      ) as number[];
-      const durationIt = hrtimeToMilliseconds(hrtime(startIt));
 
-      const startBatch = hrtime();
-      const resultBatch: number[] = await itr8.itr8ToArray(
-        itr8.itr8RangeAsync(1, size)
-          .pipe(itr8.batch(batchSize)) // batch per X, so X times less promises to resolve
-          .pipe(myOperations)
-      ) as number[];
-      const durationBatch = hrtimeToMilliseconds(hrtime(startBatch));
+      let resultIt: number[] = [];
+      const avgDurationIt = (
+        await itr8.itr8Range(0, 10).pipe(
+          itr8.map(async (x) => {
+            const start = hrtime();
+            resultIt = await
+              itr8.itr8RangeAsync(1, size)
+                .pipe(
+                  myOperations,
+                  itr8.itr8ToArray
+                ) as number[];
+            const duration = hrtimeToMilliseconds(hrtime(start));
+            return duration;
+          }),
+          itr8.average(),
+        ).next()
+      ).value;
 
-      console.log('      - [async iterator versus batched async iterator]', 'itr8 took', durationIt, `(result size ${resultIt.length})`, 'itr8 batched took', durationBatch, `(result size ${resultBatch.length})`);
+      let resultBatch: number[] = [];
+      const avgDurationBatch = (
+        await itr8.itr8Range(0, 10).pipe(
+          itr8.map(async (x) => {
+            const start = hrtime();
+            resultBatch = await itr8.itr8ToArray(
+              itr8.itr8RangeAsync(1, size)
+                .pipe(itr8.batch(batchSize)) // batch per X, so X times less promises to resolve
+                .pipe(myOperations)
+            ) as number[];
+            const duration = hrtimeToMilliseconds(hrtime(start));
+            return duration;
+          }),
+          itr8.average(),
+        ).next()
+      ).value;
+
+      console.log('      - [async iterator versus batched async iterator]', 'itr8 took', avgDurationIt, `(result size ${resultIt.length})`, 'itr8 batched took', avgDurationBatch, `(result size ${resultBatch.length})`);
 
       // assert.equal(resultIt.length, resultBatch.length);
       assert.deepEqual(resultBatch, resultIt);
 
       // batched iterators should be faster than simple asynchronous iterator
       // because we have alot less promises to await
-      assert.isAbove(durationIt, durationBatch);
+      assert.isAbove(avgDurationIt, avgDurationBatch);
     });
 
   });
