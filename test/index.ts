@@ -849,6 +849,42 @@ describe('itr8 test suite', () => {
       );
     });
 
+    it('reduce(...) operator works properly', async () => {
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.itr8Range(0, 4).pipe(
+          itr8.reduce({ reducer: (acc:number, cur:number) => acc + cur, initialValue: 0 }),
+        )),
+        [10],
+      );
+
+      assert.deepEqual(
+        itr8.itr8Range(1, 999).pipe(
+          // implement a simple 'count' by returning index + 1
+          itr8.reduce({ reducer: (acc:number, cur:number, index: number) => index + 1, initialValue: undefined }),
+          itr8.itr8ToArray,
+        ),
+        [999],
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8ToArray(itr8.itr8RangeAsync(0, 4).pipe(
+          itr8.reduce({ reducer: (acc:number, cur:number) => acc + cur, initialValue: 0 }),
+        )),
+        [10],
+      );
+
+      assert.deepEqual(
+        await itr8.itr8RangeAsync(0, 4).pipe(
+          // implement a simple 'count' by returning index + 1
+          itr8.reduce({ reducer: (acc:number, cur:number, index: number) => index + 1, initialValue: undefined }),
+          itr8.itr8ToArray,
+        ),
+        [5],
+      );
+
+    });
+
     it('every(...) operator works properly', async () => {
       const isEven = (a) => a % 2 === 0;
       assert.deepEqual(
@@ -2126,7 +2162,7 @@ describe('itr8 test suite', () => {
         ;
       const durationArr = hrtimeToMilliseconds(hrtime(startArr));
 
-      console.log('      -', 'itr8 took', durationIt, 'array took', durationArr);
+      console.log('      - [native arrays versus iterators]', 'itr8 took', durationIt, 'array took', durationArr);
 
       assert.equal(resultIt.length, resultArr.length);
       assert.deepEqual(resultIt, resultArr);
@@ -2163,7 +2199,7 @@ describe('itr8 test suite', () => {
       ) as number[];
       const durationBatch = hrtimeToMilliseconds(hrtime(startBatch));
 
-      console.log('      -', 'itr8 took', durationIt, `(result size ${resultIt.length})`, 'itr8 batched took', durationBatch, `(result size ${resultBatch.length})`);
+      console.log('      - [async iterator versus batched async iterator]', 'itr8 took', durationIt, `(result size ${resultIt.length})`, 'itr8 batched took', durationBatch, `(result size ${resultBatch.length})`);
 
       // assert.equal(resultIt.length, resultBatch.length);
       assert.deepEqual(resultBatch, resultIt);
@@ -2217,7 +2253,7 @@ describe('itr8 test suite', () => {
       }
       const durationIt = hrtimeToMilliseconds(hrtime(startIt));
 
-      console.log('      -', 'itr8 took', durationIt);
+      console.log('      - [mem usage for really large set]', 'itr8 took', durationIt);
 
       assert.equal(syncCounter, 100_000);
 
@@ -2234,7 +2270,7 @@ describe('itr8 test suite', () => {
       }
       const durationItAsync = hrtimeToMilliseconds(hrtime(startItAsync));
 
-      console.log('      -', 'itr8 async took', durationItAsync);
+      console.log('      - [mem usage for really large set]', 'itr8 async took', durationItAsync);
 
       assert.equal(asyncCounter, 100_000);
     });
