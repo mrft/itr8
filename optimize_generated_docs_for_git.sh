@@ -9,7 +9,7 @@
 
   for F in $FILES; do
     echo "html file found: $F"
-    sed --in-place 's|\(<a href="https://github\.com.*</a>\)|\n\1\n|g' "$F"
+    sed --in-place 's|\(<a href="https://github\.com[^<]*</a>\)|\n\1\n|g' "$F"
     # less "$F"
   done;
 )
