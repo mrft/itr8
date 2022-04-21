@@ -14,6 +14,7 @@
     "//postbuild": "npm run builddocs",
     "clean": "rm -rf ./dist",
     "builddocs": "typedoc src/index.ts src/interface/observable.ts src/interface/stream.ts",
+    "postbuilddocs": "./optimize_generated_docs_for_git.sh",
     "//pretest": "npm run clean && mkdir -p ./dist && npm run build",
     "echoForTest": "echo -e \"01 this is stdin\n02 So we can do some stream tests in the program\n03\n04\"",
     "//pretest": "npm run build",

@@ -998,6 +998,32 @@ describe('itr8 test suite', () => {
       );
     });
 
+    it('zip(...) operator works properly', async () => {
+      let tappedArray:any[] = [];
+
+      // sync source iterator
+      assert.deepEqual(
+        itr8.itr8FromArray([1, 2, 3, 4]).pipe(
+          itr8.tap((x) => tappedArray.push(x)),
+          itr8.itr8ToArray
+        ),
+        [1, 2, 3, 4],
+      );
+      assert.deepEqual(tappedArray, [1, 2, 3, 4]);
+
+      // async source iterator
+      tappedArray = [];
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1, 2, 3, 4]).pipe(
+          itr8.tap((x) => tappedArray.push(x)),
+          itr8.itr8ToArray
+        ),
+        [1, 2, 3, 4],
+      );
+      assert.deepEqual(tappedArray, [1, 2, 3, 4]);
+
+    });
+
 
     it('every(...) operator works properly', async () => {
       const isEven = (a) => a % 2 === 0;
@@ -2264,10 +2290,12 @@ describe('itr8 test suite', () => {
           resultIt = itr8.itr8ToArray(
             // transIt(itr8.itr8Range(1, 10_000)),
             itr8.itr8Range(1, 10_000)
-              .pipe(itr8.map((x) => x / 2))
-              .pipe(itr8.filter((x) => x % 3 === 0))
-              .pipe(itr8.skip(5))
-              .pipe(itr8.limit(myLimit)),
+              .pipe(
+                itr8.map((x) => x / 2),
+                itr8.filter((x) => x % 3 === 0),
+                itr8.skip(5),
+                itr8.limit(myLimit),
+              )
           ) as number[];
           const duration = hrtimeToMilliseconds(hrtime(start));
           return duration;

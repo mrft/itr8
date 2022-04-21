@@ -1,10 +1,13 @@
 # itr8
 
-[itr8 source code](https://github.com/mrft/itr8) can be found on github.
+[itr8 source code](https://github.com/mrft/itr8) can be found on github, and the [itr8 documentation](https://mrft.github.io/itr8) can be found at the itr8 github site.
 
 DISCLAIMER: This is work in progress (including the docs), and although a fair amount of functionality seems to work, things might still change along the way...
+It is tested on NodeJS 16 (the use of ```import { isPromise } from 'util/types';``` causes it not to work in NodejS 12 for example)
 
 An experiment to create a unified interface over both [synchronous](https://www.javascripttutorial.net/es6/javascript-iterator/) and [asynchronous iterators](https://www.javascripttutorial.net/es-next/javascript-asynchronous-iterators/) such that the same iterator-operators (cfr. RxJS operators like filter, map, ...) can be used in various contexts (plain arrays, NodeJS streams, Observables, page-by-page database queries by writing an async generator function, page-by-age API queries, ...).
+
+This makes the code much more declarative (describing what to do rather than how to do it).
 
 ## Getting started
 
@@ -15,10 +18,10 @@ Install the module using npm
 
 And then import it in your source code file:
 ```typescript
-import * as itr8 from 'itr8'
+import { map, filter, skip, limit, forEach, itr8Range, itr8Proxy, itr8Pipe, itr8FromArray, itr8ToArray } from 'itr8'
 
-// create an iterator to start from with a utilyti function
-const myIterator = () => itr8.itr8Range(0, 10_000_000); // or itr8.fromArray([...])
+// create an iterator to start from with a utility function
+const myIterator = () => itr8Range(0, 10_000_000); // or itr8FromArray([...])
 
 // or create your own Iterator or AsyncIterator (for example with a generator function)
 function* myGeneratorFunction() {
@@ -27,24 +30,24 @@ function* myGeneratorFunction() {
   }
 }
 // 'itr8Proxy' is only needed to make .pipe work which is just very convenient
-const myOwnIterator = () => itr8.itr8Proxy(myGeneratorFunction());
+const myOwnIterator = () => itr8Proxy(myGeneratorFunction());
 
 // All iterables returned by itr8 are also 'pipeable', meaning that each returned iterator also exposes a pipe function to add other operators to the chain
-const myTransformedIterator = itr8.itr8Proxy(myIterator())
+const myTransformedIterator = myIterator()
     .pipe(
-        itr8.map((x) => x / 2),
-        itr8.filter((x) => x % 3 === 0),
-        itr8.skip(5),
-        itr8.limit(50),
+        map((x) => x / 2),
+        filter((x) => x % 3 === 0),
+        skip(5),
+        limit(50),
     )
 );
 
 // this will work as well (because pipe produces another 'pipeable')
-const myTransformedIterator2 = itr8.itr8Proxy(myIterator())
-    .pipe(itr8.map((x) => x / 2))
-    .pipe(itr8.filter((x) => x % 3 === 0))
-    .pipe(itr8.skip(5))
-    .pipe(itr8.limit(50))
+const myTransformedIterator2 = myIterator()
+    .pipe(map((x) => x / 2))
+    .pipe(filter((x) => x % 3 === 0))
+    .pipe(skip(5))
+    .pipe(limit(50))
 );
 
 // use forEach to do something with every element (it will handle async handlers as well, you can even control the concurrency easily)
@@ -59,11 +62,11 @@ myTransformedIterator.pipe(
 
 // or simply pipe everything together including the forEach at the end!
 myIterator().pipe(
-  itr8.map((x) => x / 2),
-  itr8.filter((x) => x % 3 === 0),
-  itr8.skip(5),
-  itr8.limit(50),
-  itr8.forEach(
+  map((x) => x / 2),
+  filter((x) => x % 3 === 0),
+  skip(5),
+  limit(50),
+  forEach(
     async (id) => {
       const descr = await getElementFromDisk(id);
       console.log('element = ', descr);
@@ -77,19 +80,22 @@ for (let x of myTransformedIterator2) {
 }
 
 // we can create a new 'transIterator' by combining some existing operators with a utility function
-const transIt = itr8.itr8Pipe(
-    itr8.map((x) => x / 2),
-    itr8.filter((x) => x % 3 === 0),
-    itr8.skip(5),
-    itr8.limit(50),
+const transIt = itr8Pipe(
+    map((x) => x / 2),
+    filter((x) => x % 3 === 0),
+    skip(5),
+    limit(50),
 );
-// an 'operator' is a function that produces as transIterator
+// an 'operator' is a function that produces a transIterator
 const myOperator = () => transIt;
 
-myIterator().pipe(
+const myTransformedIterator = myIterator().pipe(
   myOperator(),
 );
 // myIterator.pipe(transIt) would work as well but always using 'operators' would be a good convention
+
+// Note that myTransformedIterator doesn't execute any code, it is only when using forEach
+// or a 'for (x of myTransformedIterator)' loop that you'll actually start digesting the iterator!
 ```
 You, can find some more [documentation](#documentation) further in this file or go straight to
 [the github site about itr8](https://mrft.github.io/itr8)
@@ -145,8 +151,8 @@ An operator is 'a function that generates a transIterator'. So for example filte
 
 ## Writing your own operators
 
-There are 2 options to write your own operators. You can either build a new operator by chaining
-a bunch of existing operators together, or you can write your own with the itr8OperatorFactory function.
+There are multiple options for writing your own operators. You can either build a new operator by chaining
+a bunch of existing operators together, or you can write your own (for example with the itr8OperatorFactory function).
 
 ### A new operator by combining existing operators
 
@@ -275,6 +281,20 @@ So this iterator will only return a value on the output iterator once the input 
 * When we see that we're done in the state (= the next call after the one where we finally sent a value to the output iterator) we'll send { done: true }.
 * When we see the last element of the input iterator, we don't modify the sum anymore, but send the total sum as the value, and indicate that there won't be any more values by setting the 'done' flag on the state
 * In all other cases, we don't send a value, but we generate a new version of the state where the 'total' property is set to the current state's total + nextIn.value
+
+#### I don't think that the operator I want can be built with the operatorFactory
+
+If you have read the examples above, and you still don't see how to write your operator,
+it could be that it cannot be written with the itr8OperatorFactory.
+
+If that is the case, I advise you to look at the source code of 'debounce', 'throttle' and 'prefetch'.
+Debounce and throttle are actually using a pushable (async) iterator to implement their behaviour,
+and prefetch is actually returning a custom built iterator.
+
+As long as your operator returns a function transforming the input iterator into another iterator,
+you're good (and try to be pollite: always support both sync and async iterators as input, and if
+possible, make sure that if the input iterator is synchronous, the output iterator is synchronous
+as well, and wrap it with itr8Proxy so .pipe(...) can be used on the result).
 
 #### Notes
 

@@ -699,11 +699,11 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
  * @category operators/general
  */
 const map = itr8OperatorFactory<any, any, (any) => any, void>(
-  (nextIn, state, nextFn: (TIn) => any | Promise<any>) => {
+  (nextIn, state, mapFn: (TIn) => any | Promise<any>) => {
     if (nextIn.done) {
       return { done: true };
     } else {
-      const nextValOrPromise = nextFn(nextIn.value);
+      const nextValOrPromise = mapFn(nextIn.value);
       if (isPromise(nextValOrPromise)) {
         return (async () => {
           return {
@@ -787,46 +787,6 @@ const reduce = itr8OperatorFactory<
 );
 
 /**
- * The zip() operator outputs tuples containing 1 element from the first and
- * one element from the second iterator. The first iterator is leading, so when
- * the first iterator is done, the output iterator is done. When the second iterator
- * is 'shorter', the tuples will contain undefined as the second element.
- *
- * @example
- * ```typescript
- *    itr8FromArray([ 1, 2, 3, 4 ])
- *      .pipe(zip(itr8FromArray([ 'a', 'b', 'c', 'd' ])) // => [ [1, 'a'], [2, 'b'], [3, 'c'], [4, 'd' ] ]
- * ```
- *
- * @param reducerAndInitValue: an object of the form { initialValue: any, reducer: (accumulator:any, currentValue:any, presentIndex?: number) => any }
- *
- * @category operators/general
- */
-const zip = itr8OperatorFactory<any, any, Iterator<any> | AsyncIterator<any>, void>(
-  (nextIn, state, secondIterator) => {
-    if (nextIn.done) {
-      return { done: true };
-    };
-
-    const secondNext = secondIterator.next();
-    if (isPromise(secondNext)) {
-      return (async () => ({
-        done: false,
-        value: [nextIn.value, (await secondNext as IteratorResult<any>).value],
-      }))();
-    }
-
-    // synchronous
-    return {
-      done: false,
-      value: [nextIn.value, (secondNext as IteratorResult<any>).value],
-    };
-  },
-  undefined,
-);
-
-
-/**
  * Only keep elements where the filter function returns true.
  *
  * The filter function can be asynchronous (in which case the resulting iterator will be
@@ -851,6 +811,72 @@ const filter = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>
   },
   undefined,
 );
+
+
+/**
+ * The zip() operator outputs tuples containing 1 element from the first and
+ * one element from the second iterator. The first iterator is leading, so when
+ * the first iterator is done, the output iterator is done. When the second iterator
+ * is 'shorter', the tuples will contain undefined as the second element.
+ *
+ * @example
+ * ```typescript
+ *    itr8FromArray([ 1, 2, 3, 4 ])
+ *      .pipe(zip(itr8FromArray([ 'a', 'b', 'c', 'd' ])) // => [ [1, 'a'], [2, 'b'], [3, 'c'], [4, 'd' ] ]
+ * ```
+ *
+ * @param reducerAndInitValue: an object of the form { initialValue: any, reducer: (accumulator:any, currentValue:any, presentIndex?: number) => any }
+ *
+ * @category operators/general
+ */
+ const zip = itr8OperatorFactory<any, any, Iterator<any> | AsyncIterator<any>, void>(
+  (nextIn, state, secondIterator) => {
+    if (nextIn.done) {
+      return { done: true };
+    };
+
+    const secondNext = secondIterator.next();
+    if (isPromise(secondNext)) {
+      return (async () => ({
+        done: false,
+        value: [nextIn.value, (await secondNext as IteratorResult<any>).value],
+      }))();
+    }
+
+    // synchronous
+    return {
+      done: false,
+      value: [nextIn.value, (secondNext as IteratorResult<any>).value],
+    };
+  },
+  undefined,
+);
+
+
+/**
+ * Tap will run a function 'on the side' without while passing the iterator
+ * unchanged to the next.
+ *
+ * @param fn
+ *
+ * @category operators/general
+ */
+ const tap = itr8OperatorFactory<any, any, (any) => void, void>(
+  (nextIn, state, tapFn: (TIn) => void) => {
+    if (nextIn.done) {
+      return { done: true };
+    } else {
+      try {
+        tapFn(nextIn.value);
+      } catch (e) {
+        console.warn('Tap function caused an exception', e, e.stack);
+      }
+      return { done: false, value: nextIn.value };
+    }
+  },
+  undefined,
+);
+
 
 /**
  * Return true if every item returns true on the test function.
@@ -1615,6 +1641,7 @@ export {
   filter,
   reduce,
   zip,
+  tap,
 
   // boolean
   every,
