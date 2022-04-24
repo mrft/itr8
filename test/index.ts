@@ -1396,6 +1396,19 @@ describe('itr8 test suite', () => {
         pushIt.push(3);
         await sleep(3);
         pushIt.push(4);
+
+        await sleep(1);
+        pushIt.push(5);
+
+        await sleep(1);
+        pushIt.push(6);
+        pushIt.push(7);
+        pushIt.push(8);
+        pushIt.push(9);
+
+        await sleep(4);
+        pushIt.push(10);
+
         await sleep(3);
         pushIt.done();
       });
@@ -1405,7 +1418,7 @@ describe('itr8 test suite', () => {
             debounce(2),
           ),
         ),
-        [3, 4],
+        [1, 4, 10],
       );
     });
 

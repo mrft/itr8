@@ -1360,14 +1360,16 @@ const lineByLine = () => itr8Pipe(
  * and the next ones will be ignored until enough time (x ms) has passed with
  * the previously handled event.
  *
- * This is a special operator that cannot be implemented wit the operatorFactory,
- * but is built by combining forEach and itr8Pushable
+ * This is an 'active' version of the throttle operator, built by combining
+ * forEach and itr8Pushable.
+ * This means that it will actively start pulling the input iterator,
+ * regardless of what happens on the output iterator, which doesn't seem to be a good idea.
  *
  * REMARK: it will always create an unbatched iterator, regardless of the input
  *
  * @category operators/timeBased
  */
-const throttle = (throttleMilliseconds: number) => {
+const throttleActive = (throttleMilliseconds: number) => {
   return <T>(it: Iterator<T> | AsyncIterator<T>) => {
     const itOut = itr8Pushable<T>();
     setImmediate(async () => {
@@ -1390,25 +1392,60 @@ const throttle = (throttleMilliseconds: number) => {
 /**
  * Only useful on async iterators.
  *
+ * Only throw events at most every x milliseconds.
+ *
+ * So when a few events happen quickly, only the first one will be handled,
+ * and the next ones will be ignored until enough time (x ms) has passed with
+ * the previously handled event.
+ *
+ * REMARK: probably useless with batched iterators, as all elements in the batch will arrive
+ * at the same time...
+ *
+ * @category operators/timeBased
+ */
+const throttle = itr8OperatorFactory<any,any,number,number>(
+  (nextIn, state, throttleMilliseconds: number) => {
+    if (nextIn.done) { return { done: true }; }
+    const now = Date.now();
+
+    if (now - state > throttleMilliseconds) {
+      return { done: false, value: nextIn.value, state: now };
+    }
+    return { done: false, state };
+  },
+  -Infinity,
+);
+
+
+/**
+ * Only useful on async iterators.
+ *
  * Wait for x milliseconds of 'no events' before firing one.
  * So an event will either not be handled (busy period),
  * or handled after the calm period (so with a delay of x milliseconds)
  *
- * This is a special operator that cannot be implemented wit the operatorFactory,
- * but is built by combining forEach and itr8Pushable.
+ * This is an 'active' version of the debounce operator, built by combining
+ * forEach and itr8Pushable.
+ * This means that it will actively start pulling the input iterator,
+ * regardless of what happens on the output iterator, which doesn't seem to be a good idea.
  *
  * REMARK: it will always create an unbatched iterator, regardless of the input
  *
  * @category operators/timeBased
  */
-const debounce = (cooldownMilliseconds: number) => {
+const debounceActive = (cooldownMilliseconds: number) => {
   return <T>(it: Iterator<T> | AsyncIterator<T>) => {
     const itOut = itr8Pushable<T>();
     setImmediate(async () => {
       let timer;
       await forEach(
         (nextValue) => {
-          clearTimeout(timer);
+          if (timer === undefined) {
+            // always fire on first
+            itOut.push(nextValue);
+          } else {
+            clearTimeout(timer);
+          }
           timer = setTimeout(
             () => { itOut.push(nextValue) },
             cooldownMilliseconds,
@@ -1421,6 +1458,31 @@ const debounce = (cooldownMilliseconds: number) => {
   }
 };
 
+
+/**
+ * Only useful on async iterators.
+ *
+ * Wait for x milliseconds of 'no events' before firing one.
+ * So an event will either not be handled (busy period),
+ * or handled after the calm period (so with a delay of x milliseconds)
+ *
+ * REMARK: probably useless with batched iterators, as all elements in the batch will arrive
+ * at the same time...
+ *
+ * @category operators/timeBased
+ */
+const debounce = itr8OperatorFactory<any,any,number,number>(
+  (nextIn, state, cooldownMilliseconds) => {
+    if (nextIn.done) return { done: true };
+    const newState = Date.now();
+    const timePassed = newState - state;
+    if (timePassed > cooldownMilliseconds) {
+      return { done: false, value: nextIn.value, state: newState };
+    }
+    return { done: false, state: newState }
+  },
+  -Infinity,
+);
 
 /**
  * Probably only useful on async iterators.
