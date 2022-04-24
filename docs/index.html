@@ -51,6 +51,13 @@ On the other hand, any problem that RxJS will solve can also be solved with (asy
   <h2>TODO</h2>
 </a>
 <ul>
+<li>Turn itr8OperatorFactory initialState into a parameterless function that generates the inital state.<ul>
+<li>Would be more forgiving if someone did alter the state in an operator&#39;s implementation,
+because the inital state would not be shared amongst the instances.</li>
+<li>Would allow the inital state to be something impure (like random number or current time),
+although that would probably be abad idea in most cases.</li>
+</ul>
+</li>
 <li>Piping should have better typing (like RxJS does it?) to make sure you get hints if you are trying to pipe functions together whose output and input types do not match.</li>
 <li>General code cleanup<ul>
 <li>Should we create &#39;categories&#39; of operators so people do not have to include the entire library?
@@ -59,13 +66,23 @@ On the other hand, any problem that RxJS will solve can also be solved with (asy
 </li>
 <li>Writing more and better documentation and example to show what can be done.</li>
 <li>Add some more useful operators<ul>
-<li>a &#39;zip&#39; operator</li>
 <li>gzip/gunzip?</li>
 <li>we&#39;ll probably find some inspiration in the RxJS library</li>
 </ul>
 </li>
 <li>Add more &#39;generators&#39; for typical cases like file input, db paga-per-page processing?</li>
 <li>Further improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significantly for example, but batches with only a few elements don&#39;t have a very big advantage performance wise). Of course you could always <code>unBatch |&gt; batch(size)</code> to force a new batch size, but it could be more efficient if the itr8OperatorFactory handles the batch size and keeps it constant throughtout the chain.</li>
+<li>Think about how to make it easy to use operator parameters that are iterators themselves.<ul>
+<li>Would make it easier to implement the zip operator (less boilerplate)</li>
+<li>Would in general allow for operator parameters that &#39;change over time&#39;.</li>
+<li>Can we make this generic in such away that any parameter of type T could be replaced
+by an (Async)Iterator<T>?</li>
+<li>Can we abstract the handling of sync versus async iterators away in an elegant manner?
+That means that if the input iterator is sync, all handling stays sychronous and will only
+become asynchronous when the iterator is asynchronous. But all this without the user having
+to alter the code...</li>
+</ul>
+</li>
 </ul>
 
 <a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">

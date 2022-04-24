@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as zlib from 'zlib';
 
 import * as itr8 from '../src';
-import { asNoBatch, lineByLine, itr8OperatorFactory as itr8OperatorFactory, unBatch, debounce, throttle, prefetch } from '../src';
+import { asNoBatch, lineByLine, itr8OperatorFactory as itr8OperatorFactory, unBatch, debounce, throttle, prefetch, mostRecent } from '../src';
 import { itr8FromStream, itr8ToReadableStream } from '../src/interface/stream'
 import { itr8FromObservable, itr8ToObservable } from '../src/interface/observable'
 import { hrtime } from 'process';
@@ -1559,6 +1559,54 @@ describe('itr8 test suite', () => {
       assert.deepEqual(results[descr].times.map((t) => Math.round(t / 5) * 5), [0, 0, 10, 10], `${descr}: 'times' fail!`);
 
     });
+
+    it('mostRecent(...) operator works properly', async () => {
+      const it = itr8.itr8Pushable();
+      const itOut = it.pipe(mostRecent('My initial value'));
+
+      await sleep(1);
+      assert.deepEqual(await  itOut.next(), { value: 'My initial value' });
+      assert.deepEqual(await  itOut.next(), { value: 'My initial value' });
+      await sleep(1);
+      assert.deepEqual(await  itOut.next(), { value: 'My initial value' });
+
+      it.push('2nd value');
+
+      await sleep(1);
+      assert.deepEqual(await  itOut.next(), { value: '2nd value' });
+      assert.deepEqual(await  itOut.next(), { value: '2nd value' });
+
+      it.push('third value');
+      // sync so 'third value' promise not resolved yet
+      assert.deepEqual(await  itOut.next(), { value: '2nd value' }, 'third value promise should not be resolved here yet');
+      await sleep(1);
+      assert.deepEqual(await  itOut.next(), { value: 'third value' });
+      assert.deepEqual(await  itOut.next(), { value: 'third value' });
+      assert.deepEqual(await  itOut.next(), { value: 'third value' });
+      assert.deepEqual(await  itOut.next(), { value: 'third value' });
+      await sleep(1);
+      assert.deepEqual(await  itOut.next(), { value: 'third value' });
+
+      // see evey value at least once!!!
+      it.push('fourth value');
+      it.push('fifth value');
+      // sync so 'third value' promise not resolved yet
+      assert.deepEqual(await  itOut.next(), { value: 'third value' });
+      await sleep(0);
+      assert.deepEqual(await  itOut.next(), { value: 'fourth value' });
+      await sleep(0);
+      assert.deepEqual(await  itOut.next(), { value: 'fifth value' });
+
+      it.done();
+      // sync so 'done' promise not resolved yet
+      assert.deepEqual(await  itOut.next(), { value: 'fifth value' });
+      await sleep(1);
+      assert.deepEqual(await  itOut.next(), { done: true });
+      assert.deepEqual(await  itOut.next(), { done: true });
+      assert.deepEqual(await  itOut.next(), { done: true });
+
+    });
+
 
     it('chaining a bunch of operators works properly', async () => {
 

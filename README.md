@@ -125,18 +125,30 @@ So, while all these libraries have their merit, none of them convered my needs w
 
 ## TODO
 
+* Turn itr8OperatorFactory initialState into a parameterless function that generates the inital state.
+  * Would be more forgiving if someone did alter the state in an operator's implementation,
+    because the inital state would not be shared amongst the instances.
+  * Would allow the inital state to be something impure (like random number or current time),
+    although that would probably be abad idea in most cases.
 * Piping should have better typing (like RxJS does it?) to make sure you get hints if you are trying to pipe functions together whose output and input types do not match.
 * General code cleanup
   * Should we create 'categories' of operators so people do not have to include the entire library?
     (for example delay, throttle, debounce under operators/timeBased and maybe max, min, average, pctl(...), total, ... under operators/numeric)
 * Writing more and better documentation and example to show what can be done.
 * Add some more useful operators
-  * a 'zip' operator
   * gzip/gunzip?
   * we'll probably find some inspiration in the RxJS library
 * Add more 'generators' for typical cases like file input, db paga-per-page processing?
 * Further improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significantly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always `unBatch |> batch(size)` to force a new batch size, but it could be more efficient if the itr8OperatorFactory handles the batch size and keeps it constant throughtout the chain.
-
+* Think about how to make it easy to use operator parameters that are iterators themselves.
+  * Would make it easier to implement the zip operator (less boilerplate)
+  * Would in general allow for operator parameters that 'change over time'.
+  * Can we make this generic in such away that any parameter of type T could be replaced
+    by an (Async)Iterator<T>?
+  * Can we abstract the handling of sync versus async iterators away in an elegant manner?
+    That means that if the input iterator is sync, all handling stays sychronous and will only
+    become asynchronous when the iterator is asynchronous. But all this without the user having
+    to alter the code...
 
 # Documentation
 

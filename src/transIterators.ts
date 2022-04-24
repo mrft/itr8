@@ -1561,6 +1561,55 @@ const prefetch = (amount: number) => {
 
 
 /**
+ * Probably only useful on async iterators.
+ *
+ * It will turn an async iterator into an asynchronous iterator that will always return the
+ * last known value, while waiting for the promise on the incoming iterator to resolve.
+ *
+ * Every value on the incoming iterator will be returned at least once in order to keep
+ * the operator 'passive'. This operator will not actively drain the incoming iterator.
+ *
+ * REMARK: it will always create an unbatched iterator, regardless of the input
+ *
+ * @category operators/async
+ */
+const mostRecent = <T>(initalValue: T) => {
+  return (it: Iterator<T> | AsyncIterator<T>):AsyncIterator<T> => {
+    let nextOut:IteratorResult<T> = { value: initalValue };
+    let resolveNextOutRead;
+
+    const handleInputPromise = async () => {
+      let nextOutRead:Promise<boolean> | undefined = undefined;
+      do {
+        if (isPromise(nextOutRead)) {
+          await nextOutRead;
+        }
+        nextOut = await it.next();
+        nextOutRead = new Promise((resolve, reject) => {
+          resolveNextOutRead = resolve;
+        });
+      } while (!nextOut.done);
+    }
+
+    const retVal = {
+      // [Symbol.iterator]: () => retVal as IterableIterator<T>,
+      [Symbol.asyncIterator]: () => retVal as AsyncIterableIterator<T>,
+      next: async () => {
+        if (resolveNextOutRead === undefined) {
+          handleInputPromise();
+        } else {
+          resolveNextOutRead(true);
+        }
+        return nextOut;
+      }
+    };
+
+    return itr8Proxy(retVal as any);
+  }
+};
+
+
+/**
  * produces a function that can be applied to an iterator and that will execute
  * the handler on each value.
  *
@@ -1732,6 +1781,7 @@ export {
   throttle,
 
   prefetch,
+  mostRecent,
 
   forEach,
 
