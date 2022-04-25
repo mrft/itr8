@@ -693,7 +693,6 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
  * The mapping function can be asynchronous (in which case the resulting iterator will be
  * asynchronous regardless of the input iterator)!
  *
- * @param it
  * @param fn
  *
  * @category operators/general
@@ -967,7 +966,6 @@ const skip = itr8OperatorFactory<any, any, number, number>(
  * (Beware: if the source is an Observable or a stream, it will not know that we stopped,
  * so the buffer will keep building up. The observable or stream should be closed by the user!)
  *
- * @param it
  * @param amount
  *
  * @category operators/general
@@ -1031,7 +1029,7 @@ const flatten = itr8OperatorFactory<any, any, void, void>(
  *    itr8FromArray([ 1, 2, 3, 4 ])
  *      .pipe(total()) // => [ 10 ]
  * ```
- * @param it
+ *
  * @param amount
  *
  * @category operators/numeric
@@ -1056,7 +1054,6 @@ const total = itr8OperatorFactory<number, number, void, { done: boolean, total: 
  *      .pipe(runningTotal())  // => [ 1, 3, 6, 10 ]
  * ```
  *
- * @param it
  * @param amount
  *
  * @category operators/numeric
@@ -1080,7 +1077,6 @@ const runningTotal = itr8OperatorFactory<number, number, void, number>(
  *      .pipe(percentile(95))  // => [ 95 ]
  * ```
  *
- * @param it
  * @param amount
  *
  * @category operators/numeric
@@ -1110,7 +1106,6 @@ const percentile = itr8OperatorFactory<number, number, number, { done: boolean, 
  *      .pipe(percentile(50))  // => [ 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5 ]
  * ```
  *
- * @param it
  * @param amount
  *
  * @category operators/numeric
@@ -1185,7 +1180,7 @@ const runningAverage = itr8OperatorFactory<number, number, void, { done: boolean
  *    itr8FromArray([ 1, 2, 7, 4 ])
  *      .pipe(total()) // => [ 7 ]
  * ```
- * @param it
+ *
  * @param amount
  *
  * @category operators/numeric
@@ -1209,7 +1204,6 @@ const max = itr8OperatorFactory<number, number, void, { done: boolean, max: numb
  *    itr8FromArray([ 1, -2, 7, 4 ])
  *      .pipe(total()) // => [ -2 ]
  * ```
- * @param it
  * @param amount
  *
  * @category operators/numeric
@@ -1240,7 +1234,7 @@ const min = itr8OperatorFactory<number, number, void, { done: boolean, min: numb
  *    itr8.itr8FromArrayAsync([ { v: 1 }, { v: -4 }, { v: 7 }, { v: 2 } ])
  *      .pipe(itr8.sort((a:{ v:number }, b:{ v:number }) => a.v - b.v))
  * ```
- * @param it
+ *
  * @param amount
  *
  * @category operators/general
@@ -1261,6 +1255,68 @@ const sort = itr8OperatorFactory<any, any, ((a: any, b: any) => number) | void, 
   () => ({ done: false, list: [] }),
 );
 
+/**
+ * Only returns unique elements. It works with a simple compare, so ok for simple types like
+ * numbers and strings, but for objects it will work on the reference. If you need something
+ * more sophisticated, ```uniqBy(...)``` is propably what you need.
+ *
+ * Beware: all unique elements need to fit in memory to keep track of the ones that we already
+ * have seen!
+ *
+ * @example
+ * ```typescript
+ *    itr8FromArray([ 1, -2, 7, 4, -2, -2, 4, 1 ])
+ *      .pipe(sort()) // => [ 1, -2, 7, 4, ]
+ * ```
+ *
+ * @category operators/general
+ */
+const uniq = itr8OperatorFactory<any, any, void, Set<any>>(
+  (nextIn: IteratorResult<any>, state:Set<any>, _) => {
+    if (nextIn.done) {
+      return { done: true };
+    } else if (state.has(nextIn.value)) {
+      return { done: false, state };
+    }
+    let newState = new Set(state);
+    newState.add(nextIn.value);
+    return { done: false, value: nextIn.value, state: newState };
+  },
+  () => new Set([]),
+);
+
+/**
+ * Only returns unique elements by comparing the result of the mapping function applied
+ * to the element.
+ * Beware: all mapped elements need to fit in memory to keep track of the ones that we already
+ * have seen!
+ *
+ * @example
+ * ```typescript
+ *    itr8.itr8FromArrayAsync([ { id: 1 }, { id: 2 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 4 }, { id: 3 } ])
+ *      .pipe(
+ *        itr8.uniqBy((a:{ id:number }) => id ) => [ [ { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 } ];
+ * ```
+ *
+ * @param mapFn
+ *
+ * @category operators/general
+ */
+const uniqBy = itr8OperatorFactory<any, any, (v:any) => any, Set<any>>(
+  (nextIn: IteratorResult<any>, state:Set<any>, mapFn) => {
+    if (nextIn.done) {
+      return { done: true };
+    }
+    const hash = mapFn(nextIn.value);
+    if (state.has(hash)) {
+      return { done: false, state };
+    }
+    let newState = new Set(state);
+    newState.add(hash);
+    return { done: false, value: nextIn.value, state: newState };
+  },
+  () => new Set([]),
+);
 
 
 /**
@@ -1753,6 +1809,9 @@ export {
   reduce,
   zip,
   tap,
+  sort,
+  uniq,
+  uniqBy,
 
   // boolean
   every,
@@ -1771,7 +1830,6 @@ export {
   average,
   runningAverage,
 
-  sort,
   stringToChar,
   split,
   delay,

@@ -1305,6 +1305,82 @@ describe('itr8 test suite', () => {
       );
     });
 
+    it('uniq(...) operator works properly', async () => {
+      // sync
+      assert.deepEqual(
+        itr8.itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+          itr8.uniq(),
+          itr8.itr8ToArray,
+        ),
+        [1, 2, 3, 4, 5],
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+          itr8.uniq(),
+          itr8.itr8ToArray,
+        ),
+        [1, 2, 3, 4, 5],
+      );
+    });
+
+    it('uniqBy(...) operator works properly', async () => {
+      // sync
+      assert.deepEqual(
+        itr8.itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+          itr8.uniqBy((v) => v),
+          itr8.itr8ToArray,
+        ),
+        [1, 2, 3, 4, 5],
+      );
+
+      assert.deepEqual(
+        itr8.itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+          itr8.map((v) => ({ id: v })),
+          itr8.uniqBy((v) => v.id - 7),
+          itr8.itr8ToArray,
+        ),
+        [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+      );
+
+      assert.deepEqual(
+        itr8.itr8FromArray(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']).pipe(
+          itr8.uniqBy((v) => v.length),
+          itr8.itr8ToArray,
+        ),
+        ['one', 'three', 'four'],
+      );
+
+      // async
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+          itr8.uniqBy((v) => v),
+          itr8.itr8ToArray,
+        ),
+        [1, 2, 3, 4, 5],
+      );
+
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+          itr8.map((v) => ({ id: v })),
+          itr8.uniqBy((v) => v.id - 7),
+          itr8.itr8ToArray,
+        ),
+        [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+      );
+
+      assert.deepEqual(
+        await itr8.itr8FromArrayAsync(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']).pipe(
+          itr8.uniqBy((v) => v.length),
+          itr8.itr8ToArray,
+        ),
+        ['one', 'three', 'four'],
+      );
+
+
+    });
+
     it('stringToChar(...) operator works properly', async () => {
       const input = ['Hello', 'World', '\n', 'Goodbye', 'Space', '!'];
       const expected = ['H', 'e', 'l', 'l', 'o', 'W', 'o', 'r', 'l', 'd', '\n', 'G', 'o', 'o', 'd', 'b', 'y', 'e', 'S', 'p', 'a', 'c', 'e', '!'];
