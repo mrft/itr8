@@ -160,7 +160,7 @@ const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
  *  programming' oriented)
  *
  * @param nextFn
- * @param initialState
+ * @param initialStateFactory a function that generates the initialSate
  * @returns a funtion taking an iterator (and optionally some argument) as input and that has an iterator as output
  *
  * @category operators/factory
@@ -168,7 +168,7 @@ const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
 const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TState = any>(
   nextFn: (nextIn: IteratorResult<TIn>, state: any, params: any) =>
     TNextFnResult<TOut, TState> | Promise<TNextFnResult<TOut, TState>>,
-  initialState: TState,
+  initialStateFactory: () => TState,
 ): (params: TParams) => TTransIteratorSyncOrAsync<TIn, TOut> {
   return function (params: TParams): TTransIteratorSyncOrAsync<TIn, TOut> {
     const operatorFunction = (itIn: Iterator<TIn> | AsyncIterator<TIn>, pState: TState) => {
@@ -484,7 +484,7 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
       return itr8Proxy(retVal as any);
     };
 
-    return (itIn: Iterator<TIn> | AsyncIterator<TIn>) => operatorFunction(itIn, initialState);
+    return (itIn: Iterator<TIn> | AsyncIterator<TIn>) => operatorFunction(itIn, initialStateFactory());
   }
 };
 
@@ -719,7 +719,7 @@ const map = itr8OperatorFactory<any, any, (any) => any, void>(
       }
     }
   },
-  undefined,
+  () => undefined,
 );
 
 
@@ -783,7 +783,7 @@ const reduce = itr8OperatorFactory<
       }
     };
   },
-  { index: 0, accumulator: undefined, done: false },
+  () => ({ index: 0, accumulator: undefined, done: false }),
 );
 
 /**
@@ -809,7 +809,7 @@ const filter = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>
       return { done: false };
     }
   },
-  undefined,
+  () => undefined,
 );
 
 
@@ -849,7 +849,7 @@ const filter = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>
       value: [nextIn.value, (secondNext as IteratorResult<any>).value],
     };
   },
-  undefined,
+  () => undefined,
 );
 
 
@@ -874,7 +874,7 @@ const filter = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>
       return { done: false, value: nextIn.value };
     }
   },
-  undefined,
+  () => undefined,
 );
 
 
@@ -908,7 +908,7 @@ const every = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>,
       return { done: false, value: result, state: { done: true } };
     }
   },
-  { done: false },
+  () => ({ done: false }),
 );
 
 /**
@@ -941,7 +941,7 @@ const some = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, 
       return { done: false, state: { done: false } };
     }
   },
-  { done: false },
+  () => ({ done: false }),
 );
 
 
@@ -958,7 +958,7 @@ const skip = itr8OperatorFactory<any, any, number, number>(
     if (state < params) return { done: false, state: state + 1 };
     return { done: false, value: nextIn.value };
   },
-  0,
+  () => 0,
 );
 
 /**
@@ -978,7 +978,7 @@ const limit = itr8OperatorFactory<any, any, number, number>(
     if (state < params) return { done: false, value: nextIn.value, state: state + 1 };
     return { done: true };
   },
-  0,
+  () => 0,
 );
 
 /**
@@ -1002,7 +1002,7 @@ const groupPer = itr8OperatorFactory<any, any, number, { done: boolean, buffer: 
     }
     return { done: false, state: { ...state, buffer: [...state.buffer, nextIn.value] } };
   },
-  { done: false, buffer: [] },
+  () => ({ done: false, buffer: [] }),
 );
 
 /**
@@ -1020,7 +1020,7 @@ const flatten = itr8OperatorFactory<any, any, void, void>(
     if (nextIn.done) return { done: true };
     return { done: false, iterable: nextIn.value };
   },
-  undefined,
+  () => undefined,
 );
 
 
@@ -1045,7 +1045,7 @@ const total = itr8OperatorFactory<number, number, void, { done: boolean, total: 
     }
     return { done: false, state: { ...state, total: state.total + nextIn.value } };
   },
-  { done: false, total: 0 },
+  () => ({ done: false, total: 0 }),
 );
 
 /**
@@ -1069,7 +1069,7 @@ const runningTotal = itr8OperatorFactory<number, number, void, number>(
     const newTotal = state + nextIn.value;
     return { done: false, value: newTotal, state: newTotal };
   },
-  0,
+  () => 0,
 );
 
 /**
@@ -1099,7 +1099,7 @@ const percentile = itr8OperatorFactory<number, number, number, { done: boolean, 
     // console.log('value', nextIn.value, 'percentage', percentage, 'count', state.count, 'newTopArraySize', newTopArraySize, 'state.topArray', state.topArray);
     return { done: false, state: { ...state, count: newCount, topArray: newTopArray } };
   },
-  { done: false, count: 0, topArray: [] },
+  () => ({ done: false, count: 0, topArray: [] }),
 );
 
 /**
@@ -1128,7 +1128,7 @@ const runningPercentile = itr8OperatorFactory<number, number, number, { count: n
     // console.log('value', nextIn.value, 'percentage', percentage, 'count', state.count, 'newTopArraySize', newTopArraySize, 'state.topArray', state.topArray);
     return { done: false, state: { ...state, count: newCount, topArray: newTopArray }, value: newTopArray[0] };
   },
-  { count: 0, topArray: [] },
+  () => ({ count: 0, topArray: [] }),
 );
 
 /**
@@ -1152,7 +1152,7 @@ const average = itr8OperatorFactory<number, number, void, { done: boolean, count
     const newSum = state.sum + nextIn.value;
     return { done: false, state: { ...state, count: newCount, sum: newSum } };
   },
-  { done: false, count: 0, sum: 0 },
+  () => ({ done: false, count: 0, sum: 0 }),
 );
 
 /**
@@ -1175,7 +1175,7 @@ const runningAverage = itr8OperatorFactory<number, number, void, { done: boolean
     const newSum = state.sum + nextIn.value;
     return { done: false, state: { ...state, count: newCount, sum: newSum }, value: newSum / newCount };
   },
-  { done: false, count: 0, sum: 0 },
+  () => ({ done: false, count: 0, sum: 0 }),
 );
 
 /**
@@ -1199,7 +1199,7 @@ const max = itr8OperatorFactory<number, number, void, { done: boolean, max: numb
     }
     return { done: false, state: { ...state, max: Math.max(state.max, nextIn.value) } };
   },
-  { done: false, max: -Infinity },
+  () => ({ done: false, max: -Infinity }),
 );
 
 /**
@@ -1223,7 +1223,7 @@ const min = itr8OperatorFactory<number, number, void, { done: boolean, min: numb
     }
     return { done: false, state: { ...state, min: Math.min(state.min, nextIn.value) } };
   },
-  { done: false, min: Infinity },
+  () => ({ done: false, min: Infinity }),
 );
 
 /**
@@ -1258,7 +1258,7 @@ const sort = itr8OperatorFactory<any, any, ((a: any, b: any) => number) | void, 
     // state.list.push(nextIn.value);
     // return { done: false, state: { ...state, list: state.list /* [...state.list, nextIn.value] */ } };
   },
-  { done: false, list: [] },
+  () => ({ done: false, list: [] }),
 );
 
 
@@ -1283,7 +1283,7 @@ const stringToChar = itr8OperatorFactory<string, string, void, void>(
       iterable: itr8FromString(nextIn.value),
     };
   },
-  undefined,
+  () => undefined,
 );
 
 /**
@@ -1313,7 +1313,7 @@ const split = itr8OperatorFactory<any, any, any, any[] | undefined>(
     }
     return { done: false, state: [...(state === undefined ? [] : state), nextIn.value] };
   },
-  undefined,
+  () => undefined,
 );
 
 /**
@@ -1330,7 +1330,7 @@ const delay = itr8OperatorFactory<any, any, number, void>(
       }
     );
   },
-  undefined,
+  () => undefined,
 );
 
 /**
@@ -1413,7 +1413,7 @@ const throttle = itr8OperatorFactory<any,any,number,number>(
     }
     return { done: false, state };
   },
-  -Infinity,
+  () => -Infinity,
 );
 
 
@@ -1481,7 +1481,7 @@ const debounce = itr8OperatorFactory<any,any,number,number>(
     }
     return { done: false, state: newState }
   },
-  -Infinity,
+  () => -Infinity,
 );
 
 /**

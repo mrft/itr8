@@ -206,7 +206,7 @@ const filterNil = itr8OperatorFactory<void, any, any, null>(
             return { done: false, value: nextIn.value };
         }
     ),
-    null, // no state needed
+    () => null, // no state needed
 );
 ```
 
@@ -245,7 +245,7 @@ const opr8RepeatEach: itr8OperatorFactory<number, any, any, void>(
       iterable: (function* () { for (let i = 0; i < count; i++) { yield nextIn.value; } })(),
     };
   },
-  undefined,
+  () => undefined,
 );
 ```
 
@@ -264,7 +264,7 @@ const repeatEach: itr8OperatorFactory<number, any, any, void>(
       iterable: Array.from(Array(count)).map(x => nextIn.value),
     };
   },
-  undefined,
+  () => undefined,
 );
 ```
 
@@ -283,7 +283,7 @@ const total = itr8OperatorFactory<void, number, number, { done: boolean, total: 
     }
     return { done: false, state: { ...state, total: state.total + nextIn.value } };
   },
-  { done: false, total: 0 },
+  () => ({ done: false, total: 0 }),
 );
 ```
 
@@ -297,11 +297,14 @@ So this iterator will only return a value on the output iterator once the input 
 #### I don't think that the operator I want can be built with the operatorFactory
 
 If you have read the examples above, and you still don't see how to write your operator,
-it could be that it cannot be written with the itr8OperatorFactory.
+it could be that it cannot be written with the itr8OperatorFactory. (But to be honest,
+at first I thought I had to write debounce and throttle by combining forEach with an
+itr8Pushable, but later I realized that was not necessary, and I made a proper version
+with itr8OperatorFactory which was passive again).
 
-If that is the case, I advise you to look at the source code of 'debounce', 'throttle' and 'prefetch'.
-Debounce and throttle are actually using a pushable (async) iterator to implement their behaviour,
-and prefetch is actually returning a custom built iterator.
+But if you are convinced that is the case, I advise you to look at the source code of
+'prefetch' or 'mostRecent'.
+Prefetch and mostRecent are actually returning a custom built iterator.
 
 As long as your operator returns a function transforming the input iterator into another iterator,
 you're good (and try to be pollite: always support both sync and async iterators as input, and if

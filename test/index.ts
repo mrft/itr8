@@ -73,7 +73,7 @@ const transIts = {
       }
       return { done: false, value: params(nextIn.value) };
     },
-    undefined,
+    () => undefined,
   ),
   opr8Skip: itr8OperatorFactory(
     (nextIn, state, params) => {
@@ -85,7 +85,7 @@ const transIts = {
       }
       return { done: false, value: nextIn.value };
     },
-    0,
+    () => 0,
   ),
   opr8Delay: itr8OperatorFactory(
     (nextIn, state, timeout) => new Promise<any>((resolve, reject) => {
@@ -96,7 +96,7 @@ const transIts = {
         timeout
       );
     }),
-    0,
+    () => 0,
   ),
 
   // sync nextFn, sync iterator
@@ -107,7 +107,7 @@ const transIts = {
       }
       return { done: false, value: params(nextIn.value) };
     },
-    null,
+    () => null,
   ),
   // async nextFn, sync iterator
   opr8MapAsyncSync: itr8OperatorFactory<(any) => any, any, any, void>(
@@ -117,7 +117,7 @@ const transIts = {
       }
       return { done: false, value: params(nextIn.value) };
     },
-    undefined,
+    () => undefined,
   ),
   // sync nextFn, async iterator
   opr8MapSyncAsync: itr8OperatorFactory(
@@ -127,7 +127,7 @@ const transIts = {
       }
       return { done: false, value: Promise.resolve(params(nextIn.value)) };
     },
-    null,
+    () => null,
   ),
   // async nextFn, async iterator
   opr8MapAsyncAsync: itr8OperatorFactory(
@@ -137,7 +137,7 @@ const transIts = {
       }
       return { done: false, value: Promise.resolve(params(nextIn.value)) };
     },
-    null,
+    () => null,
   ),
   /**
    * Turns rows of a certain size into rows of a new size
@@ -167,7 +167,7 @@ const transIts = {
         iterable: (function* () { for (let i = 0; i < count; i++) { yield nextIn.value; } })(),
       };
     },
-    undefined,
+    () => undefined,
   ),
   // async nextFn, sync iterator
   opr8RepeatEachAsyncSync: itr8OperatorFactory<number, any, any, void>(
@@ -180,7 +180,7 @@ const transIts = {
         iterable: (function* () { for (let i = 0; i < count; i++) { yield nextIn.value; } })(),
       };
     },
-    undefined,
+    () => undefined,
   ),
   // sync nextFn, async iterator
   opr8RepeatEachSyncAsync: itr8OperatorFactory<number, any, any, void>(
@@ -193,7 +193,7 @@ const transIts = {
         iterable: (async function* () { for (let i = 0; i < count; i++) { yield nextIn.value; } })(),
       };
     },
-    undefined,
+    () => undefined,
   ),
   // async nextFn, async iterator
   opr8RepeatEachAsyncAsync: itr8OperatorFactory<number, any, any, void>(
@@ -206,7 +206,7 @@ const transIts = {
         iterable: (async function* () { for (let i = 0; i < count; i++) { yield nextIn.value; } })(),
       };
     },
-    undefined,
+    () => undefined,
   ),
 
   ////////////////////////////////////////////////////////////////
@@ -227,7 +227,7 @@ const transIts = {
       }
       return { done: false };
     },
-    null,
+    () => null,
   ),
   // async nextFn, sync iterator
   opr8FilterAsyncSync: itr8OperatorFactory(
@@ -240,7 +240,7 @@ const transIts = {
       }
       return { done: false };
     },
-    null,
+    () => null,
   ),
   // sync nextFn, async iterator
   opr8FilterSyncAsync: itr8OperatorFactory(
@@ -253,7 +253,7 @@ const transIts = {
       }
       return { done: false };
     },
-    null,
+    () => null,
   ),
   // async nextFn, async iterator
   opr8FilterAsyncAsync: itr8OperatorFactory(
@@ -266,7 +266,7 @@ const transIts = {
       }
       return { done: false };
     },
-    null,
+    () => null,
   ),
 };
 

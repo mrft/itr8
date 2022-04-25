@@ -15,9 +15,8 @@
     "clean": "rm -rf ./dist",
     "builddocs": "typedoc src/index.ts src/interface/observable.ts src/interface/stream.ts",
     "postbuilddocs": "./optimize_generated_docs_for_git.sh",
-    "//pretest": "npm run clean && mkdir -p ./dist && npm run build",
     "echoForTest": "echo -e \"01 this is stdin\n02 So we can do some stream tests in the program\n03\n04\"",
-    "//pretest": "npm run build",
+    "//pretest": "npm run clean && mkdir -p ./dist && npm run build",
     "test": "npm run echoForTest | ./node_modules/.bin/mocha --exit --timeout 4000 --node-option max-old-space-size=150 --require ts-node/register ./test/*.ts",
     "posttest": "npm run build && npm run builddocs"
   },
