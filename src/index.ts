@@ -1,7 +1,142 @@
 // https://www.typescriptlang.org/play?#code/MYewdgzgLgBAhgLjAVwLYCMCmAnA2gXRgF4ZcBGAGhgCYqBmKgFnwG4AoUSWdBabASzABzAsVIBycJnFVxUAO4gZcgBbZM02QDMQybONZs2W5GGBR+4GFBABJKDjg3sAHgAqAPgAUiAILZsOABPdw8ASgR7R2dQmABvNhgkmHUoPTB4XABlIIwQABsAOn4HQOd8LzD2AF8jEzMLKxLokGw3EH9AkM8vZrLWyNKnVtCIzuDYhOSYfMxYdQhkfNgSAnZp2dgwdeT5FX5ZmC8AQi8Mkj7h7EKwTAAPKEqwwoATKTD4xOnkhaWoQoADsgICozoUAG5wfLITBVL5JWrTVLpFKYRbLGpGYymcyWMAAKhScGEmC80Dg2CgSDQWGwVEwYBe1IwOA+U2S-C0R3JlJgLhgDJebPh3x02COmxg-DEPKgLClfJIgvl-AA1Krhd8tTAgvxMPkXlKdlrEclqgL8hBMJ9tTAxRK5gqSLKVTAPErGSqALRezW25K6-WG-jG76mhFsWpsAD00ZgnAgBUwhXyICEXlwhSzgRJXgYAHYwvg4bH4+BE7MU2mM1nCjmhKSAKwUahFuFGUsJpNV9OXZztcZBLw2KL9bA+MKT9gccuwPpieukhgATnbUCCAOtbjcOYgL2QwBw7lsYAobgA8sgoB4xL0hs5Bi1XG4Tx4qLWARS4KgIAh4GAgg+Igb1HK53Eva9pwTWBUDgAEEG3Xd90PVxiSCCg0JvEh6lxcBCTvR8xxcFAWWwN87TABAvDuBA0KAm86JtZJJVuB4TzEEobnuR44WmPYDlJY5WKgE9XneJitUDA0KLObjRMhaFYVDaZhPYi5-mEypQ1qKNoJgWCAWoBCd2JPcDyPNCMIArCjhKQiwJI2lyK0SjqNogD6P-QDiBvdkkmRbAMj875hL-SofIk-09NU84pQ07itJFW09OweznAAJTRP5iJpHAbOC-1kgUmE-xc2S2LACEoRhMIKCSwqYDeW4-xisTbjqhqYHDf0AoybBlLNEVzTgCAYFAmJHLyyMjD0rQDlKYykPM1CAKsoIbJwxoCVsqlxpGTCqBcqiaMY4CYHQEAk2JP0khYuTYs4zTeN2fZZhOVqmthSLpk5I4yta4rYRu-0pMNAHqswAaI1tGKOPih5EumHSZtnGAQC0LQrSpRDTOQizVswsRNrxfC7L2lb1qob9dDAKlJuwYG7oquGuIR57bsdUBTFKMQAAZQ34t6hPutqvoK5IudpnAxElnnVRgMgoalLkvFl6WGNQGmoGB21QZgcHFKV7qVPulmnu06aZy4GZ+FQOyccgPGKbWjacS20ndvvfbrKpzXueZWlGcdWH1NZnjQ0lNXxRIfmRUFwSPvE8WkijmWtel+XFfqpJftV9PxRcEhqe5nXtT1g2YSN7P9dN0PzaGy2YzjYm8JgAF+E3Lxa1wEB4IdsyUKp7AhDQBkoF-GBCDCFHrbgagifmnAvAM4c7C98c4Fqo4aPpzy7hgTOt7c3eIv3m9Wyg8tu1TXt14HAJgh8Vt2y7Ssb7vJ9766Lx0cxuZV-Jl4dAW9n4vyvm-asfZWhf0fvkW2JQAHryASAycVQgA
 
 import { isPromise } from 'util/types';
+import { forEach, takeWhile } from './transIterators';
 import { TPipeable, TTransIteratorSyncOrAsync } from './types';
+
+
+
+/**
+ * (Word play on then-able an th-enable)
+ *
+ * This utility function makes sure that any value (Promise or otherwise)
+ * will be turned into an object with a then property, so that we can write the same code
+ * regardless of whether the input is sync or async, but guaranteeing that
+ * if the input is sync, all operations will also be called synchronously.
+ *
+ * The original input object is available under the thenable(...).src property.
+ *
+ * After the then callback has finished, the Object's 'value' property will be set
+ * to the 'resolved' value.
+ *
+ * @example
+ * ```typescript
+ * // the same code can be applied without changes to a promise or a non promise
+ * // by doing it all in the then-callback
+ * thenable(123).then(
+ *    (v) => {
+ *      console.log(v);
+ *      return getSomeOtherSyncOrAsyncVal(v);
+ *    }
+ * ).then(
+ *    (otherVal) => {
+ *      console.log(otherVal);
+ *      return getYetAnotherVal(v);
+ *    }
+ * )
+ * ```
+ *
+ * ???
+ * MAYBE a better solution would be to have a function called doAfter(value, (value) => { your code })
+ * that checks whether it is a promise or not, and returns the result of the handler?
+ * But without the pipe operator it would be a pain to chain them, unless it will return an object
+ * with some properties like { result, doAfter:... }
+ * or maybe thenable should always return a new object with poerties { src, then, finally, ... } so
+ * that the interface resembles a promise, but if we need the actual promise or value
+ * we should simply call src?
+ *
+ *
+ * @param x a Promise or a regular value
+ * @returns an object that has a then function and a src property pointing to the original input
+ *          regardless whether it is a Promise or not
+ */
+const thenable = (x: any): { src: any, then: (...any) => any, value?: any } => {
+  if (isPromise(x)) {
+    let newX = {
+      src: x,
+      then: (...args) => thenable(x.then(...args)),
+    };
+    // make sure the value gets added to this object after the promise resolves
+    x.then((value) => newX['value'] = value);
+    return newX;
+  } else {
+    if (typeof x?.then === 'function') {
+      return x;
+    } else {
+      // needed, because in strict mode it is impossble to set a property
+      // on a string primitive (and in non-strict mode the set value cannot be read again)
+      const newX = {
+        src: x?.src !== undefined ? x.src : x,
+        then: (okHandler: (v: any, isAsync?: boolean) => any) => {
+          const retVal = thenable(okHandler(x, true));
+          retVal['value'] = retVal.src;
+          return retVal;
+        },
+        value: x,
+      }
+      return newX;
+    }
+  }
+}
+
+
+/**
+ * This utility function will do a for loop, synchronously if all the parts are synchronous,
+ * and asynchronously otherwise.
+ * This should help us to use the same code yet supporting both possible scenarios.
+ *
+ * @param initialStateFactory
+ * @param testBeforeEach
+ * @param afterEach
+ * @param codeToExecute
+ * @returns void | Promise<void>
+ */
+const forLoop = <State>(
+  initialStateFactory:() => State | Promise<State>,
+  testBeforeEach: (a:State) => boolean | Promise<boolean>,
+  afterEach: (a:State) => State | Promise<State>,
+  codeToExecute: (a:State) => void | Promise<void>,
+) => {
+  // if we assume that thenable will return true as the second argument of the callbacks
+  // when we are still synchronous, we can write this with thenable I think
+  return thenable(initialStateFactory())
+  .then((initialState, isSync1) => {
+    return thenable(testBeforeEach(initialState))
+    .then((testResult, isSync2) => { // this should work, both for sync and async stuff, so that we don't get the indentation-of-hell issue?
+      if (testResult) {
+        return thenable(codeToExecute(initialState))
+        .then(
+          (_, isSync3) => {
+            return thenable(afterEach(initialState))
+            .then((firstStateAfterEach, isSync4) => {
+              if (isSync1 && isSync2 && isSync3 && isSync4) {
+                // everything is synchronous so we can do a synchronous for loop
+                let state = firstStateAfterEach;
+                while (testBeforeEach(state)) {
+                  codeToExecute(state);
+                  state = afterEach(state);
+                }
+                return state;
+              } else {
+                // something is asynchronous so we can to do an asychronous for loop
+                return (async () => {
+                  let state = firstStateAfterEach;
+                  while (await testBeforeEach(state)) {
+                    await codeToExecute(state);
+                    state = await afterEach(state);
+                  }
+                  return state;
+                })();
+              }
+            })
+        })
+      } else {
+        return initialState;
+      }
+    })
+  });
+};
+
 
 /**
  * We'd like this proxy handler to handle the following things:
@@ -168,9 +303,18 @@ function itr8Proxy<PTIterator extends IterableIterator<any> | AsyncIterableItera
 }
 
 /**
- * gets an instance of the iterator OR the async iterator from any iterable.
+ * Gets a wrapped instance of the iterator OR the async iterator from any iterable (including arrays)
+ * so that we can easily pipe it into the operators.
+ *
+ * @example
+ * ```typescript
+ * itr8FromIterable([1,2,3])
+ *  .pipe(
+ *    map((x) => x + 100),
+ *  )
+ * ```
  */
-function itr8FromIterable<T>(it:Iterable<T> | AsyncIterable<T>):TPipeable & (Iterator<T> | AsyncIterator<T>) {
+function itr8FromIterable<T>(it:Iterable<T> | AsyncIterable<T>):TPipeable & (IterableIterator<T> | AsyncIterableIterator<T>) {
   if (it[Symbol.iterator]) {
     return itr8Proxy(it[Symbol.iterator]());
   } else {
@@ -179,7 +323,9 @@ function itr8FromIterable<T>(it:Iterable<T> | AsyncIterable<T>):TPipeable & (Ite
 }
 
 /**
- * Turns an array into an Iterator.
+ * Turns an array into an Iterator
+ * (itr8FromIterable is more generic, this one is mainly useful for writing tests together
+ * with its async brother itr8FromArrayAsync).
  *
  * @param a an array
  * @returns an iterator
@@ -191,7 +337,7 @@ function itr8FromArray<T>(a: Array<T>): TPipeable & IterableIterator<T> {
 }
 
 /**
- * Turns an array into an (async) Iterator.
+ * Turns an array into an (async) Iterator. Mainly useful for testing.
  *
  * @param a an array
  * @returns an async iterator
@@ -209,9 +355,7 @@ function itr8FromArrayAsync<T>(a: Array<T>): TPipeable & AsyncIterableIterator<T
  * @returns an iterator
  */
 function itr8FromString(s: string): TPipeable & IterableIterator<string> {
-  return itr8Proxy(
-    s[Symbol.iterator]()
-  );
+  return itr8FromIterable(s) as TPipeable & IterableIterator<string>;
 }
 
 
@@ -322,7 +466,64 @@ function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T
   return itr8Proxy(retVal as AsyncIterableIterator<T>) as TPipeable & AsyncIterableIterator<T> & { push:(T) => void, done:() => void };
 }
 
+/**
+ * When you want to process the same iterator mutltiple times with different effects
+ * it would be cool to have a way to 'subscribe' many times to the same iterator.
+ * An iterable returns an iterator, but normally we'll just return the current iterator,
+ * and not a new one.
+ *
+ * This way all output iterators need to call next to get the next element of the input iterator.
+ *
+ * This method creates a function that turns the iterator into an Iterable that returns
+ * a new iterator on calling [Symbol.asynIterator] that starts from the current element
+ * (or the oldest element any of the subscribers is at?) that we are at in the source iterator.
+ *
+ * In order to support the fact that not all output iterators will be pulled at the same time,
+ * we need to keep a cache + the position that eash iterator is at. But in order to protect
+ * ourselves from 'abandoned' iterators, a timeout could be used to clean them up, so the cache
+ * can also be emptied up to the oldest 'active' iterator.
+ */
+function itr8ToMultiIterable<T>(abandonedTimeoutMilliseconds:number = Infinity)
+                               :(it:Iterator<T> | AsyncIterator<T>) => AsyncIterable<T> {
+  return (it:Iterator<T> | AsyncIterator<T>) => {
+    let subscriberMap:Map<AsyncIterableIterator<T>, number> = new Map();
+    let buffer:Map<number,IteratorResult<T> | Promise<IteratorResult<T>>> = new Map();
 
+    let retVal:AsyncIterable<T> = {
+      [Symbol.asyncIterator]: () => {
+        const outIt:AsyncIterableIterator<T> = {
+          [Symbol.asyncIterator]: () => outIt,
+          next: async () => {
+            const index = subscriberMap.get(outIt) as number;
+            if (!buffer.has(index)) {
+              buffer.set(index, it.next());
+            }
+            // remove old stuff in buffer
+            const minIndex = Math.min(...subscriberMap.values());
+            itr8FromIterable(buffer.keys()).pipe(
+              takeWhile((i) => i < minIndex), // Maps are iterated in insertion order !
+              forEach((i) => {
+                buffer.delete(i);
+              }),
+            );
+            // for (const b of buffer.keys()) {
+            //   if (i < minIndex) {}
+            // }
+            subscriberMap.set(outIt, index + 1);
+            return buffer.get(index) as Promise<IteratorResult<T>>;
+          },
+        };
+
+        // add the new iterator to the subscriberMap
+        subscriberMap.set(outIt, buffer.size === 0 ? 0 : Math.min(...buffer.keys()));
+        // TODO: set a disconnect timeout (we'll need to store the last get time, or the timeout id)
+        return itr8Proxy(outIt) as AsyncIterator<T>;
+      }
+    };
+    // subscriberMap.set(outIt, buffer.size > 0 ? buffer.values.next().value : 0);
+    return retVal as AsyncIterableIterator<T>;
+  };
+}
 
 /**
  * Turns an itr8 into an array.
@@ -443,5 +644,9 @@ export {
   itr8Range,
   itr8RangeAsync,
   itr8ToArray,
+  itr8ToMultiIterable,
   itr8Pipe,
+
+  thenable,
+  forLoop,
 }

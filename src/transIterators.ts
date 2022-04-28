@@ -1,6 +1,6 @@
 import { isPromise } from 'util/types';
 import { TNextFnResult, TTransIteratorSyncOrAsync } from "./types";
-import { itr8FromIterable, itr8FromString, itr8Pipe, itr8Proxy, itr8Pushable } from './';
+import { forLoop, itr8FromIterable, itr8FromString, itr8Pipe, itr8Proxy, itr8Pushable, thenable } from './';
 
 /**
  * This operator will simply produce the same output, but the new Iterator will be marked
@@ -121,6 +121,414 @@ const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
 };
 
 /**
+ * EXPERIMENTAL VERSION OF THIS FUNCTION WRITTEN WITH forLoop (and thenable)
+ * to see if we can make it more elegant this way (more code reuse)
+ *
+ * An operator is 'a function that generates a transIterator'.
+ * So for example filter(...) is an operator, because when called with an argument
+ * (the filter function) the result of that will be another function which is the transIterator.
+ *
+ * A transIterator is simply a function with an iterator as single argument which will return
+ * another iterator. This way we can easily 'build a chain of mulitple transIterators'.
+ * So it transforms iterators, which is why I have called it transIterator (~transducers).
+ *
+ * itr8OperatorFactory is a function that generates an operator that generates transIterators that
+ * will work both on synchronous and asynchronous iterators.
+ * The factory needs to be provided with a single function of the form:
+ *
+ * ```typescript
+ * (nextOfPreviousIteratorInTheChain, state, operatorParams) => TNextFnResult | Promise<[TNextFnResult]>
+ * ```
+ * and an initial state
+ *
+ * * nextOfPreviousIteratorInTheChain is the (resolved if async) result of a next call of the input
+ *   iterator. This means it will be of the form { done: true } or { done: false, value: <...> }.
+ * * The state parameter is used to allow operators to have state, but not all operators need this.
+ *   For example: a 'map' operator doesn't need state, but the 'skip' operator would need to keep
+ * track of how many records have passed.
+ * * The operator params are the argument that is given to the operator function, like a number for
+ *   a 'take' operator, or the filter function for a 'filter' operator.
+ *
+ * Check the readme for some examples on how to write your own operators by using the itr8OperatorFactory
+ * (or check the source code as all the available operators have been built using this function).
+ *
+ * BEWARE: NEVER MODIFY THE STATE OBJECT (or any of its children!), ALWAYS RETURN A NEW VALUE!
+ *
+ * QUESTION: would it be better to have an initial state producing function instead of an initial
+ *  state?
+ *  This way, even if nextFn would modify the state, it wouldn't mess with other instances
+ *  of the same operator? Because if we'd like to deep clone the initial state ourselves, we might
+ *  end up with some complex cases when classes are involved (I hope no one who's interested in
+ *  this library will want to use classes in their state, because the library is more 'functional
+ *  programming' oriented)
+ *
+ * @param nextFn
+ * @param initialStateFactory a function that generates the initialSate
+ * @returns a funtion taking an iterator (and optionally some argument) as input and that has an iterator as output
+ *
+ * @category operators/factory
+ */
+// const itr8OperatorFactoryNew = function <TIn = any, TOut = any, TParams = any, TState = any>(
+//   nextFn: (nextIn: IteratorResult<TIn>, state: any, params: any) =>
+//     TNextFnResult<TOut, TState> | Promise<TNextFnResult<TOut, TState>>,
+//   initialStateFactory: () => TState,
+// ): (params: TParams) => TTransIteratorSyncOrAsync<TIn, TOut> {
+//   return function (params: TParams): TTransIteratorSyncOrAsync<TIn, TOut> {
+//     const operatorFunction = (itIn: Iterator<TIn> | AsyncIterator<TIn>, pState: TState) => {
+//       type TOperatorFactoryState = {
+//         state:TState,
+//         currentOutputIterator:Iterator<TOut> | AsyncIterator<TOut> | undefined,
+//         done:boolean,
+//       };
+
+//       let operatorFactoryState:TOperatorFactoryState = {
+//         state: pState,
+//         currentOutputIterator: undefined,
+//         done: false,
+//       };
+//       // let nextInPromiseOrValue: IteratorResult<TIn> | Promise<IteratorResult<TIn>> | undefined = undefined;
+//       // // let nextIn: IteratorResult<TIn> | undefined = undefined;
+//       // let isAsyncInput: boolean | undefined = undefined;
+//       // function updateNextInPromiseOrValue() {
+//       //   nextInPromiseOrValue = itIn.next();
+//       //   if (isAsyncInput === undefined) isAsyncInput = isPromise(nextInPromiseOrValue);
+//       // }
+//       // let isAsyncNextFn: boolean | undefined = undefined;
+//       // // let state = pState !== undefined ? pState : initialState;
+//       // let state = pState;
+
+//       // let currentOutputIterator: Iterator<TOut> | AsyncIterator<TOut> | undefined = undefined;
+//       // // let isAsyncCurrentOutputIterator:boolean | undefined = undefined;
+//       // let done = false;
+
+//       /**
+//        * Can/should we make this kind of recursive?
+//        * Figure out based on the input params whether we need to:
+//        *  * return done because done = true
+//        *  * return the next value of the current iterator
+//        *    or empty the current iterator if we're at the end and call generateNextReturnVal
+//        *  * do a call to nextFn
+//        *    * if next = async, call generateNextReturnValAsync to handle this case
+//        *    * set done to true if that is what it returns and call generateNextReturnVal
+//        *    * return the value if it returns a value
+//        *    * set current iterator if it returns an iterable and call generateNextReturnVal
+//        * @returns
+//        */
+//       const generateNextReturnVal = () => {
+
+//         forLoop<TOperatorFactoryState & { next?:IteratorResult<TOut>| undefined }>(
+//           () => (operatorFactoryState),
+//           ({next}) => next !== undefined,
+//           (state) => {
+//             if (state.done) {
+//               return { value: undefined, done: true };
+//             }
+//             // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+//             if (state.currentOutputIterator !== undefined) {
+//               return thenable(state.currentOutputIterator.next())
+//               .then((v) => {
+
+//               })
+//               if (isPromise(possibleNextValueOrPromise)) {
+//                 return generateNextReturnValAsync(true, undefined, possibleNextValueOrPromise);
+//               }
+//               const possibleNext = possibleNextValueOrPromise as IteratorResult<TOut>;
+
+//               if (possibleNext.done) {
+//                 currentOutputIterator = undefined;
+//               } else {
+//                 return possibleNext;
+//               }
+//             }
+
+//             return state;
+//           },
+//           () => {}
+//         );
+//         // while loop instead of calling this function recursively (call stack can become too large)
+//         while (true) {
+//           if (done) {
+//             return { value: undefined, done: true };
+//           }
+//           // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+//           if (currentOutputIterator) {
+//             const possibleNextValueOrPromise = currentOutputIterator.next();
+//             if (isPromise(possibleNextValueOrPromise)) {
+//               return generateNextReturnValAsync(true, undefined, possibleNextValueOrPromise);
+//             }
+//             const possibleNext = possibleNextValueOrPromise as IteratorResult<TOut>;
+
+//             if (possibleNext.done) {
+//               currentOutputIterator = undefined;
+//             } else {
+//               return possibleNext;
+//             }
+//           }
+
+//           // no running iterator, so we need to call nextFn again
+//           updateNextInPromiseOrValue();
+//           if (isAsyncInput) {
+//             return generateNextReturnValAsync(false);
+//           }
+//           const nextIn = nextInPromiseOrValue as IteratorResult<any>;
+//           const curNextFnResult = nextFn(nextIn as IteratorResult<TIn>, state, params) as TNextFnResult<TOut, TState>;
+//           if (isAsyncNextFn === undefined) isAsyncNextFn = isPromise(curNextFnResult);
+//           if (isAsyncNextFn) {
+//             return generateNextReturnValAsync(false, curNextFnResult);
+//           }
+//           if ('state' in curNextFnResult) state = curNextFnResult.state as TState;
+
+//           if (curNextFnResult.done) {
+//             done = true;
+//             // return generateNextReturnVal();
+//           } else if ('value' in curNextFnResult) {
+//             return { done: false, value: curNextFnResult.value };
+//           } else if ('iterable' in curNextFnResult) {
+//             if (currentOutputIterator !== undefined) throw new Error('currentOutputIterator should be undefined at this point');
+//             currentOutputIterator = itr8FromIterable(curNextFnResult.iterable);
+//             if (currentOutputIterator?.next === undefined) {
+//               throw new Error('Error while trying to get output iterator, did you specify something that is not an Iterable to the \'iterable\' property? (when using a generator function, don\'t forget to call it in order to return an IterableIterator!)');
+//             }
+//             // goto next round of while loop
+//             // return generateNextReturnVal();
+//           } else {
+//             // we need to call nextIn again
+
+//             // goto next round of while loop
+//             // return generateNextReturnVal();
+//           }
+//         }
+//       };
+
+//       /**
+//        * Almost the same method but in case input or nextFn is async
+//        *
+//        * @param callUpdateNextInPromiseOrValue
+//        * @returns
+//        */
+//       const generateNextReturnValAsync = async (callUpdateNextInPromiseOrValue = true, nextFnResponse?, currentOutputIteratorNext?) => {
+//         let doUpdateNextInPromiseOrValue = callUpdateNextInPromiseOrValue;
+//         let alreadyKnownNextFnResponse = nextFnResponse;
+//         let alreadyKnownCurrentOutputIteratorNext = currentOutputIteratorNext;
+//         // while loop instead of calling this function recursively (call stack can become to large)
+//         while (true) {
+//           if (done) {
+//             return { value: undefined, done: true };
+//           }
+//           // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+//           if (currentOutputIterator) {
+//             let possibleNextValueOrPromise;
+//             if (alreadyKnownCurrentOutputIteratorNext !== undefined) {
+//               possibleNextValueOrPromise = alreadyKnownCurrentOutputIteratorNext;
+//               alreadyKnownCurrentOutputIteratorNext = undefined; // only the first time !!!
+//             } else {
+//               possibleNextValueOrPromise = currentOutputIterator.next() as any;
+//             }
+//             const possibleNext = (
+//               isPromise(possibleNextValueOrPromise)
+//                 ? await possibleNextValueOrPromise
+//                 : possibleNextValueOrPromise
+//             ) as IteratorResult<TOut>;
+
+//             if (possibleNext.done) {
+//               currentOutputIterator = undefined;
+//             } else {
+//               return possibleNext;
+//             }
+//           }
+
+//           // no running iterator, so we need to possibly call nextFn again
+//           if (doUpdateNextInPromiseOrValue) {
+//             updateNextInPromiseOrValue();
+//           } else {
+//             doUpdateNextInPromiseOrValue = true; // only possibly skip it the first time !!!
+//           };
+//           const nextIn = await nextInPromiseOrValue;
+//           let curNextFnResultPromiseOrValue;
+//           if (alreadyKnownNextFnResponse !== undefined) {
+//             curNextFnResultPromiseOrValue = alreadyKnownNextFnResponse;
+//             alreadyKnownNextFnResponse = undefined; // only use it the first time !!!
+//           } else {
+//             curNextFnResultPromiseOrValue = nextFn(nextIn as IteratorResult<TIn>, state, params);
+//           }
+//           if (isAsyncNextFn === undefined) isAsyncNextFn = isPromise(curNextFnResultPromiseOrValue);
+//           const curNextFnResult = (isAsyncNextFn ? await curNextFnResultPromiseOrValue : curNextFnResultPromiseOrValue) as TNextFnResult<TOut, TState>;
+//           if ('state' in curNextFnResult) state = curNextFnResult.state as TState;
+
+//           if (curNextFnResult.done) {
+//             done = true;
+//             // goto next round of while loop
+//             // return generateNextReturnValAsync();
+//           } else if ('value' in curNextFnResult) {
+//             return { done: false, value: curNextFnResult.value };
+//           } else if ('iterable' in curNextFnResult) {
+//             if (currentOutputIterator !== undefined) throw new Error('currentOutputIterator should be undefined at this point');
+//             currentOutputIterator = itr8FromIterable(curNextFnResult.iterable);
+//             if (currentOutputIterator?.next === undefined) {
+//               throw new Error('Error while trying to get output iterator, did you specify something that is not an Iterable to the \'iterable\' property? (when using a generator function, don\'t forget to call it in order to return an IterableIterator!)');
+//             }
+//             // goto next round of while loop
+//             // return generateNextReturnValAsync();
+//           } else {
+//             // we need to call nextIn again
+
+//             // goto next round of while loop
+//             // return generateNextReturnValAsync();
+//           }
+//         }
+//       };
+
+
+//       /**
+//        * For batches it works differently, because we need to apply the operator to the
+//        * 'inner' iterator.
+//        *
+//        * @returns a new array to return as the batch element
+//        */
+//       const generateNextBatchReturnVal = () => {
+//         while (true) {
+//           if (done) {
+//             return { value: undefined, done: true };
+//           }
+//           updateNextInPromiseOrValue();
+//           if (isAsyncInput) {
+//             return generateNextBatchReturnValAsync(false);
+//           }
+//           const nextIn = nextInPromiseOrValue as IteratorResult<any>;
+//           if (nextIn.done) {
+//             done = true;
+//           } else {
+//             const innerIterator = nextIn.value[Symbol.iterator]();
+//             const resultIterator = operatorFunction(innerIterator, state);
+//             const possibleNext = resultIterator.next();
+//             if (isPromise(possibleNext)) {
+//               return generateNextBatchReturnValAsync(false, resultIterator, possibleNext);
+//             } else {
+//               let n = possibleNext;
+//               let resultArray: TOut[] = [];
+//               while (!n.done) {
+//                 resultArray.push(n.value);
+//                 n = resultIterator.next();
+//               }
+//               state = resultIterator.getState();
+//               if (resultArray.length > 0) {
+//                 return { done: false, value: resultArray };
+//               }
+//             }
+//           }
+//         }
+//       }
+
+//       /**
+//        * In case we find out that the operator needs to be handled asynchronously
+//        * (because of async input iterator) this function will generate a promise that will
+//        * resolve to the next iterator response.
+//        *
+//        * @param callUpdateNextInPromiseOrValue if nextIn has been set already before calling this function, set this to false
+//        * @returns
+//        */
+//       const generateNextBatchReturnValAsync = async (callUpdateNextInPromiseOrValue = true, innerIterator?: AsyncIterator<TOut>, innerIteratorFirstPromise?: Promise<any>) => {
+//         let doUpdateNextInPromiseOrValue = callUpdateNextInPromiseOrValue;
+//         let inputInnerIterator = innerIterator;
+//         let inputInnerPossibleNext = innerIteratorFirstPromise;
+
+//         while (true) {
+//           if (done) {
+//             return { value: undefined, done: true };
+//           }
+//           if (doUpdateNextInPromiseOrValue) {
+//             updateNextInPromiseOrValue();
+//           } else {
+//             doUpdateNextInPromiseOrValue;
+//           }
+//           const nextIn = await nextInPromiseOrValue as IteratorResult<any>;
+//           if (nextIn.done) {
+//             done = true;
+//           } else {
+//             let resultIterator;
+//             if (inputInnerIterator !== undefined) {
+//               resultIterator = inputInnerIterator;
+//               inputInnerIterator = undefined;
+//             } else {
+//               const innerIterator = nextIn.value[Symbol.iterator]();
+//               resultIterator = operatorFunction(innerIterator, state);
+//             }
+
+//             let resultArray: any[] = [];
+//             let possibleNext;
+//             if (inputInnerPossibleNext !== undefined) {
+//               possibleNext = inputInnerPossibleNext;
+//               inputInnerPossibleNext = undefined;
+//             } else {
+//               possibleNext = resultIterator.next();
+//             }
+//             const resultIteratorIsAsync = isPromise(possibleNext);
+//             let n = resultIteratorIsAsync ? await possibleNext : possibleNext;
+//             while (!n.done) {
+//               resultArray.push(n.value);
+//               n = resultIteratorIsAsync ? await resultIterator.next() : resultIterator.next();
+//             }
+
+//             state = resultIterator.getState();
+//             if (resultArray.length > 0) {
+//               return { done: false, value: resultArray };
+//             }
+
+//           }
+//         }
+//       }
+
+//       ////////////////////////////////////////////////////////////////////////////////
+//       // Here is the returned TPipeable & IterableIterator
+//       ////////////////////////////////////////////////////////////////////////////////
+//       const retVal = {
+//         // return the current (async?) iterator to make it an iterable iterator (so we can use for ... of)
+//         // since we can only know whether the output will be sync or async after the first next call,
+//         // we'll expose both iterator and asynciterator functions...
+//         [Symbol.iterator]: () => retVal,
+//         [Symbol.asyncIterator]: () => retVal,
+//         // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
+//         next: () => {
+//           ////////////////////////////////////////////////////////////////////////////////
+//           // special case for 'batch' iterator !!!
+//           ////////////////////////////////////////////////////////////////////////////////
+//           if (itIn['itr8Batch']) {
+//             // if it's a 'batch', the input and output iteratators are basically the 'inner' iterators
+//             // and then we should run them till the end until we have the entire array to hand over
+//             // to the outer iterator to return as a next value.
+
+//             if (isAsyncInput || isAsyncNextFn) {
+//               return generateNextBatchReturnValAsync();
+//             }
+//             return generateNextBatchReturnVal();
+//           }
+
+//           ////////////////////////////////////////////////////////////////////////////////
+//           // 'normal' case (no 'batch' iterator)
+//           ////////////////////////////////////////////////////////////////////////////////
+//           if (isAsyncInput || isAsyncNextFn) {
+//             return generateNextReturnValAsync();
+//           }
+//           return generateNextReturnVal();
+//         },
+//       };
+
+//       if (itIn['itr8Batch']) {
+//         retVal['itr8Batch'] = itIn['itr8Batch']
+//       };
+
+//       // for internal use for batch: make sure we can get the state !!!
+//       retVal['getState'] = () => state;
+
+//       return itr8Proxy(retVal as any);
+//     };
+
+//     return (itIn: Iterator<TIn> | AsyncIterator<TIn>) => operatorFunction(itIn, initialStateFactory());
+//   }
+// };
+
+
+/**
  * An operator is 'a function that generates a transIterator'.
  * So for example filter(...) is an operator, because when called with an argument
  * (the filter function) the result of that will be another function which is the transIterator.
@@ -183,11 +591,6 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
       // let state = pState !== undefined ? pState : initialState;
       let state = pState;
 
-      // let possibleNextPromiseOrValue:IteratorResult<IteratorResult<TOut>>
-      //       | Promise<IteratorResult<IteratorResult<TOut>>>
-      //       | undefined
-      //   = undefined;
-
       let currentOutputIterator: Iterator<TOut> | AsyncIterator<TOut> | undefined = undefined;
       // let isAsyncCurrentOutputIterator:boolean | undefined = undefined;
       let done = false;
@@ -206,7 +609,7 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
        * @returns
        */
       const generateNextReturnVal = () => {
-        // while loop instead of calling this function recursively (call stack can become to large)
+        // while loop instead of calling this function recursively (call stack can become too large)
         while (true) {
           if (done) {
             return { value: undefined, done: true };
@@ -341,7 +744,7 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
 
 
       /**
-       * For batches it works dofferently, because we need to apply the operator to the
+       * For batches it works differently, because we need to apply the operator to the
        * 'inner' iterator.
        *
        * @returns a new array to return as the batch element
@@ -702,20 +1105,24 @@ const map = itr8OperatorFactory<any, any, (any) => any, void>(
     if (nextIn.done) {
       return { done: true };
     } else {
-      const nextValOrPromise = mapFn(nextIn.value);
-      if (isPromise(nextValOrPromise)) {
-        return (async () => {
-          return {
-            done: false,
-            value: await nextValOrPromise,
-          }
-        })();
-      } else {
-        return {
-          done: false,
-          value: nextValOrPromise,
-        }
-      }
+      return thenable(mapFn(nextIn.value))
+        .then((value) => ({ done: false, value}))
+        .src; // return the 'raw' value or promise, not the 'wrapped' version
+
+      // const nextValOrPromise = mapFn(nextIn.value);
+      // if (isPromise(nextValOrPromise)) {
+      //   return (async () => {
+      //     return {
+      //       done: false,
+      //       value: await nextValOrPromise,
+      //     }
+      //   })();
+      // } else {
+      //   return {
+      //     done: false,
+      //     value: nextValOrPromise,
+      //   }
+      // }
     }
   },
   () => undefined,
@@ -760,27 +1167,38 @@ const reduce = itr8OperatorFactory<
       return { done: false, value: acc, state: { ...state, done: true } }
     };
 
-    const reduced = params.reducer(acc, nextIn.value, state.index);
-    if (isPromise(reduced)) {
-      return (async () => ({
-        done: false,
-        state: {
-          ...state,
-          index: state.index + 1,
-          accumulator: await reduced,
-        }
-      }))();
-    }
+    return thenable(params.reducer(acc, nextIn.value, state.index))
+      .then((reduced) => ({
+          done: false,
+          state: {
+            ...state,
+            index: state.index + 1,
+            accumulator: reduced,
+          }
+        })
+      ).src;
 
-    // synchronous
-    return {
-      done: false,
-      state: {
-        ...state,
-        index: state.index + 1,
-        accumulator: reduced,
-      }
-    };
+    // const reduced = params.reducer(acc, nextIn.value, state.index);
+    // if (isPromise(reduced)) {
+    //   return (async () => ({
+    //     done: false,
+    //     state: {
+    //       ...state,
+    //       index: state.index + 1,
+    //       accumulator: await reduced,
+    //     }
+    //   }))();
+    // }
+
+    // // synchronous
+    // return {
+    //   done: false,
+    //   state: {
+    //     ...state,
+    //     index: state.index + 1,
+    //     accumulator: reduced,
+    //   }
+    // };
   },
   () => ({ index: 0, accumulator: undefined, done: false }),
 );
@@ -797,20 +1215,46 @@ const filter = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>
   (nextIn, state, filterFn) => {
     if (nextIn.done) return { done: true };
 
-    const result = filterFn(nextIn.value);
-    if (isPromise(result)) {
-      return (async () => {
-        if (await result) return { done: false, value: nextIn.value };
-        return { done: false };
-      })();
-    } else {
-      if (result) return { done: false, value: nextIn.value };
-      return { done: false };
-    }
+    return thenable(filterFn(nextIn.value))
+      .then((result) => {
+          if (result) return { done: false, value: nextIn.value };
+          return { done: false };
+        }).src;
+
+    // const result = filterFn(nextIn.value);
+    // if (isPromise(result)) {
+    //   return (async () => {
+    //     if (await result) return { done: false, value: nextIn.value };
+    //     return { done: false };
+    //   })();
+    // } else {
+    //   if (result) return { done: false, value: nextIn.value };
+    //   return { done: false };
+    // }
   },
   () => undefined,
 );
 
+/**
+ * Only take elements as long as the filter function returns true.
+ *
+ * The filter function can be asynchronous (in which case the resulting iterator will be
+ * asynchronous regardless of the input iterator)!
+ *
+ * @category operators/general
+ */
+const takeWhile = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, void>(
+  (nextIn, state, filterFn) => {
+    if (nextIn.done) return { done: true };
+
+    return thenable(filterFn(nextIn.value))
+      .then((filterFnResult) => {
+          if (filterFnResult) return { done: false, value: nextIn.value };
+          return { done: true };
+        }).src;
+  },
+  () => undefined,
+);
 
 /**
  * The zip() operator outputs tuples containing 1 element from the first and
@@ -834,19 +1278,27 @@ const filter = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>
       return { done: true };
     };
 
-    const secondNext = secondIterator.next();
-    if (isPromise(secondNext)) {
-      return (async () => ({
-        done: false,
-        value: [nextIn.value, (await secondNext as IteratorResult<any>).value],
-      }))();
-    }
+    return thenable(secondIterator.next())
+      .then((secondNext) => ({
+          done: false,
+          value: [nextIn.value, (secondNext as IteratorResult<any>).value],
+        })
+      )
+      .src;
 
-    // synchronous
-    return {
-      done: false,
-      value: [nextIn.value, (secondNext as IteratorResult<any>).value],
-    };
+    // const secondNext = secondIterator.next();
+    // if (isPromise(secondNext)) {
+    //   return (async () => ({
+    //     done: false,
+    //     value: [nextIn.value, (await secondNext as IteratorResult<any>).value],
+    //   }))();
+    // }
+
+    // // synchronous
+    // return {
+    //   done: false,
+    //   value: [nextIn.value, (secondNext as IteratorResult<any>).value],
+    // };
   },
   () => undefined,
 );
@@ -896,16 +1348,23 @@ const every = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>,
     if (state.done) return { done: true };
     if (nextIn.done) return { done: false, value: true, state: { done: true } };
 
-    const result = filterFn(nextIn.value);
-    if (isPromise(result)) {
-      return (async () => {
-        if (await result) return { done: false, state: { done: false } };
+    return thenable(filterFn(nextIn.value))
+      .then((result) => {
+        if (result) return { done: false, state: { done: false } };
         return { done: false, value: result, state: { done: true } };
-      })();
-    } else {
-      if (result) return { done: false, state: { done: false } };
-      return { done: false, value: result, state: { done: true } };
-    }
+      })
+      .src;
+
+    // const result = filterFn(nextIn.value);
+    // if (isPromise(result)) {
+    //   return (async () => {
+    //     if (await result) return { done: false, state: { done: false } };
+    //     return { done: false, value: result, state: { done: true } };
+    //   })();
+    // } else {
+    //   if (result) return { done: false, state: { done: false } };
+    //   return { done: false, value: result, state: { done: true } };
+    // }
   },
   () => ({ done: false }),
 );
@@ -929,16 +1388,23 @@ const some = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, 
     if (state.done) return { done: true };
     if (nextIn.done) return { done: false, value: false, state: { done: true } };
 
-    const result = filterFn(nextIn.value);
-    if (isPromise(result)) {
-      return (async () => {
-        if (await result) return { done: false, value: result, state: { done: true } };
+    return thenable(filterFn(nextIn.value))
+      .then((result) => {
+        if (result) return { done: false, value: result, state: { done: true } };
         return { done: false, state: { done: false } };
-      })();
-    } else {
-      if (result) return { done: false, value: result, state: { done: true } };
-      return { done: false, state: { done: false } };
-    }
+      })
+      .src;
+
+    // const result = filterFn(nextIn.value);
+    // if (isPromise(result)) {
+    //   return (async () => {
+    //     if (await result) return { done: false, value: result, state: { done: true } };
+    //     return { done: false, state: { done: false } };
+    //   })();
+    // } else {
+    //   if (result) return { done: false, value: result, state: { done: true } };
+    //   return { done: false, state: { done: false } };
+    // }
   },
   () => ({ done: false }),
 );
@@ -1266,7 +1732,7 @@ const sort = itr8OperatorFactory<any, any, ((a: any, b: any) => number) | void, 
  * @example
  * ```typescript
  *    itr8FromArray([ 1, -2, 7, 4, -2, -2, 4, 1 ])
- *      .pipe(sort()) // => [ 1, -2, 7, 4, ]
+ *      .pipe(uniq()) // => [ 1, -2, 7, 4 ]
  * ```
  *
  * @category operators/general
@@ -1295,7 +1761,7 @@ const uniq = itr8OperatorFactory<any, any, void, Set<any>>(
  * ```typescript
  *    itr8.itr8FromArrayAsync([ { id: 1 }, { id: 2 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 4 }, { id: 3 } ])
  *      .pipe(
- *        itr8.uniqBy((a:{ id:number }) => id ) => [ [ { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 } ];
+ *        itr8.uniqBy((a:{ id:number }) => id ) // => [ [ { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 } ];
  * ```
  *
  * @param mapFn
@@ -1806,6 +2272,7 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
 export {
   map,
   filter,
+  takeWhile,
   reduce,
   zip,
   tap,

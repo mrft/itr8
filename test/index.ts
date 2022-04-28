@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as zlib from 'zlib';
 
 import * as itr8 from '../src';
-import { asNoBatch, lineByLine, itr8OperatorFactory as itr8OperatorFactory, unBatch, debounce, throttle, prefetch, mostRecent } from '../src';
+import { asNoBatch, lineByLine, itr8OperatorFactory as itr8OperatorFactory, unBatch, debounce, throttle, prefetch, mostRecent, takeWhile, tap } from '../src';
 import { itr8FromStream, itr8ToReadableStream } from '../src/interface/stream'
 import { itr8FromObservable, itr8ToObservable } from '../src/interface/observable'
 import { hrtime } from 'process';
@@ -15,6 +15,7 @@ import { resolve } from 'path';
 import { utils } from 'mocha';
 import { promisify } from 'util';
 import { match } from 'assert';
+import { isPromise } from 'util/types';
 
 
 const a: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -45,7 +46,7 @@ const arrayToStream = (arr: any[], timeBetweenChunks: number = 10) => {
  * @param value
  * @returns a Promise that resolves after the given number of milliseconds.
  */
-const sleep = (milliseconds:number, value?:any) => new Promise((resolve) => setTimeout(() => resolve(value), milliseconds));
+const sleep = (milliseconds: number, value?: any) => new Promise((resolve) => setTimeout(() => resolve(value), milliseconds));
 
 /**
  * process.hrtime() method can be used to measure execution time, but returns an array
@@ -218,7 +219,7 @@ const transIts = {
 
   // sync nextFn, sync iterator
   opr8FilterSyncSync: itr8OperatorFactory(
-    (nextIn, state, filterFn:(any) => boolean) => {
+    (nextIn, state, filterFn: (any) => boolean) => {
       if (nextIn.done) {
         return { done: true };
       }
@@ -231,7 +232,7 @@ const transIts = {
   ),
   // async nextFn, sync iterator
   opr8FilterAsyncSync: itr8OperatorFactory(
-    async (nextIn, state, filterFn:(any) => boolean) => {
+    async (nextIn, state, filterFn: (any) => boolean) => {
       if (nextIn.done) {
         return { done: true };
       }
@@ -244,7 +245,7 @@ const transIts = {
   ),
   // sync nextFn, async iterator
   opr8FilterSyncAsync: itr8OperatorFactory(
-    (nextIn, state, filterFn:(any) => boolean) => {
+    (nextIn, state, filterFn: (any) => boolean) => {
       if (nextIn.done) {
         return { done: true };
       }
@@ -257,7 +258,7 @@ const transIts = {
   ),
   // async nextFn, async iterator
   opr8FilterAsyncAsync: itr8OperatorFactory(
-    async (nextIn, state, filterFn:(any) => boolean) => {
+    async (nextIn, state, filterFn: (any) => boolean) => {
       if (nextIn.done) {
         return { done: true };
       }
@@ -280,9 +281,10 @@ const transItToName = (transIt) => {
     .filter(([_, t]) => t === transIt);
   return filtered[0][0];
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 //
-// The actual test suite start here
+// The actual test suite starts here
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -307,6 +309,258 @@ describe('first test the util functions used in the test suite', () => {
 describe('itr8 test suite', () => {
 
   describe('utility functions', () => {
+    it('thenable(...) works properly', async () => {
+
+      let stages: any[];
+      let result: any;
+
+      stages = [];
+      result = itr8.thenable('hello')
+        .then((v) => {
+          stages.push(1);
+          return v;
+        });
+      stages.push(2);
+
+      assert.strictEqual(result.value, 'hello');
+      assert.strictEqual(isPromise(result.src), false);
+      assert.notStrictEqual(result, 'hello');
+      assert.deepEqual(result.src, 'hello');
+      assert.deepEqual(stages, [1, 2]);
+
+
+      stages = [];
+      result = itr8.thenable(null)
+        .then((v) => {
+          stages.push(1);
+          return v;
+        });
+      stages.push(2);
+
+      assert.deepEqual(result.value, null);
+      assert.deepEqual(result.src, null);
+      assert.deepEqual(stages, [1, 2]);
+
+      stages = [];
+      result = itr8.thenable(undefined)
+        .then((v) => {
+          stages.push(1);
+          return v;
+        });
+      stages.push(2);
+
+      assert.deepEqual(result.value, undefined);
+      assert.deepEqual(result.src, undefined);
+      assert.deepEqual(stages, [1, 2]);
+
+
+      stages = [];
+      result = itr8.thenable('goodbye')
+        .then((v) => {
+          stages.push(1);
+          return v;
+        })
+        .then((v) => {
+          stages.push(2);
+          return v;
+        });
+      stages.push(3);
+
+      assert.strictEqual(result.value, 'goodbye');
+      assert.strictEqual(result.src, 'goodbye');
+      assert.deepEqual(stages, [1, 2, 3]);
+
+      stages = [];
+      result = itr8.thenable(false)
+        .then((v) => {
+          stages.push(1);
+          return v;
+        })
+        .then((v) => {
+          stages.push(2);
+          return v;
+        });
+      stages.push(3);
+
+      assert.strictEqual(result.value, false);
+      assert.strictEqual(result.src, false);
+      assert.deepEqual(stages, [1, 2, 3]);
+
+      stages = [];
+      result = itr8.thenable(Promise.resolve(999))
+        .then((v) => {
+          stages.push(1);
+          return v;
+        })
+        .then((v) => {
+          stages.push(2);
+          return v;
+        });
+      stages.push(3); // should be first because synchronous before the promise callbacks get called
+
+      await result;
+
+      assert.strictEqual(await result, 999);
+      assert.strictEqual(isPromise(result.src), true);
+      assert.strictEqual(await result.src, 999);
+      assert.strictEqual(result.value, 999);
+      assert.deepEqual(stages, [3, 1, 2]);
+
+      stages = [];
+      result = itr8.thenable(Promise.resolve('hello again'))
+        .then((v) => {
+          stages.push(1);
+          return v;
+        })
+        .then((v) => {
+          stages.push(2);
+          return Promise.resolve(v);
+        });
+      stages.push(3); // should be first because synchronous before the promise callbacks get called
+
+      await result;
+
+      assert.deepEqual(await result, 'hello again');
+      assert.deepEqual(await result.src, 'hello again');
+
+      assert.deepEqual(result.value, 'hello again');
+      assert.deepEqual(stages, [3, 1, 2]);
+
+
+      stages = [];
+      result = itr8.thenable(Promise.resolve(true))
+        .then((v) => {
+          stages.push(1);
+          return v;
+        })
+        .then((v) => {
+          stages.push(2);
+          return Promise.resolve(v);
+        });
+      stages.push(3); // should be first because synchronous before the promise callbacks get called
+
+      await result;
+
+      assert.deepEqual(await result, true);
+      assert.deepEqual(await result.src, true);
+
+      assert.deepEqual(result.value, true);
+      assert.deepEqual(stages, [3, 1, 2]);
+
+
+
+      // We could but don't need to nest thenables both synchronously and asynchronously
+      stages = [];
+      result = itr8.thenable(Promise.resolve('hello again'))
+        .then((v) => {
+          stages.push(1);
+          return v;
+        })
+        .then((v) => {
+          stages.push(2);
+          return Promise.resolve(v);
+        });
+      stages.push(3); // should be first because synchronous before the promise callbacks get called
+
+      await result;
+
+      assert.deepEqual(await result, 'hello again');
+      assert.deepEqual(result.value, 'hello again');
+      assert.deepEqual(stages, [3, 1, 2]);
+    });
+
+    it('forLoop(...) works properly', async () => {
+
+      let arrayToBeFilled: any[];
+      let result: any;
+
+      // all sync
+      arrayToBeFilled = [];
+      result = itr8.forLoop(() => 0, (i) => i < 8, (i) => i + 1, (i) => {
+        if (i % 2 === 0) {
+          arrayToBeFilled.push(i);
+        } else {
+          arrayToBeFilled.push(i+100);
+        }
+      });
+
+      assert.deepEqual(result.value, 8);
+      assert.deepEqual(arrayToBeFilled, [0, 101, 2, 103, 4, 105, 6, 107]);
+
+      // async initialState
+      arrayToBeFilled = [];
+      result = itr8.forLoop(async () => 0, (i) => i < 8, (i) => i + 1, (i) => {
+        if (i % 2 === 0) {
+          arrayToBeFilled.push(i);
+        } else {
+          arrayToBeFilled.push(i+100);
+        }
+      }).then((v) => {
+        arrayToBeFilled.push('done');
+        return v;
+      });
+
+      assert.isTrue(isPromise(result.src));
+      await result.src;
+      assert.deepEqual(result.value, 8);
+      assert.deepEqual(arrayToBeFilled, [0, 101, 2, 103, 4, 105, 6, 107, 'done']);
+
+      // async afterEach test
+      arrayToBeFilled = [];
+      result = itr8.forLoop(() => 0, async (i) => i < 8, (i) => i + 1, (i) => {
+        if (i % 2 === 0) {
+          arrayToBeFilled.push(i);
+        } else {
+          arrayToBeFilled.push(i+100);
+        }
+      }).then((v) => {
+        arrayToBeFilled.push('done');
+        return v;
+      });;
+
+      assert.isTrue(isPromise(result.src));
+      await result;
+      assert.deepEqual(result.value, 8);
+      assert.deepEqual(arrayToBeFilled, [0, 101, 2, 103, 4, 105, 6, 107, 'done']);
+
+      // async afterEach state update
+      arrayToBeFilled = [];
+      result = itr8.forLoop(() => 0, (i) => i < 8, async (i) => i + 1, (i) => {
+        if (i % 2 === 0) {
+          arrayToBeFilled.push(i);
+        } else {
+          arrayToBeFilled.push(i+100);
+        }
+      }).then((v) => {
+        arrayToBeFilled.push('done');
+        return v;
+      });
+
+      assert.isTrue(isPromise(result.src));
+      await result;
+      assert.deepEqual(result.value, 8);
+      assert.deepEqual(arrayToBeFilled, [0, 101, 2, 103, 4, 105, 6, 107, 'done']);
+
+      // async body
+      arrayToBeFilled = [];
+      result = itr8.forLoop(() => 0, (i) => i < 8, (i) => i + 1, async (i) => {
+        if (i % 2 === 0) {
+          arrayToBeFilled.push(i);
+        } else {
+          arrayToBeFilled.push(i+100);
+        }
+      }).then((v) => {
+        arrayToBeFilled.push('done');
+        return v;
+      });
+
+      assert.isTrue(isPromise(result.src));
+      await result;
+      assert.deepEqual(result.value, 8);
+      assert.deepEqual(arrayToBeFilled, [0, 101, 2, 103, 4, 105, 6, 107, 'done']);
+
+    });
+
     it('can turn an iterator into an array', () => {
       assert.deepEqual(
         itr8.itr8ToArray(a[Symbol.iterator]()),
@@ -483,17 +737,17 @@ describe('itr8 test suite', () => {
         [2, 4, 6],
       );
 
-      let r:any[] = [];
+      let r: any[] = [];
       itr8.itr8Range(1, 1000).pipe(
         itr8.limit(3),
         itr8.map((x) => x * 2),
         itr8.forEach((x) => { r.push(x) }),
       ),
 
-      assert.deepEqual(
-        r,
-        [2, 4, 6],
-      );
+        assert.deepEqual(
+          r,
+          [2, 4, 6],
+        );
 
     });
   });
@@ -597,46 +851,8 @@ describe('itr8 test suite', () => {
       );
     });
 
-    it('itr8ToReadableStream works properly', async () => {
-
-      const syncReadCount = await (() => new Promise<any>((resolve, reject) => {
-        const stream = itr8ToReadableStream(itr8.itr8Range(1, 100));
-
-        let readCount = 0;
-        stream.on('data', (data) => {
-          // console.log('Received from sync stream:', data);
-          readCount += 1;
-        });
-
-        stream.on('end', () => {
-          // console.log('Sync stream ended');
-          resolve(readCount);
-        });
-      }))();
-
-      assert.equal(syncReadCount, 100, 'test reading sync stream FAILED');
-
-      const asyncReadCount = await (() => new Promise<any>((resolve, reject) => {
-        const stream = itr8ToReadableStream(itr8.itr8RangeAsync(1, 100));
-
-        let readCount = 0;
-        stream.on('data', (data) => {
-          // console.log('Received from async stream:', data);
-          readCount += 1;
-        });
-
-        stream.on('end', () => {
-          // console.log('Async stream ended');
-          resolve(readCount);
-        });
-      }))();
-
-      assert.equal(asyncReadCount, 100, 'test reading async stream FAILED');
-
-    });
-
     it('itr8FromObservable works properly', async () => {
-      // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and dely stuff
+      // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and delay stuff
       const observable = from(a)
         .pipe(concatMap(item => of(item).pipe(delay(10))));
       assert.deepEqual(
@@ -645,101 +861,37 @@ describe('itr8 test suite', () => {
       );
     });
 
-    it('itr8ToObservable works properly', async () => {
-      // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and dely stuff
-      const observable = itr8ToObservable(itr8.itr8FromArray(a))
-        .pipe(concatMap(item => of(item).pipe(delay(10))));
-      assert.deepEqual(
-        await itr8.itr8ToArray(itr8FromObservable(observable)),
-        a,
-      );
-    });
   });
 
   describe('our own iterator-to-something-else converters', () => {
-    // it('map(...) operator works properly', async () => {
-    //   const plusOne = (a) => a + 1;
-    //   const wrapString = (s) => `<-- ${s} -->`
-    //   // our mapping function should also support async mapping functions as argument !!!
-    //   const wrapStringAsync = async (s) => `<-- ${s} -->`
 
-    //   // itr8.map(plusOne)(itr8.itr8Range(4, 7));
+    it('itr8ToMultiIterable works properly', async () => {
+      const subscribeable = itr8.itr8Range(1, 10_000).pipe(
+        itr8.itr8ToMultiIterable()
+      );
 
-    //   // synchronous
-    //   assert.deepEqual(
-    //     itr8.itr8ToArray(itr8.map(plusOne)(itr8.itr8Range(4, 7))),
-    //     [5, 6, 7, 8],
-    //     'map synchronous plusOne fails',
-    //   );
+      const subscriberA = subscribeable[Symbol.asyncIterator]();
+      const subscriberB = subscribeable[Symbol.asyncIterator]();
 
-    //   assert.deepEqual(
-    //     itr8.itr8ToArray(itr8.map(wrapString)(itr8.itr8Range(4, 7))),
-    //     ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
-    //     'map synchronous wrapString fails',
-    //   );
+      assert.equal((await subscriberA.next()).value, 1);
 
-    //   // asynchronous
-    //   assert.deepEqual(
-    //     await itr8.itr8ToArray(itr8.map(plusOne)(itr8.itr8RangeAsync(4, 7))),
-    //     [5, 6, 7, 8],
-    //     'map asynchronous plusOne fails',
-    //   );
+      assert.equal((await subscriberB.next()).value, 1);
 
-    //   assert.deepEqual(
-    //     await itr8.itr8ToArray(itr8.map(wrapString)(itr8.itr8RangeAsync(4, 7))),
-    //     ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
-    //     'map asynchronous wrapString fails',
-    //   );
+      assert.equal((await subscriberA.next()).value, 2);
+      assert.equal((await subscriberA.next()).value, 3);
 
-    //   assert.deepEqual(
-    //     await itr8.itr8ToArray(itr8.map(wrapStringAsync)(itr8.itr8RangeAsync(4, 7))),
-    //     ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
-    //     'map asynchronous wrapString fails',
-    //   );
-    // });
+      assert.equal((await subscriberB.next()).value, 2);
 
-    // it('filter(...) operator works properly', async () => {
-    //   const isEven = (a) => a % 2 === 0;
-    //   assert.deepEqual(
-    //     itr8.itr8ToArray(itr8.filter(isEven)(itr8.itr8Range(0, 7))),
-    //     [0, 2, 4, 6],
-    //   );
+      assert.equal((await subscriberA.next()).value, 4);
+      assert.equal((await subscriberA.next()).value, 5);
 
-    //   const moreThan5 = (a) => a > 5;
-    //   assert.deepEqual(
-    //     itr8.itr8ToArray(itr8.filter(moreThan5)(itr8.itr8Range(0, 7))),
-    //     [6, 7],
-    //   );
+      // when coming late to the party, the new subscriber will only be able to get values
+      // startiung from the oldest unread value in the buffer, because the buffer throws away
+      // values that have been served to every subscriber
+      const subscriberC = subscribeable[Symbol.asyncIterator](); // should start at 3
+      assert.equal((await subscriberC.next()).value, 3);
 
-    //   const moreThan5Async = async (a) => a > 5;
-    //   assert.deepEqual(
-    //     await itr8.itr8ToArray(itr8.filter(moreThan5Async)(itr8.itr8Range(0, 7))),
-    //     [6, 7],
-    //   );
-
-    // });
-
-    // it('skip(...) operator works properly', () => {
-    //   assert.deepEqual(
-    //     itr8.itr8ToArray(itr8.skip(5)(itr8.itr8Range(1, 7))),
-    //     [6, 7],
-    //   );
-    // });
-
-    // it('limit(...) operator works properly', async () => {
-    //   // sync
-    //   assert.deepEqual(
-    //     itr8.itr8ToArray(itr8.limit(5)(itr8.itr8Range(1, 7) as Iterator<number>)),
-    //     [1, 2, 3, 4, 5],
-    //   );
-
-    //   assert.deepEqual(
-    //     itr8.itr8ToArray(itr8.limit(5)(itr8.itr8Range(1, 3) as Iterator<number>)),
-    //     [1, 2, 3],
-    //     'limit should return the entire input when the limit is set higher than the total nr of elements in the input',
-    //   );
-
-    // });
+    });
 
     it('itr8ToReadableStream works properly', async () => {
 
@@ -780,7 +932,7 @@ describe('itr8 test suite', () => {
     });
 
     it('itr8FromObservable works properly', async () => {
-      // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and dely stuff
+      // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and delay stuff
       const observable = from(a)
         .pipe(concatMap(item => of(item).pipe(delay(10))));
       assert.deepEqual(
@@ -790,7 +942,7 @@ describe('itr8 test suite', () => {
     });
 
     it('itr8ToObservable works properly', async () => {
-      // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and dely stuff
+      // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and delay stuff
       const observable = itr8ToObservable(itr8.itr8FromArray(a))
         .pipe(concatMap(item => of(item).pipe(delay(10))));
       assert.deepEqual(
@@ -835,7 +987,7 @@ describe('itr8 test suite', () => {
       );
     });
 
-    it('filter(...) operator works properly', () => {
+    it('filter(...) operator works properly', async () => {
       const isEven = (a) => a % 2 === 0;
       assert.deepEqual(
         itr8.itr8ToArray(itr8.filter(isEven)(itr8.itr8Range(0, 7))),
@@ -844,15 +996,44 @@ describe('itr8 test suite', () => {
 
       const moreThan5 = (a) => a > 5;
       assert.deepEqual(
-        itr8.itr8ToArray(itr8.filter(moreThan5)(itr8.itr8Range(0, 7))),
+        await itr8.itr8ToArray(itr8.filter(moreThan5)(itr8.itr8RangeAsync(0, 7))),
         [6, 7],
       );
+    });
+
+    it('filter(...) operator works properly', async () => {
+      let tappedValues:any;
+
+      tappedValues = [];
+      assert.deepEqual(
+        itr8.itr8Range(0, 7).pipe(
+          tap((v) => { tappedValues.push(v) }),
+          takeWhile((x) => x < 5),
+          itr8.itr8ToArray,
+        ),
+        [0, 1, 2, 3, 4],
+      );
+      // making sure the input iterator doesn't get called more often than is needed
+      assert.deepEqual(tappedValues, [0, 1, 2, 3, 4, 5]);
+
+      tappedValues = [];
+      assert.deepEqual(
+        await itr8.itr8FromStringAsync("Hello World!").pipe(
+          tap((v) => { tappedValues.push(v) }),
+          takeWhile((x) => x !== 'o'),
+          itr8.itr8ToArray,
+        ),
+        ['H', 'e', 'l', 'l'],
+      );
+      // making sure the input iterator doesn't get called more often than is needed
+      assert.deepEqual(tappedValues, ['H', 'e', 'l', 'l', 'o']);
+
     });
 
     it('reduce(...) operator works properly', async () => {
       assert.deepEqual(
         itr8.itr8ToArray(itr8.itr8Range(0, 4).pipe(
-          itr8.reduce({ reducer: (acc:number, cur:number) => acc + cur, initialValue: 0 }),
+          itr8.reduce({ reducer: (acc: number, cur: number) => acc + cur, initialValue: 0 }),
         )),
         [10],
       );
@@ -860,7 +1041,7 @@ describe('itr8 test suite', () => {
       assert.deepEqual(
         itr8.itr8Range(1, 999).pipe(
           // implement a simple 'count' by returning index + 1
-          itr8.reduce({ reducer: (acc:number, cur:number, index: number) => index + 1, initialValue: undefined }),
+          itr8.reduce({ reducer: (acc: number, cur: number, index: number) => index + 1, initialValue: undefined }),
           itr8.itr8ToArray,
         ),
         [999],
@@ -869,7 +1050,7 @@ describe('itr8 test suite', () => {
       // async
       assert.deepEqual(
         await itr8.itr8ToArray(itr8.itr8RangeAsync(0, 4).pipe(
-          itr8.reduce({ reducer: (acc:number, cur:number) => acc + cur, initialValue: 0 }),
+          itr8.reduce({ reducer: (acc: number, cur: number) => acc + cur, initialValue: 0 }),
         )),
         [10],
       );
@@ -877,7 +1058,7 @@ describe('itr8 test suite', () => {
       assert.deepEqual(
         await itr8.itr8RangeAsync(0, 4).pipe(
           // implement a simple 'count' by returning index + 1
-          itr8.reduce({ reducer: (acc:number, cur:number, index: number) => index + 1, initialValue: undefined }),
+          itr8.reduce({ reducer: (acc: number, cur: number, index: number) => index + 1, initialValue: undefined }),
           itr8.itr8ToArray,
         ),
         [5],
@@ -887,7 +1068,7 @@ describe('itr8 test suite', () => {
       assert.deepEqual(
         await itr8.itr8ToArray(itr8.itr8RangeAsync(0, 4).pipe(
           itr8.reduce({
-            reducer: async (acc:number, cur:number) => { await sleep(1); return acc + cur },
+            reducer: async (acc: number, cur: number) => { await sleep(1); return acc + cur },
             initialValue: 0,
           }),
         )),
@@ -999,7 +1180,7 @@ describe('itr8 test suite', () => {
     });
 
     it('zip(...) operator works properly', async () => {
-      let tappedArray:any[] = [];
+      let tappedArray: any[] = [];
 
       // sync source iterator
       assert.deepEqual(
@@ -1193,7 +1374,7 @@ describe('itr8 test suite', () => {
     it('percentile(...) operator works properly', async () => {
       // sync
       assert.deepEqual(
-        itr8.itr8Range(1,100).pipe(
+        itr8.itr8Range(1, 100).pipe(
           itr8.percentile(50),
           itr8.itr8ToArray
         ),
@@ -1201,7 +1382,7 @@ describe('itr8 test suite', () => {
       );
 
       assert.deepEqual(
-        itr8.itr8Range(1,100).pipe(
+        itr8.itr8Range(1, 100).pipe(
           itr8.percentile(90),
           itr8.itr8ToArray
         ),
@@ -1210,7 +1391,7 @@ describe('itr8 test suite', () => {
 
 
       assert.deepEqual(
-        itr8.itr8Range(1,100).pipe(
+        itr8.itr8Range(1, 100).pipe(
           itr8.percentile(95),
           itr8.itr8ToArray
         ),
@@ -1219,7 +1400,7 @@ describe('itr8 test suite', () => {
 
       // async
       assert.deepEqual(
-        await itr8.itr8RangeAsync(1,100).pipe(
+        await itr8.itr8RangeAsync(1, 100).pipe(
           itr8.percentile(95),
           itr8.itr8ToArray
         ),
@@ -1230,7 +1411,7 @@ describe('itr8 test suite', () => {
     it('runningPercentile(...) operator works properly', async () => {
       // sync
       assert.deepEqual(
-        itr8.itr8Range(1,10).pipe(
+        itr8.itr8Range(1, 10).pipe(
           itr8.runningPercentile(50),
           itr8.itr8ToArray
         ),
@@ -1239,18 +1420,18 @@ describe('itr8 test suite', () => {
 
       // async
       assert.deepEqual(
-        await itr8.itr8RangeAsync(1,10).pipe(
+        await itr8.itr8RangeAsync(1, 10).pipe(
           itr8.runningPercentile(90),
           itr8.itr8ToArray
         ),
-        [1,2,3,4,5,6,7,8,9,9],
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 9],
       );
     });
 
     it('average(...) operator works properly', async () => {
       // sync
       assert.deepEqual(
-        itr8.itr8Range(1,10).pipe(
+        itr8.itr8Range(1, 10).pipe(
           itr8.average(),
           itr8.itr8ToArray
         ),
@@ -1259,7 +1440,7 @@ describe('itr8 test suite', () => {
 
       // async
       assert.deepEqual(
-        await itr8.itr8FromArrayAsync([1,2,2,4,3]).pipe(
+        await itr8.itr8FromArrayAsync([1, 2, 2, 4, 3]).pipe(
           itr8.average(),
           itr8.itr8ToArray
         ),
@@ -1270,7 +1451,7 @@ describe('itr8 test suite', () => {
     it('runningAverage(...) operator works properly', async () => {
       // sync
       assert.deepEqual(
-        itr8.itr8Range(1,10).pipe(
+        itr8.itr8Range(1, 10).pipe(
           itr8.runningAverage(),
           itr8.itr8ToArray
         ),
@@ -1279,7 +1460,7 @@ describe('itr8 test suite', () => {
 
       // async
       assert.deepEqual(
-        await itr8.itr8FromArrayAsync([1,2,2,4,3]).pipe(
+        await itr8.itr8FromArrayAsync([1, 2, 2, 4, 3]).pipe(
           itr8.runningAverage(),
           itr8.itr8ToArray
         ),
@@ -1298,10 +1479,10 @@ describe('itr8 test suite', () => {
       // async
       assert.deepEqual(
         await itr8.itr8ToArray(
-          itr8.itr8FromArrayAsync([ { v: 1 }, { v: -4 }, { v: 7 }, { v: 2 } ])
-            .pipe(itr8.sort((a:{ v:number }, b:{ v:number }) => a.v - b.v))
+          itr8.itr8FromArrayAsync([{ v: 1 }, { v: -4 }, { v: 7 }, { v: 2 }])
+            .pipe(itr8.sort((a: { v: number }, b: { v: number }) => a.v - b.v))
         ),
-        [ { v: -4 }, { v: 1 }, { v: 2 }, { v: 7 } ],
+        [{ v: -4 }, { v: 1 }, { v: 2 }, { v: 7 }],
       );
     });
 
@@ -1542,12 +1723,12 @@ describe('itr8 test suite', () => {
       // and recording the times between ending processing and starting processing the next,
       // we could check whether the prefetching worked
       // (because the promises should be resolved sooner)
-      let results:any = {};
-      const fnThatStoresResultsFactory = (resultName:string, sleepTime:number) => {
-        let r:any = results[resultName] || { values: [], times: [] };
+      let results: any = {};
+      const fnThatStoresResultsFactory = (resultName: string, sleepTime: number) => {
+        let r: any = results[resultName] || { values: [], times: [] };
         results[resultName] = r;
         let start = hrtime();
-        return async (v, sleepTime2?:number) => {
+        return async (v, sleepTime2?: number) => {
           r.values.push(v);
           r.times.push(hrtimeToMilliseconds(hrtime(start)));
           // simulate our own processing time
@@ -1556,7 +1737,7 @@ describe('itr8 test suite', () => {
         };
       };
 
-      let descr:string;
+      let descr: string;
       let f;
 
       // no prefetch and processing time of half the input resolve time
@@ -1641,45 +1822,45 @@ describe('itr8 test suite', () => {
       const itOut = it.pipe(mostRecent('My initial value'));
 
       await sleep(1);
-      assert.deepEqual(await  itOut.next(), { value: 'My initial value' });
-      assert.deepEqual(await  itOut.next(), { value: 'My initial value' });
+      assert.deepEqual(await itOut.next(), { value: 'My initial value' });
+      assert.deepEqual(await itOut.next(), { value: 'My initial value' });
       await sleep(1);
-      assert.deepEqual(await  itOut.next(), { value: 'My initial value' });
+      assert.deepEqual(await itOut.next(), { value: 'My initial value' });
 
       it.push('2nd value');
 
       await sleep(1);
-      assert.deepEqual(await  itOut.next(), { value: '2nd value' });
-      assert.deepEqual(await  itOut.next(), { value: '2nd value' });
+      assert.deepEqual(await itOut.next(), { value: '2nd value' });
+      assert.deepEqual(await itOut.next(), { value: '2nd value' });
 
       it.push('third value');
       // sync so 'third value' promise not resolved yet
-      assert.deepEqual(await  itOut.next(), { value: '2nd value' }, 'third value promise should not be resolved here yet');
+      assert.deepEqual(await itOut.next(), { value: '2nd value' }, 'third value promise should not be resolved here yet');
       await sleep(1);
-      assert.deepEqual(await  itOut.next(), { value: 'third value' });
-      assert.deepEqual(await  itOut.next(), { value: 'third value' });
-      assert.deepEqual(await  itOut.next(), { value: 'third value' });
-      assert.deepEqual(await  itOut.next(), { value: 'third value' });
+      assert.deepEqual(await itOut.next(), { value: 'third value' });
+      assert.deepEqual(await itOut.next(), { value: 'third value' });
+      assert.deepEqual(await itOut.next(), { value: 'third value' });
+      assert.deepEqual(await itOut.next(), { value: 'third value' });
       await sleep(1);
-      assert.deepEqual(await  itOut.next(), { value: 'third value' });
+      assert.deepEqual(await itOut.next(), { value: 'third value' });
 
       // see evey value at least once!!!
       it.push('fourth value');
       it.push('fifth value');
       // sync so 'third value' promise not resolved yet
-      assert.deepEqual(await  itOut.next(), { value: 'third value' });
+      assert.deepEqual(await itOut.next(), { value: 'third value' });
       await sleep(0);
-      assert.deepEqual(await  itOut.next(), { value: 'fourth value' });
+      assert.deepEqual(await itOut.next(), { value: 'fourth value' });
       await sleep(0);
-      assert.deepEqual(await  itOut.next(), { value: 'fifth value' });
+      assert.deepEqual(await itOut.next(), { value: 'fifth value' });
 
       it.done();
       // sync so 'done' promise not resolved yet
-      assert.deepEqual(await  itOut.next(), { value: 'fifth value' });
+      assert.deepEqual(await itOut.next(), { value: 'fifth value' });
       await sleep(1);
-      assert.deepEqual(await  itOut.next(), { done: true });
-      assert.deepEqual(await  itOut.next(), { done: true });
-      assert.deepEqual(await  itOut.next(), { done: true });
+      assert.deepEqual(await itOut.next(), { done: true });
+      assert.deepEqual(await itOut.next(), { done: true });
+      assert.deepEqual(await itOut.next(), { done: true });
 
     });
 
@@ -2063,7 +2244,7 @@ describe('itr8 test suite', () => {
         testFilter(true, transIts.opr8FilterAsyncAsync);
 
         // also test the skip function (to make sure state is carried over from one batch to the next!)
-        const generateItr = (async:boolean) => (async ? itr8.itr8RangeAsync : itr8.itr8Range)(1, 9).pipe(itr8.batch(3));
+        const generateItr = (async: boolean) => (async ? itr8.itr8RangeAsync : itr8.itr8Range)(1, 9).pipe(itr8.batch(3));
 
         assert.deepEqual(
           itr8.itr8ToArray(generateItr(false).pipe(itr8.skip(2))),
@@ -2154,7 +2335,7 @@ describe('itr8 test suite', () => {
           .pipe(
             itr8.map(wrapString),
             itr8.forEach(async (x) => {
-              console.log('----', x);
+              // console.log('----', x);
               result2.push(x);
             }),
           );
@@ -2203,7 +2384,7 @@ describe('itr8 test suite', () => {
       it('forEach(...) method works properly with an async handler ( + concurrency can be controlled)', async () => {
         const plusOne = (a) => a + 1;
         const pow2 = (a) => a * a;
-        const pow = (power:number) => (a) => power === 1 ? a : pow(power - 1)(a) * a;
+        const pow = (power: number) => (a) => power === 1 ? a : pow(power - 1)(a) * a;
         const wrapString = (s) => `<-- ${s} -->`
 
 
@@ -2272,9 +2453,9 @@ describe('itr8 test suite', () => {
         // by sleeping for a while after the first next() call
         // and recording the times, we could check whether the prefetching worked
         // (because the promises should be resolved already)
-        let results:any = {};
-        const forEachFactory = (resultName:string, sleepTime:number) => {
-          let r:any = { values: [], times: [] };
+        let results: any = {};
+        const forEachFactory = (resultName: string, sleepTime: number) => {
+          let r: any = { values: [], times: [] };
           results[resultName] = r;
           let start = hrtime();
           return async (v) => {
@@ -2286,7 +2467,7 @@ describe('itr8 test suite', () => {
           };
         };
 
-        let descr:string;
+        let descr: string;
 
         // no prefetch should follow the tempo of the input
         descr = 'processing time = 5';
@@ -2420,7 +2601,7 @@ describe('itr8 test suite', () => {
     it('compare the speed of native arrays with the iterator versions', () => {
       const myLimit = 200;
 
-      let resultIt:number[] = [];
+      let resultIt: number[] = [];
       const avgDurationIt = itr8.itr8Range(0, 10).pipe(
         itr8.map((x) => {
           const start = hrtime();
@@ -2440,7 +2621,7 @@ describe('itr8 test suite', () => {
         itr8.average(),
       ).next().value;
 
-      let resultArr:number[] = [];
+      let resultArr: number[] = [];
       const avgDurationArr = itr8.itr8Range(0, 10).pipe(
         itr8.map((x) => {
           const start = hrtime();
