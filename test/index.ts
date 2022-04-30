@@ -647,7 +647,7 @@ describe('itr8 test suite', () => {
       assert.strictEqual((await iterator.next()).done, true);
     });
 
-    it('can generate an integer producing iterator based on start and end indexes', () => {
+    it('can generate a nnumber producing iterator based on start and end indexes (and optionally a step value)', () => {
       assert.deepEqual(
         itr8.itr8ToArray(itr8.itr8Range(4, 7)),
         [4, 5, 6, 7],
@@ -657,6 +657,22 @@ describe('itr8 test suite', () => {
         itr8.itr8ToArray(itr8.itr8Range(4, -1)),
         [4, 3, 2, 1, 0, -1],
       );
+
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.itr8Range(4, 7, 0.5)),
+        [4, 4.5, 5, 5.5, 6, 6.5, 7],
+      );
+
+      // be forgiving about the sign of the step value
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.itr8Range(4, -3, -2)),
+        [4, 2, 0, -2],
+      );
+      assert.deepEqual(
+        itr8.itr8ToArray(itr8.itr8Range(4, -3, 2)),
+        [4, 2, 0, -2],
+      );
+
     });
 
     it('itr8Pushable works properly', async () => {
