@@ -1728,6 +1728,34 @@ describe('itr8 test suite', () => {
       );
     });
 
+    it('intersperse(...) operator works properly', async () => {
+      assert.deepEqual(
+        itr8.itr8FromArray([ 'hello', 'world', 'and', 'goodbye' ])
+          .pipe(
+            itr8.intersperse('|'),
+            itr8.itr8ToArray,
+          ),
+        [ 'hello', '|', 'world', '|', 'and', '|', 'goodbye' ],
+      );
+      assert.deepEqual(
+        itr8.itr8FromArray([ 1, 2, 3, 4 ])
+          .pipe(
+            itr8.intersperse(true),
+            itr8.itr8ToArray,
+          ),
+        [ 1, true, 2, true, 3, true, 4 ],
+      );
+
+      assert.deepEqual(
+        itr8.itr8FromArray([])
+          .pipe(
+            itr8.intersperse(true),
+            itr8.itr8ToArray,
+          ),
+        [],
+      );
+    });
+
     it('lineByLine(...) operator works properly', async () => {
       const input1 = ['H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\n', 'G', 'o', 'o', 'd', 'b', 'y', 'e', ' ', 'S', 'p', 'a', 'c', 'e', '!'];
       const expected1 = ['Hello World', 'Goodbye Space!'];
