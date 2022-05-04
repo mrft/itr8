@@ -2,11 +2,25 @@
 <a href="#itr8" id="itr8" style="color: inherit; text-decoration: none;">
   <h1>itr8</h1>
 </a>
+<p>(pronounced &quot;iterate&quot;)</p>
 <p><a href="https://github.com/mrft/itr8">itr8 source code</a> can be found on github, and the <a href="https://mrft.github.io/itr8">itr8 documentation</a> can be found at the itr8 github site.</p>
 <p>DISCLAIMER: This is work in progress (including the docs), and although a fair amount of functionality seems to work, things might still change along the way...
 It is tested on NodeJS 16 (the use of <code>import { isPromise } from &#39;util/types&#39;;</code> causes it not to work in NodejS 12 for example)</p>
 <p>An experiment to create a unified interface over both <a href="https://www.javascripttutorial.net/es6/javascript-iterator/">synchronous</a> and <a href="https://www.javascripttutorial.net/es-next/javascript-asynchronous-iterators/">asynchronous iterators</a> such that the same iterator-operators (cfr. RxJS operators like filter, map, ...) can be used in various contexts (plain arrays, NodeJS streams, Observables, page-by-page database queries by writing an async generator function, page-by-age API queries, ...).</p>
 <p>This makes the code much more declarative (describing what to do rather than how to do it).</p>
+<p>While working on this library, it became clear to me that many, many problems can simply be seen
+as transforming one set of data into another.</p>
+<ul>
+<li>A lexer or tokenizer is simply something that transforms a stream of characters or bytes into
+a stream of tokens.</li>
+<li>A parser can simply be seen as something that transforms a stream of tokens into a parse tree.</li>
+<li>A web application (cfr. The Elm Architecture, AppRun, Redux) can simply be seen as something
+that translates a stream of events into html output.</li>
+</ul>
+<p>The library can also be used a as a base for CSP (Communicating Simple Processes). By sharing
+the itr8Pushable between 2 processes, one process could use it to push information onto the
+channel, and the other one can use the (async) next() call to pull the next message from
+the channel.</p>
 
 <a href="#getting-started" id="getting-started" style="color: inherit; text-decoration: none;">
   <h2>Getting started</h2>

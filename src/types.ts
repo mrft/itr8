@@ -11,6 +11,11 @@ type TPipeable<TIn=any, TOut=any> = {
   //    (op:TTransIteratorSyncOrAsync<TIn, TOut>, ...moreOperators:Array<TTransIteratorSyncOrAsync<TIn, TOut>>) => TPipeable & (IterableIterator<TOut> | AsyncIterableIterator<TOut>),
 }
 
+/**
+ * Anything with a push and a done method, to support pushable async iterators.
+ */
+type TPushable<TIn=any, TOut=any> = { push:(T) => void, done:() => void }
+
 type TTransIterator<TIn, TOut> = (iterator: Iterator<TIn>, ...params: any) => Iterator<TOut> /* | AsyncGenerator<TOut> */;
 
 type TTransIteratorAsync<TIn, TOut> = (iterator: AsyncIterator<TIn>, ...params: any) => AsyncIterator<TOut> /* | AsyncGenerator<TOut> */;
@@ -34,5 +39,6 @@ export {
   TTransIteratorAsync,
   TTransIteratorSyncOrAsync,
   TPipeable,
+  TPushable,
   TNextFnResult,
 };

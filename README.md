@@ -1,5 +1,7 @@
 # itr8
 
+(pronounced "iterate")
+
 [itr8 source code](https://github.com/mrft/itr8) can be found on github, and the [itr8 documentation](https://mrft.github.io/itr8) can be found at the itr8 github site.
 
 DISCLAIMER: This is work in progress (including the docs), and although a fair amount of functionality seems to work, things might still change along the way...
@@ -9,6 +11,18 @@ An experiment to create a unified interface over both [synchronous](https://www.
 
 This makes the code much more declarative (describing what to do rather than how to do it).
 
+While working on this library, it became clear to me that many, many problems can simply be seen
+as transforming one set of data into another.
+* A lexer or tokenizer is simply something that transforms a stream of characters or bytes into
+a stream of tokens.
+* A parser can simply be seen as something that transforms a stream of tokens into a parse tree.
+* A web application (cfr. The Elm Architecture, AppRun, Redux) can simply be seen as something
+that translates a stream of events into html output.
+
+The library can also be used a as a base for CSP (Communicating Simple Processes). By sharing
+the itr8Pushable between 2 processes, one process could use it to push information onto the
+channel, and the other one can use the (async) next() call to pull the next message from
+the channel.
 ## Getting started
 
 Install the module using npm

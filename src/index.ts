@@ -1,8 +1,42 @@
+/**
+ * itr8 is all about using iterators as a simple abstraction that can be used for things like:
+ * * synchronously accessible data separated in space (~in-memory array)
+ * * asynchronously accessible data separated in space (~data stored in a file or api)
+ * * data separated in time (~events)
+ * * data that changes over time (every element in the stream is the new current value)
+ *
+ * An iterator has an extremely simple interface that exposes a peremater-less next() function
+ * that will return { done: boolean, value: any } (or Promise<{ done: boolean, value: any }>
+ * for async iterators). Checkout the MDN page about
+ * [the iterator protocol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol)
+ * for more details.
+ *
+ * Because the abstraction is 1) so simple 2) a part of the javascript standard
+ * it is very well suited to build upon.
+ *
+ * What we build upon it is very simple as well: if we can easily generate functions that take
+ * one iterator as input and return another iterator as output, we can pipe all these functions
+ * after another and build things that are very powerful, and actually reuse code regardless
+ * of which data is being sent. I am calling these functions transIterators (cfr. transducers).
+ *
+ * The function that produces a transIterator is what we call an 'operator': a function that
+ * produces another function of the form (inputIterator) => outputIterator.
+ * (Functions producing other functions are often referred to as a 'higher-order functions').
+ *
+ * @example
+ * filter((x) => x > 100) takes the filter function as a parameter, and will return
+ * a new function that takes an input iteratorI, and outputs a new iteratorO that will only
+ * pass through the elements of iteratorI that are > 100.
+ * so 'filter' is the operator, and the function it produces is the transIterator.
+ *
+ * @module
+ */
+
 // https://www.typescriptlang.org/play?#code/MYewdgzgLgBAhgLjAVwLYCMCmAnA2gXRgF4ZcBGAGhgCYqBmKgFnwG4AoUSWdBabASzABzAsVIBycJnFVxUAO4gZcgBbZM02QDMQybONZs2W5GGBR+4GFBABJKDjg3sAHgAqAPgAUiAILZsOABPdw8ASgR7R2dQmABvNhgkmHUoPTB4XABlIIwQABsAOn4HQOd8LzD2AF8jEzMLKxLokGw3EH9AkM8vZrLWyNKnVtCIzuDYhOSYfMxYdQhkfNgSAnZp2dgwdeT5FX5ZmC8AQi8Mkj7h7EKwTAAPKEqwwoATKTD4xOnkhaWoQoADsgICozoUAG5wfLITBVL5JWrTVLpFKYRbLGpGYymcyWMAAKhScGEmC80Dg2CgSDQWGwVEwYBe1IwOA+U2S-C0R3JlJgLhgDJebPh3x02COmxg-DEPKgLClfJIgvl-AA1Krhd8tTAgvxMPkXlKdlrEclqgL8hBMJ9tTAxRK5gqSLKVTAPErGSqALRezW25K6-WG-jG76mhFsWpsAD00ZgnAgBUwhXyICEXlwhSzgRJXgYAHYwvg4bH4+BE7MU2mM1nCjmhKSAKwUahFuFGUsJpNV9OXZztcZBLw2KL9bA+MKT9gccuwPpieukhgATnbUCCAOtbjcOYgL2QwBw7lsYAobgA8sgoB4xL0hs5Bi1XG4Tx4qLWARS4KgIAh4GAgg+Igb1HK53Eva9pwTWBUDgAEEG3Xd90PVxiSCCg0JvEh6lxcBCTvR8xxcFAWWwN87TABAvDuBA0KAm86JtZJJVuB4TzEEobnuR44WmPYDlJY5WKgE9XneJitUDA0KLObjRMhaFYVDaZhPYi5-mEypQ1qKNoJgWCAWoBCd2JPcDyPNCMIArCjhKQiwJI2lyK0SjqNogD6P-QDiBvdkkmRbAMj875hL-SofIk-09NU84pQ07itJFW09OweznAAJTRP5iJpHAbOC-1kgUmE-xc2S2LACEoRhMIKCSwqYDeW4-xisTbjqhqYHDf0AoybBlLNEVzTgCAYFAmJHLyyMjD0rQDlKYykPM1CAKsoIbJwxoCVsqlxpGTCqBcqiaMY4CYHQEAk2JP0khYuTYs4zTeN2fZZhOVqmthSLpk5I4yta4rYRu-0pMNAHqswAaI1tGKOPih5EumHSZtnGAQC0LQrSpRDTOQizVswsRNrxfC7L2lb1qob9dDAKlJuwYG7oquGuIR57bsdUBTFKMQAAZQ34t6hPutqvoK5IudpnAxElnnVRgMgoalLkvFl6WGNQGmoGB21QZgcHFKV7qVPulmnu06aZy4GZ+FQOyccgPGKbWjacS20ndvvfbrKpzXueZWlGcdWH1NZnjQ0lNXxRIfmRUFwSPvE8WkijmWtel+XFfqpJftV9PxRcEhqe5nXtT1g2YSN7P9dN0PzaGy2YzjYm8JgAF+E3Lxa1wEB4IdsyUKp7AhDQBkoF-GBCDCFHrbgagifmnAvAM4c7C98c4Fqo4aPpzy7hgTOt7c3eIv3m9Wyg8tu1TXt14HAJgh8Vt2y7Ssb7vJ9766Lx0cxuZV-Jl4dAW9n4vyvm-asfZWhf0fvkW2JQAHryASAycVQgA
 
 import { isPromise } from 'util/types';
 import { forEach, takeWhile } from './transIterators';
-import { TPipeable, TTransIteratorSyncOrAsync } from './types';
+import { TPipeable, TPushable, TTransIteratorSyncOrAsync } from './types';
 
 
 
@@ -414,7 +448,7 @@ function itr8FromSingleValueAsync<T>(v: any): TPipeable & AsyncIterableIterator<
  * @param observable
  * @returns
  */
-function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T> & { push:(T) => void, done:() => void } {
+function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T> & TPushable {
   let buffer:any[] = [];
 
   let currentResolve;
@@ -483,7 +517,7 @@ function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T
  *
  * In order to support the fact that not all output iterators will be pulled at the same time,
  * we need to keep a cache + the position that each iterator is at.
- * 
+ *
  * TODO: In order to protect ourselves from 'abandoned' iterators, a timeout could be used
  * to clean them up, so the cache can be emptied up to the oldest 'active' iterator.
  */
@@ -637,6 +671,27 @@ function itr8RangeAsync(from: number, to: number, step?:number):TPipeable & Asyn
   );
 }
 
+/**
+ * Returns a (pushable async) iterator that will automatically fire with the Date.now() value
+ * of when it fired (= the number of milliseconds elapsed since January 1, 1970 00:00:00 UTC).
+ *
+ * When you want it to stop, call the done() method of the returned iterator, and the interval
+ * will be cleaned up.
+ *
+ * @param intervalMilliseconds
+ * @returns an AsyncIterableIterator
+ */
+function itr8Interval(intervalMilliseconds:number):TPipeable & AsyncIterableIterator<number> & TPushable {
+  const it = itr8Pushable<number>();
+  const interval = setInterval(() => it.push(Date.now()), intervalMilliseconds);
+  const origDone = it.done;
+  it.done = () => {
+    clearInterval(interval);
+    return origDone();
+  }
+  return it;
+}
+
 export * from './transIterators'
 
 export { TPipeable, TTransIteratorSyncOrAsync, TNextFnResult } from './types'
@@ -653,6 +708,7 @@ export {
   itr8Pushable,
   itr8Range,
   itr8RangeAsync,
+  itr8Interval,
   itr8ToArray,
   itr8ToMultiIterable,
   itr8Pipe,

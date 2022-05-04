@@ -1,6 +1,9 @@
 import { isPromise } from 'util/types';
 import { TNextFnResult, TTransIteratorSyncOrAsync } from "./types";
 import { forLoop, itr8FromIterable, itr8FromString, itr8Pipe, itr8Proxy, itr8Pushable, thenable } from './';
+import { promisify } from 'util';
+import * as zlib from 'zlib';
+
 
 /**
  * This operator will simply produce the same output, but the new Iterator will be marked
@@ -566,6 +569,11 @@ const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
  *  end up with some complex cases when classes are involved (I hope no one who's interested in
  *  this library will want to use classes in their state, because the library is more 'functional
  *  programming' oriented)
+ *
+ * @typeParam TIn the type of values that the input iterator must produce
+ * @typeParam TOut the type of values that the output iterator will produce
+ * @typeParam TParams the type of the parameter that can be passed to the operator function
+ * @typeParam TState the type of the state that will be passed between all iterations
  *
  * @param nextFn
  * @param initialStateFactory a function that generates the initialSate
@@ -1591,6 +1599,14 @@ const runningTotal = itr8OperatorFactory<number, number, void, number>(
 
 /**
  * Output the percentile(x)
+ * It is simply using the nearest-rank method,
+ * cfr. [Wikipedia](https://en.wikipedia.org/wiki/Percentile#Calculation_methods)
+ * but it will only keep an ordered list of the n largest elements so far, which means that
+ * computing the 90th percentile only needs to keep 10% of all the values seen in memory,
+ * but the 50th percentile needs a buffer of 50% of all values.
+ *
+ * Various 'streaming' implementations exist, but they are more complex, so ... maybe later.
+ *
  * @example
  * ```typescript
  *    itr8Range(1,100)
@@ -2220,6 +2236,51 @@ const prefetch = (amount: number) => {
  *
  * REMARK: it will always create an unbatched iterator, regardless of the input
  *
+ * @example
+ * ```typescript
+ * // input iterator
+ * const it = itr8.itr8Pushable();
+ * // output iterator that will always return the mostRecent value of the input iterator
+ * const itOut = it.pipe(mostRecent('My initial value'));
+ *
+ * await sleep(1);
+ * await itOut.next(); // => { value: 'My initial value' }
+ * await itOut.next(); // => { value: 'My initial value' }
+ * await sleep(1);
+ * await itOut.next(); // => { value: 'My initial value' }
+ *
+ * it.push('2nd value');
+ * await sleep(1);
+ * await itOut.next(); // => { value: '2nd value' }
+ * await itOut.next(); // => { value: '2nd value' }
+ *
+ * it.push('third value');
+ * // sync so 'third value' promise not resolved yet at this point
+ * await itOut.next(); // => { value: '2nd value' }
+ * await sleep(1);
+ * await itOut.next(); // => { value: 'third value' }
+ * await itOut.next(); // => { value: 'third value' }
+ * await sleep(1);
+ * await itOut.next(); // => { value: 'third value' }
+ *
+ * // see evey value at least once!!!
+ * it.push('fourth value');
+ * it.push('fifth value');
+ * // sync so 'third value' promise not resolved yet
+ * await itOut.next(); // => { value: 'third value' }
+ * await sleep(0);
+ * await itOut.next(); // => { value: 'fourth value' }
+ * await sleep(0);
+ * await itOut.next(); // => { value: 'fifth value' }
+ *
+ * it.done();
+ * // sync so 'done' promise not resolved yet
+ * await itOut.next(); // => { value: 'fifth value' }
+ * await sleep(1);
+ * await itOut.next(); // => { done: true }
+ * await itOut.next(); // => { done: true }
+ * ```
+ *
  * @category operators/async
  */
 const mostRecent = <T>(initalValue: T) => {
@@ -2257,6 +2318,20 @@ const mostRecent = <T>(initalValue: T) => {
   }
 };
 
+
+/**
+ * GZIP the incoming data
+ *
+ * @returns a transIterator
+ */
+const gzip = () => map((data:Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string) => promisify(zlib.gzip)(data));
+
+/**
+ * GUNZIP the incoming data
+ *
+ * @returns a transiterator
+ */
+const gunzip = () => map((data:Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string) => promisify(zlib.gunzip)(data));
 
 /**
  * produces a function that can be applied to an iterator and that will execute
@@ -2445,6 +2520,8 @@ export {
   asBatch,
   asNoBatch,
   unBatch,
+
+
 
   // expose the itr8OperatorFactory so everyone can create their own operators
   // oldOperatorFactory,
