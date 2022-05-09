@@ -5,7 +5,7 @@
  * * data separated in time (~events)
  * * data that changes over time (every element in the stream is the new current value)
  *
- * An iterator has an extremely simple interface that exposes a peremater-less next() function
+ * An iterator has an extremely simple interface that exposes a parameter-less next() function
  * that will return { done: boolean, value: any } (or Promise<{ done: boolean, value: any }>
  * for async iterators). Checkout the MDN page about
  * [the iterator protocol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol)
@@ -454,7 +454,7 @@ function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T
   let currentResolve;
   let currentReject;
   let currentDataPromise;
-  let done = false;
+  // let done = false;
 
   const createNewCurrentDataPromise = () => {
     currentDataPromise = new Promise((resolve, reject) => {
@@ -473,9 +473,9 @@ function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T
   const retVal = {
     [Symbol.asyncIterator]: () => retVal,
     next: async () => {
-      if (done) {
-        return { done: true };
-      }
+      // if (done) {
+      //   return { done: true };
+      // }
       if (buffer.length > 0) {
         // const [firstOfBufferPromise, ...restOfBuffer] = buffer;
         // buffer = restOfBuffer;
@@ -493,7 +493,7 @@ function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T
     done: () => {
       currentResolve({ done: true });
       createNewCurrentDataPromise();
-      done = true;
+      // done = true;
     },
   };
 
@@ -682,8 +682,10 @@ function itr8RangeAsync(from: number, to: number, step?:number):TPipeable & Asyn
  * @returns an AsyncIterableIterator
  */
 function itr8Interval(intervalMilliseconds:number):TPipeable & AsyncIterableIterator<number> & TPushable {
-  const it = itr8Pushable<number>();
-  const interval = setInterval(() => it.push(Date.now()), intervalMilliseconds);
+  const it = itr8Pushable<number>(Infinity); // infinite buffer !!!
+  const interval = setInterval(() => {
+    it.push(Date.now());
+  }, intervalMilliseconds);
   const origDone = it.done;
   it.done = () => {
     clearInterval(interval);

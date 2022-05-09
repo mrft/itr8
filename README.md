@@ -1,28 +1,45 @@
 # itr8
 
-(pronounced "iterate")
+* pronounced "iterate"
+* [itr8 source code](https://github.com/mrft/itr8) can be found on github
+* [itr8 documentation](https://mrft.github.io/itr8) can be found at the itr8 github site.
 
-[itr8 source code](https://github.com/mrft/itr8) can be found on github, and the [itr8 documentation](https://mrft.github.io/itr8) can be found at the itr8 github site.
-
-DISCLAIMER: This is work in progress (including the docs), and although a fair amount of functionality seems to work, things might still change along the way...
-It is tested on NodeJS 16 (the use of ```import { isPromise } from 'util/types';``` causes it not to work in NodejS 12 for example)
-
-An experiment to create a unified interface over both [synchronous](https://www.javascripttutorial.net/es6/javascript-iterator/) and [asynchronous iterators](https://www.javascripttutorial.net/es-next/javascript-asynchronous-iterators/) such that the same iterator-operators (cfr. RxJS operators like filter, map, ...) can be used in various contexts (plain arrays, NodeJS streams, Observables, page-by-page database queries by writing an async generator function, page-by-age API queries, ...).
+An experiment to create a **unified interface over both [synchronous](https://www.javascripttutorial.net/es6/javascript-iterator/) and [asynchronous iterators](https://www.javascripttutorial.net/es-next/javascript-asynchronous-iterators/)** such that the same iterator-operators (cfr. RxJS operators like filter, map, ...) can be used in various contexts (plain arrays, NodeJS streams, Observables, page-by-page database queries by writing an async generator function, page-by-age API queries, streams of events, ...).
 
 This makes the code much more declarative (describing what to do rather than how to do it).
 
 While working on this library, it became clear to me that many, many problems can simply be seen
-as transforming one set of data into another.
+as transforming one set of data into another set (which might be longer or shorter).
 * A lexer or tokenizer is simply something that transforms a stream of characters or bytes into
 a stream of tokens.
 * A parser can simply be seen as something that transforms a stream of tokens into a parse tree.
 * A web application (cfr. The Elm Architecture, AppRun, Redux) can simply be seen as something
-that translates a stream of events into html output.
+that translates a stream of events into html outputor a DOM tree.
+  * So a web application engine simply has to define this transIterator, and allow the user to fill in the application-specific blanks: the initial state, generating new state based on the incoming event, and generating html from the state.
+  * Can you see how redux middleware, could simply be seen as a transIterator that will be put between the event stream before the reducer gets called?
+    * Adding a 'tap' for logging?
+    * Some kind of debounce or throttle, would also be easy and if someone already wrote that (in any context, doesn't have to be related to redux at all), you could use that existing code.
+  * Can you see how the redux reducer is simply the mapping function we have to pass into the 'map' operator, that translates [action, currentState] tuples into newState?
 
-The library can also be used a as a base for CSP (Communicating Simple Processes). By sharing
-the itr8Pushable between 2 processes, one process could use it to push information onto the
+I think the library can also be used a as a base for CSP (Communicating Simple Processes). By sharing
+the itr8Pushable iterator between 2 processes, one process could use it to push information onto the
 channel, and the other one can use the (async) next() call to pull the next message from
 the channel.
+
+So unlike OO, where a new interface has to be invented for every new problem encountered, we basically agree on a simple protocol on how data will be delivered to and returned by all processing units, so we can focus on functionality rather than the interface.
+
+DISCLAIMER: This is work in progress (including the docs), and although a fair amount of functionality seems to work, things might still change along the way...
+It is tested on NodeJS 16 (the use of ```import { isPromise } from 'util/types';``` causes it not to work in NodejS 12 for example)
+
+**Table of Contents**
+* [itr8](#itr8)
+  * [Getting started](#getting-started)
+  * [Who is this library for](#who-is-this-library-for)
+  * [Roadmap](#roadmap)
+* [Documentation](#documentation)
+* [Inspiration](#inspiration)
+* {@page ROADMAP.md}
+
 ## Getting started
 
 Install the module using npm
@@ -137,32 +154,11 @@ If you ever found yourself in one of these situations, this library might be use
 
 So, while all these libraries have their merit, none of them convered my needs well enough, so at a certain point things became clear enough in my head to write my own library.
 
-## TODO
+## Roadmap
 
-* Turn itr8OperatorFactory initialState into a parameterless function that generates the inital state.
-  * Would be more forgiving if someone did alter the state in an operator's implementation,
-    because the inital state would not be shared amongst the instances.
-  * Would allow the inital state to be something impure (like random number or current time),
-    although that would probably be abad idea in most cases.
-* Piping should have better typing (like RxJS does it?) to make sure you get hints if you are trying to pipe functions together whose output and input types do not match.
-* General code cleanup
-  * Should we create 'categories' of operators so people do not have to include the entire library?
-    (for example delay, throttle, debounce under operators/timeBased and maybe max, min, average, pctl(...), total, ... under operators/numeric)
-* Writing more and better documentation and example to show what can be done.
-* Add some more useful operators
-  * gzip/gunzip?
-  * we'll probably find some inspiration in the RxJS library
-* Add more 'generators' for typical cases like file input, db paga-per-page processing?
-* Further improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significantly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always `unBatch |> batch(size)` to force a new batch size, but it could be more efficient if the itr8OperatorFactory handles the batch size and keeps it constant throughtout the chain.
-* Think about how to make it easy to use operator parameters that are iterators themselves.
-  * Would make it easier to implement the zip operator (less boilerplate)
-  * Would in general allow for operator parameters that 'change over time'.
-  * Can we make this generic in such away that any parameter of type T could be replaced
-    by an (Async)Iterator<T>?
-  * Can we abstract the handling of sync versus async iterators away in an elegant manner?
-    That means that if the input iterator is sync, all handling stays sychronous and will only
-    become asynchronous when the iterator is asynchronous. But all this without the user having
-    to alter the code...
+The ROADMAP.md contains various ideas about possible additions to the library and how this
+library could evolve in the future.
+{@page ROADMAP.md}
 
 # Documentation
 
@@ -177,8 +173,9 @@ An operator is 'a function that generates a transIterator'. So for example filte
 
 ## Writing your own operators
 
-There are multiple options for writing your own operators. You can either build a new operator by chaining
-a bunch of existing operators together, or you can write your own (for example with the itr8OperatorFactory function).
+There are multiple options for writing your own operators. You can either build a new operator by
+chaining a bunch of existing operators together, or you can write your own (ideally with the
+itr8OperatorFactory function).
 
 ### A new operator by combining existing operators
 
@@ -321,7 +318,7 @@ But if you are convinced that is the case, I advise you to look at the source co
 Prefetch and mostRecent are actually returning a custom built iterator.
 
 As long as your operator returns a function transforming the input iterator into another iterator,
-you're good (and try to be pollite: always support both sync and async iterators as input, and if
+you're good (and try to be polite: always support both sync and async iterators as input, and if
 possible, make sure that if the input iterator is synchronous, the output iterator is synchronous
 as well, and wrap it with itr8Proxy so .pipe(...) can be used on the result).
 

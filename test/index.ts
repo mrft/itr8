@@ -4,12 +4,11 @@ import * as fs from 'fs';
 import * as zlib from 'zlib';
 
 import * as itr8 from '../src';
-import { asNoBatch, lineByLine, itr8OperatorFactory, unBatch, debounce, throttle, prefetch, mostRecent, takeWhile, tap, asBatch, average, batch, dedup, flatten, forEach, groupPer, intersperse, limit, percentile, runningAverage, runningPercentile, runningReduce, runningTotal, some, sort, split, stringToChar, total, uniq, uniqBy, itr8Pipe, skip, map, delay, filter, min, max, zip, every, itr8ToArray, itr8Range, itr8Proxy, itr8RangeAsync, itr8FromString, itr8FromArrayAsync, thenable, forLoop, itr8FromArray, itr8FromSingleValue, itr8FromSingleValueAsync, itr8FromStringAsync, itr8Pushable, reduce, itr8ToMultiIterable } from '../src';
+import { asNoBatch, lineByLine, itr8OperatorFactory, unBatch, debounce, throttle, prefetch, mostRecent, takeWhile, tap, asBatch, average, batch, dedup, flatten, forEach, groupPer, intersperse, limit, percentile, runningAverage, runningPercentile, runningReduce, runningTotal, some, sort, split, stringToChar, total, uniq, uniqBy, itr8Pipe, skip, map, delay, filter, min, max, zip, every, itr8ToArray, itr8Range, itr8Proxy, itr8RangeAsync, itr8FromString, itr8FromArrayAsync, thenable, forLoop, itr8FromArray, itr8FromSingleValue, itr8FromSingleValueAsync, itr8FromStringAsync, itr8Pushable, reduce, itr8ToMultiIterable, gzip, gunzip, itr8Interval } from '../src';
 import { itr8FromStream, itr8ToReadableStream } from '../src/interface/stream'
 import { itr8FromObservable, itr8ToObservable } from '../src/interface/observable'
 import { hrtime } from 'process';
 import { cursorTo } from 'readline';
-import { gunzip } from 'zlib';
 import { resolve } from 'path';
 import { utils } from 'mocha';
 import { promisify } from 'util';
@@ -647,7 +646,7 @@ describe('itr8 test suite', () => {
       assert.strictEqual((await iterator.next()).done, true);
     });
 
-    it('can generate a nnumber producing iterator based on start and end indexes (and optionally a step value)', () => {
+    it('can generate a number producing iterator based on start and end indexes (and optionally a step value)', () => {
       assert.deepEqual(
         itr8ToArray(itr8Range(4, 7)),
         [4, 5, 6, 7],
@@ -676,6 +675,7 @@ describe('itr8 test suite', () => {
     });
 
     it('itr8Pushable works properly', async () => {
+      // this is the case where the buffer is not set so it'll keep growing
       const pushIt = itr8Pushable();
       setImmediate(async () => {
         pushIt.push(1);
@@ -693,6 +693,8 @@ describe('itr8 test suite', () => {
       );
 
       // now test if the buffer limit works as well
+      // in this case at most buffer size elements will be kept, and the oldest one
+      // will be pushed out if not read on time!!!
       const pushIt2 = itr8Pushable(3);
       pushIt2.push(1); // buffer should contain 1 item
       pushIt2.push(2); // buffer should contain 2 items [1, 2]
@@ -706,6 +708,18 @@ describe('itr8 test suite', () => {
       assert.deepEqual(await pushIt2.next(), { value: 5 }); // buffer should contain 0 items []
       setTimeout(() => pushIt2.done(), 1); // in a while, tellus it's done
       assert.deepEqual((await pushIt2.next()).done, true); // buffer should contain 0 items []
+    });
+
+    it('itr8Interval works properly', async () => {
+      const it = itr8Interval(5);
+      await sleep(17);
+      it.done();
+      const itArray = await itr8ToArray(it);
+      assert.equal(
+        itArray.length,
+        3,
+      );
+      itArray.forEach((t) => assert(typeof t, 'number'));
     });
 
     it('can pipe TransIterators together and everything should work as expected', () => {
@@ -1250,7 +1264,7 @@ describe('itr8 test suite', () => {
       );
     });
 
-    it('zip(...) operator works properly', async () => {
+    it('tap(...) operator works properly', async () => {
       let tappedArray: any[] = [];
 
       // sync source iterator
@@ -1275,7 +1289,6 @@ describe('itr8 test suite', () => {
       assert.deepEqual(tappedArray, [1, 2, 3, 4]);
 
     });
-
 
     it('every(...) operator works properly', async () => {
       const isEven = (a) => a % 2 === 0;
@@ -1412,7 +1425,6 @@ describe('itr8 test suite', () => {
         [1, 3, 6, 10],
       );
     });
-
 
     it('max(...) operator works properly', async () => {
       // sync
@@ -1555,7 +1567,6 @@ describe('itr8 test suite', () => {
         [1, 1.5, 1.6666666666666667, 2.25, 2.4],
       );
     });
-
 
     it('sort(...) operator works properly', async () => {
       // sync
@@ -1883,6 +1894,69 @@ describe('itr8 test suite', () => {
       );
     });
 
+    it('gunzip(...) operator works properly', async () => {
+      // create an operator that will transform the utf-8 encoded buffer/Uint8Array to text
+      const utf8ToString = () => map((bytes) => bytes.toString('utf-8'));
+
+      // RAW BYTES VERSION
+      const gunzipped = itr8FromStream(fs.createReadStream('./test/lorem_ipsum.txt.gz'))
+        .pipe(
+          gunzip(),
+          flatten(),
+        )
+
+      await itr8FromStream(fs.createReadStream('./test/lorem_ipsum.txt'))
+        .pipe(
+          flatten(),
+          zip(gunzipped),
+          forEach(([a,b]) => {
+            // console.log('         gzip test equality:', a, ' ?= ', b);
+            assert.deepEqual(a,b);
+          }),
+        );
+
+      // DECODE FROM UTF8 to JS STRING VERSION
+      const gunzippedString = itr8FromStream(fs.createReadStream('./test/lorem_ipsum.txt.gz'))
+        .pipe(
+          gunzip(),
+          utf8ToString(),
+          flatten(),
+        )
+
+      await itr8FromStream(fs.createReadStream('./test/lorem_ipsum.txt'))
+        .pipe(
+          utf8ToString(),
+          flatten(),
+          zip(gunzippedString),
+          forEach(([a,b]) => {
+            // console.log('         gzip test equality:', a, ' ?= ', b);
+            assert.deepEqual(a,b);
+          }),
+        );
+
+    });
+
+    it('gzip(...) operator works properly', async () => {
+      // test by gzipping and gunzipping again and comparing with the input file
+      const gzippedUnzipped = itr8FromStream(fs.createReadStream('./test/lorem_ipsum.txt'))
+        .pipe(
+          flatten(),
+          gzip(),
+          gunzip(),
+          flatten(),
+        )
+
+      await itr8FromStream(fs.createReadStream('./test/lorem_ipsum.txt'))
+        .pipe(
+          flatten(),
+          zip(gzippedUnzipped),
+          forEach(([a,b]) => {
+            // console.log('         gzip test equality:', a, ' ?= ', b);
+            assert.deepEqual(a,b);
+          }),
+        );
+    });
+
     it('prefetch(...) operator works properly', async () => {
       const iteratorFactory = () => {
         async function* innerIteratorFactory() {
@@ -2039,7 +2113,6 @@ describe('itr8 test suite', () => {
 
     });
 
-
     it('chaining a bunch of operators works properly', async () => {
 
       const twoDimGen = function* (): Iterator<Array<string>> {
@@ -2195,7 +2268,6 @@ describe('itr8 test suite', () => {
       );
     }
 
-
     it('opr8RepeatEachSyncSync(...) operator works properly', async () => {
       await testRepeatEach(false, transIts.opr8RepeatEachSyncSync);
       await testRepeatEach(true, transIts.opr8RepeatEachSyncSync);
@@ -2244,7 +2316,6 @@ describe('itr8 test suite', () => {
         'async opr8Delay on async iterator fails',
       );
     });
-
 
     it('redim(...) operator works properly (sync operator created by combining existing operators with the itr8Pipe function)', async () => {
       const startArray = [[1, 2], [3, 4], [5, 6]];

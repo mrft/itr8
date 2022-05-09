@@ -2324,14 +2324,26 @@ const mostRecent = <T>(initalValue: T) => {
  *
  * @returns a transIterator
  */
-const gzip = () => map((data:Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string) => promisify(zlib.gzip)(data));
+const gzip = () => map((data:Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string | number) => {
+  if (typeof data === 'number') {
+    return promisify(zlib.gzip)(Buffer.from([data]));
+  } else {
+    return promisify(zlib.gzip)(data);
+  }
+});
 
 /**
  * GUNZIP the incoming data
  *
  * @returns a transiterator
  */
-const gunzip = () => map((data:Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string) => promisify(zlib.gunzip)(data));
+const gunzip = () => map((data:Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string | number) => {
+  if (typeof data === 'number') {
+    return promisify(zlib.gunzip)(Buffer.from([data]));
+  } else {
+    return promisify(zlib.gunzip)(data);
+  }
+});
 
 /**
  * produces a function that can be applied to an iterator and that will execute
@@ -2511,6 +2523,9 @@ export {
   debounce,
   throttle,
 
+  gzip,
+  gunzip,
+
   prefetch,
   mostRecent,
 
@@ -2520,8 +2535,6 @@ export {
   asBatch,
   asNoBatch,
   unBatch,
-
-
 
   // expose the itr8OperatorFactory so everyone can create their own operators
   // oldOperatorFactory,
