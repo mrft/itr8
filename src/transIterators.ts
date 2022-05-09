@@ -1858,7 +1858,7 @@ const uniqBy = itr8OperatorFactory<any, any, (v:any) => any, Set<any>>(
  * Removes consecutive doubles.
  * If no argument is provided, standard !== will be used to compare both values.
  * If a mapping fn is provided, the result of the mapping fn will be compared using !==,
- * whihc mean the mapping function should produce a 'simple' types like number or string.
+ * which means the mapping function should produce a 'simple' types like number or string.
  *
  * (The alternative option would have been to pass 2 arguments to the compare fn and if
  * it returns true, the elements would be considered equal)
@@ -2323,6 +2323,8 @@ const mostRecent = <T>(initalValue: T) => {
  * GZIP the incoming data
  *
  * @returns a transIterator
+ *
+ * @category operators/coding_decoding
  */
 const gzip = () => map((data:Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string | number) => {
   if (typeof data === 'number') {
@@ -2336,6 +2338,8 @@ const gzip = () => map((data:Buffer /*| TypedArray*/ | DataView | ArrayBuffer | 
  * GUNZIP the incoming data
  *
  * @returns a transiterator
+ *
+ * @category operators/coding_decoding
  */
 const gunzip = () => map((data:Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string | number) => {
   if (typeof data === 'number') {

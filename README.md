@@ -14,7 +14,7 @@ as transforming one set of data into another set (which might be longer or short
 a stream of tokens.
 * A parser can simply be seen as something that transforms a stream of tokens into a parse tree.
 * A web application (cfr. The Elm Architecture, AppRun, Redux) can simply be seen as something
-that translates a stream of events into html outputor a DOM tree.
+that translates a stream of events into html output or a DOM tree.
   * So a web application engine simply has to define this transIterator, and allow the user to fill in the application-specific blanks: the initial state, generating new state based on the incoming event, and generating html from the state.
   * Can you see how redux middleware, could simply be seen as a transIterator that will be put between the event stream before the reducer gets called?
     * Adding a 'tap' for logging?
@@ -38,7 +38,6 @@ It is tested on NodeJS 16 (the use of ```import { isPromise } from 'util/types';
   * [Roadmap](#roadmap)
 * [Documentation](#documentation)
 * [Inspiration](#inspiration)
-* {@page ROADMAP.md}
 
 ## Getting started
 

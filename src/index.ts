@@ -83,6 +83,8 @@ import { TPipeable, TPushable, TTransIteratorSyncOrAsync } from './types';
  * @param x a Promise or a regular value
  * @returns an object that has a then function and a src property pointing to the original input
  *          regardless whether it is a Promise or not
+ *
+ * @category utils
  */
 const thenable = (x: any): { src: any, then: (...any) => any, value?: any } => {
   if (isPromise(x)) {
@@ -124,6 +126,8 @@ const thenable = (x: any): { src: any, then: (...any) => any, value?: any } => {
  * @param afterEach
  * @param codeToExecute
  * @returns void | Promise<void>
+ *
+ * @category utils
  */
 const forLoop = <State>(
   initialStateFactory:() => State | Promise<State>,
@@ -206,6 +210,8 @@ const itr8ProxyHandler:ProxyHandler<IterableIterator<any>> = {
  * As long as the final output is an iterator?
  *
  * @param params a list of transIterators
+ *
+ * @category utils
  */
 // function itr8Pipe<TIn=any,TOut=any>(
 //   first:TTransIteratorSyncOrAsync,
@@ -303,6 +309,8 @@ function itr8PipeArray(
  *
  * @param iterator
  * @returns an iterator augmented with auseful pipe function
+ *
+ * @category utils
  */
 function itr8Proxy<PTIterator extends IterableIterator<any> | AsyncIterableIterator<any>>
   (iterator:PTIterator):TPipeable & PTIterator {
@@ -347,6 +355,8 @@ function itr8Proxy<PTIterator extends IterableIterator<any> | AsyncIterableItera
  *    map((x) => x + 100),
  *  )
  * ```
+ *
+ * @category iterator_factories
  */
 function itr8FromIterable<T>(it:Iterable<T> | AsyncIterable<T>):TPipeable & (IterableIterator<T> | AsyncIterableIterator<T>) {
   if (it[Symbol.iterator]) {
@@ -363,6 +373,8 @@ function itr8FromIterable<T>(it:Iterable<T> | AsyncIterable<T>):TPipeable & (Ite
  *
  * @param a an array
  * @returns an iterator
+ *
+ * @category iterator_factories
  */
 function itr8FromArray<T>(a: Array<T>): TPipeable & IterableIterator<T> {
   return itr8Proxy(
@@ -375,6 +387,8 @@ function itr8FromArray<T>(a: Array<T>): TPipeable & IterableIterator<T> {
  *
  * @param a an array
  * @returns an async iterator
+ *
+ * @category iterator_factories
  */
 function itr8FromArrayAsync<T>(a: Array<T>): TPipeable & AsyncIterableIterator<T> {
   return itr8Proxy(
@@ -387,6 +401,8 @@ function itr8FromArrayAsync<T>(a: Array<T>): TPipeable & AsyncIterableIterator<T
  *
  * @param s string
  * @returns an iterator
+ *
+ * @category iterator_factories
  */
 function itr8FromString(s: string): TPipeable & IterableIterator<string> {
   return itr8FromIterable(s) as TPipeable & IterableIterator<string>;
@@ -399,6 +415,8 @@ function itr8FromString(s: string): TPipeable & IterableIterator<string> {
  *
  * @param s a string
  * @returns an iterator
+ *
+ * @category iterator_factories
  */
 function itr8FromStringAsync(s: string): TPipeable & AsyncIterableIterator<string> {
   return itr8Proxy(
@@ -413,6 +431,8 @@ function itr8FromStringAsync(s: string): TPipeable & AsyncIterableIterator<strin
  *
  * @param a anything like object, string, number, ...
  * @returns an iterator
+ *
+ * @category iterator_factories
  */
 function itr8FromSingleValue<T>(v: any): TPipeable & IterableIterator<T> {
   return itr8Proxy(
@@ -426,6 +446,8 @@ function itr8FromSingleValue<T>(v: any): TPipeable & IterableIterator<T> {
  *
  * @param a anything like object, string, number, ...
  * @returns an iterator
+ *
+ * @category iterator_factories
  */
 function itr8FromSingleValueAsync<T>(v: any): TPipeable & AsyncIterableIterator<T> {
   return itr8Proxy(
@@ -447,6 +469,8 @@ function itr8FromSingleValueAsync<T>(v: any): TPipeable & AsyncIterableIterator<
  *
  * @param observable
  * @returns
+ *
+ * @category iterator_factories
  */
 function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T> & TPushable {
   let buffer:any[] = [];
@@ -520,6 +544,8 @@ function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T
  *
  * TODO: In order to protect ourselves from 'abandoned' iterators, a timeout could be used
  * to clean them up, so the cache can be emptied up to the oldest 'active' iterator.
+ *
+ * @category iterator_converters
  */
 function itr8ToMultiIterable<T>(abandonedTimeoutMilliseconds:number = Infinity)
                                :(it:Iterator<T> | AsyncIterator<T>) => AsyncIterable<T> {
@@ -571,6 +597,8 @@ function itr8ToMultiIterable<T>(abandonedTimeoutMilliseconds:number = Infinity)
  *
  * @param iterator
  * @returns an array
+ *
+ * @category iterator_converters
  */
 function itr8ToArray<T>(iterator: Iterator<T> | AsyncIterator<T>): Array<T | any> | Promise<Array<T | any>> {
   const isBatch = iterator['itr8Batch'] === true;
@@ -621,6 +649,8 @@ function itr8ToArray<T>(iterator: Iterator<T> | AsyncIterator<T>): Array<T | any
  * @param start start index
  * @param end end index
  * @param end step size, default = 1
+ *
+ * @category iterator_factories
  */
 function itr8Range(from: number, to: number, step?:number):TPipeable & IterableIterator<number> {
   const stepValue = step !== undefined ? Math.abs(step) : 1;
@@ -652,6 +682,8 @@ function itr8Range(from: number, to: number, step?:number):TPipeable & IterableI
  * @param start start index
  * @param end end index
  * @param end step size, default = 1
+ *
+ * @category iterator_factories
  */
 function itr8RangeAsync(from: number, to: number, step?:number):TPipeable & AsyncIterableIterator<number> {
   const stepValue = step !== undefined ? Math.abs(step) : 1;
@@ -680,6 +712,8 @@ function itr8RangeAsync(from: number, to: number, step?:number):TPipeable & Asyn
  *
  * @param intervalMilliseconds
  * @returns an AsyncIterableIterator
+ *
+ * @category iterator_factories
  */
 function itr8Interval(intervalMilliseconds:number):TPipeable & AsyncIterableIterator<number> & TPushable {
   const it = itr8Pushable<number>(Infinity); // infinite buffer !!!
