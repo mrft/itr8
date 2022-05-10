@@ -2064,7 +2064,7 @@ describe('itr8 test suite', () => {
       assert.deepEqual(results[descr].values, [1, 2, 3, 4], `${descr}: 'values' fail!`);
       assert.deepEqual(results[descr].times.map((t) => Math.round(t / 5) * 5), [0, 0, 10, 10], `${descr}: 'times' fail!`);
 
-    });
+    }).timeout(1_000);
 
     it('mostRecent(...) operator works properly', async () => {
       const it = itr8Pushable();
@@ -2948,7 +2948,7 @@ describe('itr8 test suite', () => {
       // batched iterators should be faster than simple asynchronous iterator
       // because we have alot less promises to await
       assert.isAbove(avgDurationIt, avgDurationBatch);
-    });
+    }).timeout(4000);
 
   });
 
@@ -3014,6 +3014,6 @@ describe('itr8 test suite', () => {
       console.log('      - [mem usage for really large set]', 'itr8 async took', durationItAsync);
 
       assert.equal(asyncCounter, 100_000);
-    });
+    }).timeout(4000);
   });
 })

@@ -17,7 +17,7 @@
     "postbuilddocs": "./optimize_generated_docs_for_git.sh",
     "echoForTest": "echo -e \"01 this is stdin\n02 So we can do some stream tests in the program\n03\n04\"",
     "//pretest": "npm run clean && mkdir -p ./dist && npm run build",
-    "test": "npm run echoForTest | ./node_modules/.bin/mocha --exit --timeout 4000 --node-option max-old-space-size=160 --require ts-node/register ./test/*.ts",
+    "test": "npm run echoForTest | ./node_modules/.bin/mocha --exit --timeout 200 --node-option max-old-space-size=160 --require ts-node/register ./test/*.ts",
     "posttest": "npm run build && npm run builddocs"
   },
   "keywords": [],
