@@ -5,6 +5,7 @@
 module.exports = {
   entryPoints: [
     'src/index.ts',
+    'src/operators/index.ts',
     'src/interface/observable.ts',
     'src/interface/stream.ts',
   ],

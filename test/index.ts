@@ -3,16 +3,12 @@ import * as Stream from 'stream';
 import * as fs from 'fs';
 import * as zlib from 'zlib';
 
-import * as itr8 from '../src';
-import { asNoBatch, lineByLine, itr8OperatorFactory, unBatch, debounce, throttle, prefetch, mostRecent, takeWhile, tap, asBatch, average, batch, dedup, flatten, forEach, groupPer, intersperse, limit, percentile, runningAverage, runningPercentile, runningReduce, runningTotal, some, sort, split, stringToChar, total, uniq, uniqBy, itr8Pipe, skip, map, delay, filter, min, max, zip, every, itr8ToArray, itr8Range, itr8Proxy, itr8RangeAsync, itr8FromString, itr8FromArrayAsync, thenable, forLoop, itr8FromArray, itr8FromSingleValue, itr8FromSingleValueAsync, itr8FromStringAsync, itr8Pushable, reduce, itr8ToMultiIterable, gzip, gunzip, itr8Interval } from '../src';
+import { itr8Pipe, itr8ToArray, itr8Range, itr8Proxy, itr8RangeAsync, itr8FromString, itr8FromArrayAsync, thenable, forLoop, itr8FromArray, itr8FromSingleValue, itr8FromSingleValueAsync, itr8FromStringAsync, itr8Pushable, itr8ToMultiIterable, itr8Interval, itr8FromIterable } from '../src';
+import { itr8OperatorFactory, asNoBatch, lineByLine, unBatch, debounce, throttle, prefetch, mostRecent, takeWhile, tap, asBatch, average, batch, dedup, flatten, forEach, groupPer, intersperse, limit, percentile, runningAverage, runningPercentile, runningReduce, runningTotal, some, sort, split, stringToChar, total, uniq, uniqBy, skip, map, delay, filter, min, max, zip, every, reduce, gzip, gunzip, parseJson } from '../src/operators';
 import { itr8FromStream, itr8ToReadableStream } from '../src/interface/stream'
 import { itr8FromObservable, itr8ToObservable } from '../src/interface/observable'
 import { hrtime } from 'process';
-import { cursorTo } from 'readline';
-import { resolve } from 'path';
-import { utils } from 'mocha';
 import { promisify } from 'util';
-import { match } from 'assert';
 import { isPromise } from 'util/types';
 import { concatMap, from, of, delay as rxjsDelay } from 'rxjs';
 
@@ -24,10 +20,12 @@ const b: string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
  * A function that will produce a readable NodeJS stream based on an
  * array, where a new item will be pushed every 10ms.
  */
-const arrayToStream = (arr: any[], timeBetweenChunks: number = 10) => {
+const arrayToStream = (arr: any[], timeBetweenChunks = 10) => {
   const readable = new Stream.Readable({ objectMode: true });
 
-  readable._read = () => { };
+  readable._read = () => {
+    // empty
+  };
 
   arr.forEach((item, index) => setTimeout(() => readable.push(item), index * timeBetweenChunks));
 
@@ -292,7 +290,7 @@ describe('first test the util functions used in the test suite', () => {
     const arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     const readStream = arrayToStream(arr);
 
-    const resultOfReadingTheStream = await new Promise((resolve, reject) => {
+    const resultOfReadingTheStream = await new Promise((resolve /*, reject*/) => {
       let arrayRead: any[] = [];
       readStream.on('data', (data) => {
         arrayRead = [...arrayRead, data];
@@ -515,7 +513,7 @@ describe('itr8 test suite', () => {
       }).then((v) => {
         arrayToBeFilled.push('done');
         return v;
-      });;
+      });
 
       assert.isTrue(isPromise(result.src));
       await result;
@@ -767,7 +765,7 @@ describe('itr8 test suite', () => {
         [2, 4, 6],
       );
 
-      let r: any[] = [];
+      const r: any[] = [];
       itr8Range(1, 1000).pipe(
         limit(3),
         map((x) => x * 2),
@@ -1955,7 +1953,91 @@ describe('itr8 test suite', () => {
             assert.deepEqual(a,b);
           }),
         );
-    });
+    }).timeout(400);
+
+    it('can parse json on an iterator', async () => {
+      const jsonString = JSON.stringify({
+        a: 'this is A',
+        b: 2,
+        l: [ 'zero', 'one', 'two', 'three' ],
+      });
+
+      assert.deepEqual(
+        await itr8FromIterable(jsonString).pipe(
+          parseJson(['$.b']),
+          itr8ToArray,
+        ),
+        [[2, '$.b']],
+      );
+
+      assert.deepEqual(
+        await itr8FromIterable(jsonString).pipe(
+          parseJson(['$.l.3']),
+          itr8ToArray,
+        ),
+        [
+          ['three', '$.l.3'],
+        ],
+      );
+
+      assert.deepEqual(
+        await itr8FromIterable(jsonString).pipe(
+          parseJson(['$.*.*']),
+          itr8ToArray,
+        ),
+        [
+          [ 'zero', '$.l.0'],
+          [  'one', '$.l.1'],
+          [  'two', '$.l.2'],
+          ['three', '$.l.3'],
+        ],
+      );
+
+      // console.log('itr8RPushable');
+      const nrOfResults = 100_000;
+
+      const pushIt = itr8Pushable(100); // max 100 buffered items
+      setTimeout(async () => {
+        let c3 = 0;
+        pushIt.push(`{ "meta": { "nrOfResults": ${nrOfResults} }, "results": [`);
+        await itr8RangeAsync(0, nrOfResults - 1).pipe(
+            map((x) => (JSON.stringify({ id: x, name: `prisoner no. ${x}` }))),
+            intersperse(','),
+            forEach(async (x) => {
+              // if (c3 % 100_000 === 0) console.log('pushing', x);
+              pushIt.push(x);
+              c3++;
+            }),
+          );
+          pushIt.push(']');
+          pushIt.done();
+        },
+        1,
+      );
+      // console.log('======== Setting up foreach on pushIt');
+      let counter = 0;
+      let failed = false;
+      await pushIt.pipe(
+        parseJson(['$.results.*.name']),
+        tap((x) => counter++),
+        takeWhile((v) => {
+          if (v[0].startsWith('prisoner no. ')) return true;
+          failed = true;
+          return false;
+        }),
+        forEach((value) => { // needed for draining the iterator !!!
+          // if (counter % 100_000 === 0) console.log('                                            -> forEach', counter, value);
+          // if (!failed && !value.startsWith('prisoner no. ')) {
+          //   failed = true;
+          //   assert.fail('value does not start with ´prisoner no.´ as expected');
+          // };
+        }),
+      );
+      assert.isFalse(failed);
+      assert.equal(counter, nrOfResults);
+
+    }).timeout(20_000);
+
 
     it('prefetch(...) operator works properly', async () => {
       const iteratorFactory = () => {
@@ -1972,9 +2054,9 @@ describe('itr8 test suite', () => {
       // and recording the times between ending processing and starting processing the next,
       // we could check whether the prefetching worked
       // (because the promises should be resolved sooner)
-      let results: any = {};
+      const results: any = {};
       const fnThatStoresResultsFactory = (resultName: string, sleepTime: number) => {
-        let r: any = results[resultName] || { values: [], times: [] };
+        const r: any = results[resultName] || { values: [], times: [] };
         results[resultName] = r;
         let start = hrtime();
         return async (v, sleepTime2?: number) => {
@@ -1993,7 +2075,7 @@ describe('itr8 test suite', () => {
       // should follow the tempo of the input
       descr = 'no prefetch & processing time = 5';
       f = fnThatStoresResultsFactory(descr, 5);
-      for await (let v of iteratorFactory()) {
+      for await (const v of iteratorFactory()) {
         await f(v);
       }
       assert.deepEqual(results[descr].values, [1, 2, 3, 4], `${descr}: 'values' fail!`);
@@ -2004,7 +2086,7 @@ describe('itr8 test suite', () => {
       descr = 'prefetch 1 & processing time = 5';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 5);
-      for await (let v of iteratorFactory().pipe(prefetch(1))) {
+      for await (const v of iteratorFactory().pipe(prefetch(1))) {
         await f(v);
       }
       assert.deepEqual(results[descr].values, [1, 2, 3, 4], `${descr}: 'values' fail!`);
@@ -2015,7 +2097,7 @@ describe('itr8 test suite', () => {
       descr = 'prefetch 1 & processing time = 10';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10);
-      for await (let v of iteratorFactory().pipe(prefetch(1))) {
+      for await (const v of iteratorFactory().pipe(prefetch(1))) {
         // console.log('start processing', v);
         await f(v);
       }
@@ -2027,7 +2109,7 @@ describe('itr8 test suite', () => {
       descr = 'prefetch 3 & processing time = 5';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 5);
-      for await (let v of iteratorFactory().pipe(prefetch(3))) {
+      for await (const v of iteratorFactory().pipe(prefetch(3))) {
         // console.log('start processing', v);
         await f(v);
       }
@@ -2042,7 +2124,7 @@ describe('itr8 test suite', () => {
       let index = 0;
       const processingTimes = [30, 0, 0];
       f = fnThatStoresResultsFactory(descr, 30);
-      for await (let v of iteratorFactory().pipe(prefetch(3))) {
+      for await (const v of iteratorFactory().pipe(prefetch(3))) {
         // console.log('start processing', v);
         await f(v, processingTimes[index]);
         index++;
@@ -2056,7 +2138,7 @@ describe('itr8 test suite', () => {
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 30);
       index = 0;
-      for await (let v of iteratorFactory().pipe(prefetch(1))) {
+      for await (const v of iteratorFactory().pipe(prefetch(1))) {
         // console.log('start processing', v);
         await f(v, processingTimes[index]);
         index++;
@@ -2117,14 +2199,14 @@ describe('itr8 test suite', () => {
 
       const twoDimGen = function* (): Iterator<Array<string>> {
         const input = 'Hello, how are you today Sir?'.split(' ');
-        for (let s of input) {
+        for (const s of input) {
           yield itr8ToArray(itr8FromString(s)) as string[];
         }
       };
 
       const twoDimGenAsync = async function* (): AsyncIterator<Array<string>> {
         const input = 'Hello, how are you today Sir?'.split(' ');
-        for (let s of input) {
+        for (const s of input) {
           yield itr8ToArray(itr8FromString(s)) as string[];
         }
       };
@@ -2558,7 +2640,7 @@ describe('itr8 test suite', () => {
         const wrapString = (s) => `<-- ${s} -->`
 
         // we'll put all elements in an array and check that
-        let result1: any[] = [];
+        const result1: any[] = [];
         itr8Range(4, 7)
           .pipe(
             map(plusOne),
@@ -2576,7 +2658,7 @@ describe('itr8 test suite', () => {
           [5, 6, 7, 8],
         );
 
-        let result2: any[] = [];
+        const result2: any[] = [];
         await itr8Range(4, 7)
           .pipe(
             map(wrapString),
@@ -2592,7 +2674,7 @@ describe('itr8 test suite', () => {
         );
 
         // asynchronous
-        let result3: any[] = [];
+        const result3: any[] = [];
         await itr8RangeAsync(4, 7)
           .pipe(
             map(plusOne),
@@ -2607,7 +2689,7 @@ describe('itr8 test suite', () => {
           [5, 6, 7, 8],
         );
 
-        let result4: any[] = [];
+        const result4: any[] = [];
         await itr8RangeAsync(4, 7)
           .pipe(
             map(wrapString),
@@ -2699,9 +2781,9 @@ describe('itr8 test suite', () => {
         // by sleeping for a while after the first next() call
         // and recording the times, we could check whether the prefetching worked
         // (because the promises should be resolved already)
-        let results: any = {};
+        const results: any = {};
         const forEachFactory = (resultName: string, sleepTime: number) => {
-          let r: any = { values: [], times: [] };
+          const r: any = { values: [], times: [] };
           results[resultName] = r;
           let start = hrtime();
           return async (v) => {
@@ -2731,7 +2813,7 @@ describe('itr8 test suite', () => {
 
 
         // we'll put all elements in an array and check that
-        let result1: any[] = [];
+        const result1: any[] = [];
         let counter = 0;
         let maxCounter = 0;
         const forEachHandler = async (x) => {
@@ -2762,14 +2844,14 @@ describe('itr8 test suite', () => {
     it('piping some operators with the pipe(operator) method works properly', async () => {
       const twoDimGen = function* (): IterableIterator<Array<string>> {
         const input = 'Hello, how are you today Sir?'.split(' ');
-        for (let s of input) {
+        for (const s of input) {
           yield itr8ToArray(itr8FromString(s)) as string[];
         }
       };
 
       const twoDimGenAsync = async function* (): AsyncIterableIterator<Array<string>> {
         const input = 'Hello, how are you today Sir?'.split(' ');
-        for (let s of input) {
+        for (const s of input) {
           yield itr8ToArray(itr8FromString(s)) as string[];
         }
       };

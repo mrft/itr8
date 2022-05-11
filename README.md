@@ -48,7 +48,8 @@ Install the module using npm
 
 And then import it in your source code file:
 ```typescript
-import { map, filter, skip, limit, forEach, itr8Range, itr8Proxy, itr8Pipe, itr8FromArray, itr8ToArray } from 'itr8'
+import { itr8Range, itr8Proxy, itr8Pipe, itr8FromArray, itr8ToArray } from 'itr8'
+import { map, filter, skip, limit, forEach } from 'itr8/operators'
 
 // create an iterator to start from with a utility function
 const myIterator = () => itr8Range(0, 10_000_000); // or itr8FromArray([...])

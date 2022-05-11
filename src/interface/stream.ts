@@ -1,6 +1,7 @@
 import * as Stream from 'stream';
 import { isPromise } from 'util/types';
-import { itr8Proxy, map, itr8FromIterable, stringToChar } from '..';
+import { itr8Proxy, itr8FromIterable } from '..';
+import { map, stringToChar } from '../operators';
 import { TPipeable } from '../types';
 
 /**

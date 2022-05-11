@@ -36,7 +36,7 @@
 
 import { isPromise } from 'util/types';
 import { forEach, takeWhile } from './transIterators';
-import { TPipeable, TPushable, TTransIteratorSyncOrAsync } from './types';
+import { TPipeable, TPushable } from './types';
 
 
 
@@ -88,7 +88,7 @@ import { TPipeable, TPushable, TTransIteratorSyncOrAsync } from './types';
  */
 const thenable = (x: any): { src: any, then: (...any) => any, value?: any } => {
   if (isPromise(x)) {
-    let newX = {
+    const newX = {
       src: x,
       then: (...args) => thenable(x.then(...args)),
     };
@@ -264,7 +264,7 @@ const itr8ProxyHandler:ProxyHandler<IterableIterator<any>> = {
       },
       first,
     );
-  };
+  }
 }
 
 function itr8PipeArray(
@@ -331,7 +331,7 @@ function itr8Proxy<PTIterator extends IterableIterator<any> | AsyncIterableItera
   //   // console.log(`Adding ${x} to iterator object`)
   //   iterator[x] = TransIt[x](iterator);
   // }
-  let retVal = (iterator as TPipeable & PTIterator);
+  const retVal = (iterator as TPipeable & PTIterator);
   // retVal.pipe = (transIt:TTransIteratorSyncOrAsync, ...moreTransits:Array<TTransIteratorSyncOrAsync>) => {
   //   return itr8Proxy(itr8Pipe(transIt, ...moreTransits)(iterator));
   // }
@@ -392,7 +392,7 @@ function itr8FromArray<T>(a: Array<T>): TPipeable & IterableIterator<T> {
  */
 function itr8FromArrayAsync<T>(a: Array<T>): TPipeable & AsyncIterableIterator<T> {
   return itr8Proxy(
-    (async function*() { for (let x of a) { yield x; } })()
+    (async function*() { for (const x of a) { yield x; } })()
   );
 }
 
@@ -420,7 +420,7 @@ function itr8FromString(s: string): TPipeable & IterableIterator<string> {
  */
 function itr8FromStringAsync(s: string): TPipeable & AsyncIterableIterator<string> {
   return itr8Proxy(
-    (async function* () { for (let x of s) { yield x; } })()
+    (async function* () { for (const x of s) { yield x; } })()
   );
 }
 
@@ -473,17 +473,17 @@ function itr8FromSingleValueAsync<T>(v: any): TPipeable & AsyncIterableIterator<
  * @category iterator_factories
  */
 function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T> & TPushable {
-  let buffer:any[] = [];
+  const buffer:any[] = [];
 
   let currentResolve;
-  let currentReject;
+  // let currentReject;
   let currentDataPromise;
   // let done = false;
 
   const createNewCurrentDataPromise = () => {
-    currentDataPromise = new Promise((resolve, reject) => {
+    currentDataPromise = new Promise((resolve /*, reject */) => {
       currentResolve = resolve;
-      currentReject = reject;
+      // currentReject = reject;
     });
     buffer.push(currentDataPromise);
     while (bufferSize !== undefined && buffer.length > bufferSize + 1) {
@@ -547,13 +547,13 @@ function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T
  *
  * @category iterator_converters
  */
-function itr8ToMultiIterable<T>(abandonedTimeoutMilliseconds:number = Infinity)
+function itr8ToMultiIterable<T>(/* abandonedTimeoutMilliseconds = Infinity */)
                                :(it:Iterator<T> | AsyncIterator<T>) => AsyncIterable<T> {
   return (it:Iterator<T> | AsyncIterator<T>) => {
-    let subscriberMap:Map<AsyncIterableIterator<T>, number> = new Map();
-    let buffer:Map<number,IteratorResult<T> | Promise<IteratorResult<T>>> = new Map();
+    const subscriberMap:Map<AsyncIterableIterator<T>, number> = new Map();
+    const buffer:Map<number,IteratorResult<T> | Promise<IteratorResult<T>>> = new Map();
 
-    let retVal:AsyncIterable<T> = {
+    const retVal:AsyncIterable<T> = {
       [Symbol.asyncIterator]: () => {
         const outIt:AsyncIterableIterator<T> = {
           [Symbol.asyncIterator]: () => outIt,
@@ -605,10 +605,10 @@ function itr8ToArray<T>(iterator: Iterator<T> | AsyncIterator<T>): Array<T | any
   let n = iterator.next();
   if (isPromise(n)) {
     return (async () => {
-      let asyncResult:T[] = [];
+      const asyncResult:T[] = [];
       while (!(await n).done) {
         if (isBatch) {
-          for (let v of (await n).value as unknown as Iterable<any>) {
+          for (const v of (await n).value as unknown as Iterable<any>) {
             asyncResult.push(v);
           }
         } else {
@@ -620,11 +620,11 @@ function itr8ToArray<T>(iterator: Iterator<T> | AsyncIterator<T>): Array<T | any
     })();
   } else {
     // return Array.from(iterator);
-    let result:T[] = [];
+    const result:T[] = [];
     let nSync = (n as IteratorResult<T>);
     while (!nSync.done) {
       if (isBatch) {
-        for (let v of nSync.value as unknown as Iterable<any>) {
+        for (const v of nSync.value as unknown as Iterable<any>) {
           result.push(v);
         }
       } else {
@@ -728,9 +728,7 @@ function itr8Interval(intervalMilliseconds:number):TPipeable & AsyncIterableIter
   return it;
 }
 
-export * from './transIterators'
-
-export { TPipeable, TTransIteratorSyncOrAsync, TNextFnResult } from './types'
+export { TPipeable, TPushable, TTransIteratorSyncOrAsync, TNextFnResult } from './types'
 
 export {
   itr8Proxy,

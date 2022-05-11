@@ -618,6 +618,7 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
        */
       const generateNextReturnVal = () => {
         // while loop instead of calling this function recursively (call stack can become too large)
+        // eslint-disable-next-line no-constant-condition
         while (true) {
           if (done) {
             return { value: undefined, done: true };
@@ -683,6 +684,7 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
         let alreadyKnownNextFnResponse = nextFnResponse;
         let alreadyKnownCurrentOutputIteratorNext = currentOutputIteratorNext;
         // while loop instead of calling this function recursively (call stack can become to large)
+        // eslint-disable-next-line no-constant-condition
         while (true) {
           if (done) {
             return { value: undefined, done: true };
@@ -714,7 +716,7 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
             updateNextInPromiseOrValue();
           } else {
             doUpdateNextInPromiseOrValue = true; // only possibly skip it the first time !!!
-          };
+          }
           const nextIn = await nextInPromiseOrValue;
           let curNextFnResultPromiseOrValue;
           if (alreadyKnownNextFnResponse !== undefined) {
@@ -758,6 +760,7 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
        * @returns a new array to return as the batch element
        */
       const generateNextBatchReturnVal = () => {
+        // eslint-disable-next-line no-constant-condition
         while (true) {
           if (done) {
             return { value: undefined, done: true };
@@ -777,7 +780,7 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
               return generateNextBatchReturnValAsync(false, resultIterator, possibleNext);
             } else {
               let n = possibleNext;
-              let resultArray: TOut[] = [];
+              const resultArray: TOut[] = [];
               while (!n.done) {
                 resultArray.push(n.value);
                 n = resultIterator.next();
@@ -800,10 +803,11 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
        * @returns
        */
       const generateNextBatchReturnValAsync = async (callUpdateNextInPromiseOrValue = true, innerIterator?: AsyncIterator<TOut>, innerIteratorFirstPromise?: Promise<any>) => {
-        let doUpdateNextInPromiseOrValue = callUpdateNextInPromiseOrValue;
+        const doUpdateNextInPromiseOrValue = callUpdateNextInPromiseOrValue;
         let inputInnerIterator = innerIterator;
         let inputInnerPossibleNext = innerIteratorFirstPromise;
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
           if (done) {
             return { value: undefined, done: true };
@@ -826,7 +830,7 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
               resultIterator = operatorFunction(innerIterator, state);
             }
 
-            let resultArray: any[] = [];
+            const resultArray: any[] = [];
             let possibleNext;
             if (inputInnerPossibleNext !== undefined) {
               possibleNext = inputInnerPossibleNext;
@@ -887,7 +891,7 @@ const itr8OperatorFactory = function <TIn = any, TOut = any, TParams = any, TSta
 
       if (itIn['itr8Batch']) {
         retVal['itr8Batch'] = itIn['itr8Batch']
-      };
+      }
 
       // for internal use for batch: make sure we can get the state !!!
       retVal['getState'] = () => state;
@@ -1173,7 +1177,7 @@ const reduce = itr8OperatorFactory<
 
     if (nextIn.done) {
       return { done: false, value: acc, state: { ...state, done: true } }
-    };
+    }
 
     return thenable(params.reducer(acc, nextIn.value, state.index))
       .then((reduced) => ({
@@ -1246,7 +1250,7 @@ const reduce = itr8OperatorFactory<
 
    if (nextIn.done) {
      return { done: true, value: acc, state };
-   };
+   }
 
    return thenable(params.reducer(acc, nextIn.value, state.index))
      .then((reduced) => ({
@@ -1338,7 +1342,7 @@ const takeWhile = itr8OperatorFactory<any, any, (any) => boolean | Promise<boole
   (nextIn, state, secondIterator) => {
     if (nextIn.done) {
       return { done: true };
-    };
+    }
 
     return thenable(secondIterator.next())
       .then((secondNext) => ({
@@ -1814,7 +1818,7 @@ const uniq = itr8OperatorFactory<any, any, void, Set<any>>(
     } else if (state.has(nextIn.value)) {
       return { done: false, state };
     }
-    let newState = new Set(state);
+    const newState = new Set(state);
     newState.add(nextIn.value);
     return { done: false, value: nextIn.value, state: newState };
   },
@@ -1847,7 +1851,7 @@ const uniqBy = itr8OperatorFactory<any, any, (v:any) => any, Set<any>>(
     if (state.has(hash)) {
       return { done: false, state };
     }
-    let newState = new Set(state);
+    const newState = new Set(state);
     newState.add(hash);
     return { done: false, value: nextIn.value, state: newState };
   },
@@ -1990,7 +1994,7 @@ const split = itr8OperatorFactory<any, any, any, any[] | undefined>(
 const delay = itr8OperatorFactory<any, any, number, void>(
   (nextIn, state, timeout) => {
     return new Promise<any>(
-      (resolve, reject) => {
+      (resolve /*, reject*/) => {
         setTimeout(() => resolve(nextIn), timeout);
       }
     );
@@ -2376,7 +2380,7 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
     const isBatch = it['itr8Batch'] === true;
 
     const maxRunningHandlers = options?.concurrency || 1;
-    let runningHandlers: Set<Promise<void>> = new Set();
+    const runningHandlers: Set<Promise<void>> = new Set();
     const waitForOpenSpot = async () => {
       // wait for an open spot if the max amount of running handlers is reached
       if (runningHandlers.size >= maxRunningHandlers) {
@@ -2395,7 +2399,7 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
       });
     }
 
-    let nextPromiseOrValue = it.next();
+    const nextPromiseOrValue = it.next();
     if (isPromise(nextPromiseOrValue)) {
       const nextPromise = nextPromiseOrValue;
 
@@ -2414,7 +2418,7 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
         let next = (await nextPromise) as IteratorResult<any>;
         while (!next.done) {
           if (isBatch) {
-            for (let v of next.value as unknown as Iterable<any>) {
+            for (const v of next.value as unknown as Iterable<any>) {
               await handleNext(v);
             }
           } else {
@@ -2433,7 +2437,7 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
         if (isBatch) {
           batchIterator = itr8FromIterable(next.value as unknown as Iterable<any>);
           // we make the assumption that there will not be empty batches!!!
-          let n = batchIterator.next();
+          const n = batchIterator.next();
           handlerPossiblePromise = handler(n.value);
         } else {
           handlerPossiblePromise = handler(next.value);
@@ -2449,9 +2453,9 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
                   addToRunningHandlersList(handlerPossiblePromiseIn);
                   handlerPossiblePromiseIn = undefined;
                 }
-                let subIterator = batchIterator || itr8FromIterable(next.value as unknown as Iterable<any>);
+                const subIterator = batchIterator || itr8FromIterable(next.value as unknown as Iterable<any>);
                 batchIterator = undefined;
-                for (let v of subIterator) {
+                for (const v of subIterator) {
                   const handlerPromise = handler(v) as Promise<void>;
                   addToRunningHandlersList(handlerPromise);
                 }
@@ -2467,12 +2471,12 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
             }
             // wait until all remaining handlers are done before resolving the current promise!
             await Promise.all(runningHandlers);
-          })();;
+          })();
         } else {
           next = it.next();
           while (!next.done) {
             if (isBatch) {
-              for (let v of next.value as unknown as Iterable<any>) {
+              for (const v of next.value as unknown as Iterable<any>) {
                 handler(v);
               }
             } else {
@@ -2483,7 +2487,7 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
           }
         }
       }
-    };
+    }
   };
 }
 
