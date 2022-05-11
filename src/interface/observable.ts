@@ -8,6 +8,8 @@ import { TPipeable } from '../types';
  *
  * @param observable
  * @returns
+ *
+ * @category interface/observable
  */
 function itr8FromObservable<T>(observable:Observable<T>):TPipeable & AsyncIterableIterator<T> {
   const retVal = itr8Pushable();
@@ -75,6 +77,8 @@ function itr8FromObservable<T>(observable:Observable<T>):TPipeable & AsyncIterab
  *
  * @param observable
  * @returns
+ *
+ * @category interface/observable
  */
 function itr8ToObservable<T>(iterator:IterableIterator<T> | AsyncIterableIterator<T>):Observable<T> {
   // const iterable = {

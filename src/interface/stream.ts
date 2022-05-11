@@ -5,21 +5,20 @@ import { map, stringToChar } from '../operators';
 import { TPipeable } from '../types';
 
 /**
- * Transforms a stream into an async itr8.
+ * Transforms a readable stream into an async itr8.
  *
- * To open a file as an iterator:
- *
+ * @example
+ * ```typescript
  * itr8FromStream(fs.createReadStream("D://data.txt"));
+ * ```
  *
- * How it works: the stream.on data handler will put everything in a buffer
- * and pause the stream until next has been called on the iterator, which will cause
- * the stream to resume
+ * Did you know that [all readable streams are Iterables](https://2ality.com/2018/04/async-iter-nodejs.html#reading-asynchronously-via-async-iteration)?
  *
  * @param stream
+ *
+ * @category interface/stream
  */
 const itr8FromStream = (stream:Stream.Readable):TPipeable & AsyncIterableIterator<any> => {
-  // NodeJs streams expose an async iterator but when piping through for instance
-  // zlib.createGunzip(), nothing seems to come through!!!
   return itr8Proxy(stream[Symbol.asyncIterator]());
 
   // let buffer:any[] = [];
@@ -77,6 +76,8 @@ const itr8FromStream = (stream:Stream.Readable):TPipeable & AsyncIterableIterato
  * (If you want the raw bytes, simply use `itr8FromStream(process.stdin)`)
  *
  * @returns
+ *
+ * @category interface/stream
  */
 const itr8FromStdin = () => itr8FromStream(process.stdin)
         .pipe(
@@ -90,6 +91,7 @@ const itr8FromStdin = () => itr8FromStream(process.stdin)
  * If this works well, we should be able to use transform-streams (for example gzip)
  * just as easily as our own operators.
  *
+ * @category interface/stream
  */
 const itr8ToReadableStream = (iterable:Iterable<any> | AsyncIterable<any>) => {
   const itr = itr8FromIterable(iterable);

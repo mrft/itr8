@@ -18,7 +18,7 @@ import { JSONParser, Tokenizer, TokenParser } from '@streamparser/json';
  * and subproperties selectors including wildcards ($.a, $.*, $.a.b, , $.*.b, etc).
  *
  * @example
- * ```
+ * ```typescript
  *  itr8FromIterable('{ someprop: { id: '123' }, results: [ 'a', 'b', 'c' ] }')
  *    .pipe(
  *      parseJson(['$.results.*']),

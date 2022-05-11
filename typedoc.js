@@ -6,8 +6,7 @@ module.exports = {
   entryPoints: [
     'src/index.ts',
     'src/operators/index.ts',
-    'src/interface/observable.ts',
-    'src/interface/stream.ts',
+    'src/interface/index.ts',
   ],
   // the typedoc-plugin-pages can add more pages to the output
   // besides README.md, and the comments in your source code files
