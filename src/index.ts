@@ -38,6 +38,11 @@ import { isPromise } from 'util/types';
 import { forEach, takeWhile } from './transIterators';
 import { TPipeable, TPushable } from './types';
 
+// THIS MIGHT BE AN ALTERNATIVE TO REMOVE THE DEPENDENCY to Node's uil/types
+////////////////////////////////////////////////////////////////////////////
+// function isPromise(p) {
+//   return p && Object.prototype.toString.call(p) === "[object Promise]";
+// }
 
 
 /**
