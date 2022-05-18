@@ -37,6 +37,8 @@ It is tested on NodeJS 16 (the use of ```import { isPromise } from 'util/types';
   * [Who is this library for](#who-is-this-library-for)
   * [Roadmap](#roadmap)
 * [Documentation](#documentation)
+  * [What is a transIterator?](#what-is-a-transiterator)
+  * [Writing your own operators](#writing-your-own-operators)
 * [Inspiration](#inspiration)
 
 ## Getting started
@@ -48,7 +50,7 @@ Install the module using npm
 
 And then import it in your source code file:
 ```typescript
-import { itr8Range, itr8Proxy, itr8Pipe, itr8FromArray, itr8ToArray } from 'itr8'
+import { itr8Range, itr8FromIterator, itr8Pipe, itr8FromArray, itr8ToArray } from 'itr8'
 import { map, filter, skip, limit, forEach } from 'itr8/operators'
 
 // create an iterator to start from with a utility function
@@ -60,8 +62,8 @@ function* myGeneratorFunction() {
     yield i;
   }
 }
-// 'itr8Proxy' is only needed to make .pipe work which is just very convenient
-const myOwnIterator = () => itr8Proxy(myGeneratorFunction());
+// 'itr8FromIterator' is only needed to make .pipe work which is just very convenient
+const myOwnIterator = () => itr8FromIterator(myGeneratorFunction());
 
 // All iterables returned by itr8 are also 'pipeable', meaning that each returned iterator also exposes a pipe function to add other operators to the chain
 const myTransformedIterator = myIterator()
@@ -151,6 +153,8 @@ If you ever found yourself in one of these situations, this library might be use
 * IxJS I found too cumbersome (the docs were not clear enough for me), and I didn't see how to write my own operators (as opposed to RxJS that explains how to do that very well in the docs)
 * iter-tools: same here, how to write your own operators?
 * HighlandJS is stream based, which makes it NodeJS only (at least without browserify). Also, streams are kind of cumbersome, and the sync and async iterator protocols are dead simple and part of the standard.
+* js-iterator: 'dot-chaining' has the disadvantage that you cannot simply add your own operators
+  and I hate this 'you-can-only-do-what-already-exists-in-the library' situation.
 
 So, while all these libraries have their merit, none of them convered my needs well enough, so at a certain point things became clear enough in my head to write my own library.
 
@@ -320,7 +324,7 @@ Prefetch and mostRecent are actually returning a custom built iterator.
 As long as your operator returns a function transforming the input iterator into another iterator,
 you're good (and try to be polite: always support both sync and async iterators as input, and if
 possible, make sure that if the input iterator is synchronous, the output iterator is synchronous
-as well, and wrap it with itr8Proxy so .pipe(...) can be used on the result).
+as well, and wrap it with itr8FromIterator so .pipe(...) can be used on the result).
 
 #### Notes
 
@@ -368,6 +372,7 @@ And composition is what we all want, but there doesn't seem to be a single way t
 solves things the same way as they have been solved for arrays. The problem with this is that
 **the iterator must contain all available operators as properties**, which keeps people from writing
 reuseable new operators, thus people keep solving the same problems over and over again.
+* [js-iterator](https://github.com/tenorviol/js-iterator) has the exact same problem (as does every library that uses dot-chaining)
 
 There does not seem to be an easy way to treat all these as essentialy the same.
 It also makes sense to use things that are part of the "standard" as much as possible, as it will produce less friction using it in multiple environments.

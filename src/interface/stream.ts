@@ -1,7 +1,9 @@
 import * as Stream from 'stream';
 import { isPromise } from 'util/types';
-import { itr8Proxy, itr8FromIterable } from '..';
-import { map, stringToChar } from '../operators';
+import { itr8FromIterator, itr8FromIterable } from '../index';
+import { map } from '../operators/general/map';
+import { stringToChar } from '../operators/strings/stringToChar';
+
 import { TPipeable } from '../types';
 
 /**
@@ -19,7 +21,7 @@ import { TPipeable } from '../types';
  * @category interface/stream
  */
 const itr8FromStream = (stream:Stream.Readable):TPipeable & AsyncIterableIterator<any> => {
-  return itr8Proxy(stream[Symbol.asyncIterator]());
+  return itr8FromIterator(stream[Symbol.asyncIterator]());
 
   // let buffer:any[] = [];
 
@@ -64,7 +66,7 @@ const itr8FromStream = (stream:Stream.Readable):TPipeable & AsyncIterableIterato
   //   }
   // };
 
-  // return itr8Proxy(retVal);
+  // return itr8FromIterator(retVal);
 }
 
 /**
@@ -103,7 +105,7 @@ const itr8ToReadableStream = (iterable:Iterable<any> | AsyncIterable<any>) => {
       // console.log('reading from stream', size, 'data', nextFromIt);
       if (isPromise(nextFromIt)) {
         return (async () => {
-          let n = await nextFromIt;
+          let n = (await nextFromIt) as IteratorResult<any>;
           for (let i = 1; i <= size; i++) {
             const { done, value } = n;
             if (done) {

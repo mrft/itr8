@@ -1,0 +1,3 @@
+
+describe('interface/standard/.ts', () => {
+});

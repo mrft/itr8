@@ -9,10 +9,18 @@
     "strictNullChecks": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "module": "commonjs",
+    "module": "CommonJS", // ES2015
     "sourceMap": true,
     "declaration": true,
+    "esModuleInterop": true,
+    // "moduleResolution": "Classis",
+    // "strict": true,
     // "isolatedModules": true,
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
   },
   "exclude": [
     "dist",

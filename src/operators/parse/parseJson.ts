@@ -1,5 +1,5 @@
-import { itr8OperatorFactory } from "../../transIterators";
 import { JSONParser, Tokenizer, TokenParser } from '@streamparser/json';
+import { itr8OperatorFactory } from "../../util/index";
 
 
 /**

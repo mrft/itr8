@@ -1,6 +1,6 @@
 import { Observable, from } from 'rxjs';
-import { itr8Proxy, itr8Pushable } from '..';
 import { TPipeable } from '../types';
+import { itr8Pushable } from './standard/itr8Pushable';
 
 /**
  * Turns an Observable into an AsyncIterableIterator,
@@ -68,7 +68,7 @@ function itr8FromObservable<T>(observable:Observable<T>):TPipeable & AsyncIterab
   //     }
   //   },
   // }
-  // return itr8Proxy(retVal);
+  // return itr8FromIterator(retVal);
 }
 
 /**

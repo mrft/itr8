@@ -4,10 +4,12 @@
 /** @type {import('../../../src').IPluginOptions} */
 module.exports = {
   entryPoints: [
-    'src/index.ts',
-    'src/operators/index.ts',
     'src/interface/index.ts',
+    'src/operators/index.ts',
+    'src/util/index.ts',
+    'src/index.ts',
   ],
+  tsconfig: "./tsconfig.prod.json",
   // the typedoc-plugin-pages can add more pages to the output
   // besides README.md, and the comments in your source code files
   pluginPages: {

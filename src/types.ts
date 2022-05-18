@@ -31,7 +31,10 @@ type TTransIteratorSyncOrAsync<TIn=any, TOut=any> =
  * The type that the the nextFn of the itr8OperatorFactory should output
  */
 type TNextFnResult<TOut, TState> =
-    { done: true } | ( { done: false, state?: TState } & ({} | { value: TOut } | { iterable: Iterable<TOut> }) )
+    // { done: true } | ( { done: false, state?: TState } & (Record<string, never> | { value: TOut } | { iterable: Iterable<TOut> | AsyncIterable<TOut> }) )
+    { done: true }
+    | { done: false, state?: TState }
+    | { done: false, state?: TState } & ({ value: TOut } | { iterable: Iterable<TOut> | AsyncIterable<TOut> })
 
 
 export {

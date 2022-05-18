@@ -29,6 +29,14 @@ itr8/operators, and people with a strict bundle size can import /itr8/operators/
     * a zip operation would zip that event and the current state together
     * a tap operation would send the newState back into the pushable state iterator
     * A for each at the end would take the html and use it to update the DOM 
+* Explain how an ASYNC iterator is actually an extremely simple 2-way protocol:
+  * every next() call informs the sender that we're ready to receive another value
+  * every resolved promise hands the new message to the receiver
+  * despite its simplicity, there is a fair amount of problems that can be solved with it.
+    Imagine for example a round-robin scheme: each handler will indicate when it's ready to process
+    another message by a next() call. The round robin engine will send every new message
+    to the first of the round robin circle that is ready to receive that new message
+    (it would be a waste of time to send it to the next regardless whether it's ready or not)
 
 ## Add some more useful operators
 * gzip/gunzip?
