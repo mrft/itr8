@@ -14,7 +14,7 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/boolean
  */
-const some = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, { done: boolean }>(
+const some = itr8OperatorFactory<any, any, { done: boolean }, (any) => boolean | Promise<boolean>>(
   (nextIn, state, filterFn) => {
     if (state.done) return { done: true };
     if (nextIn.done) return { done: false, value: false, state: { done: true } };

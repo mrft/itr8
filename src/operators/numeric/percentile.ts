@@ -20,7 +20,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/numeric
  */
-const percentile = itr8OperatorFactory<number, number, number, { done: boolean, count: number, topArray: number[] }>(
+const percentile = itr8OperatorFactory<number, number, { done: boolean, count: number, topArray: number[] }, number>(
   (nextIn, state, percentage) => {
     if (state.done) return { done: true };
     if (nextIn.done) return { done: false, value: state.topArray[0], state: { ...state, done: true } };

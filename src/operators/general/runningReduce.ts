@@ -22,11 +22,11 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
 const runningReduce = itr8OperatorFactory<
  any,
  any,
+ { index: number, accumulator: any, done?: true },
  {
    reducer: (accumulator:any, currentValue:any, presentIndex?: number) => any,
    initialValue: any,
- },
- { index: number, accumulator: any, done?: true }
+ }
 >(
  (nextIn, state, params) => {
    if (state.done) { return { done: true }; }

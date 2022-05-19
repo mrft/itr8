@@ -12,7 +12,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/numeric
  */
-const runningPercentile = itr8OperatorFactory<number, number, number, { count: number, topArray: number[] }>(
+const runningPercentile = itr8OperatorFactory<number, number, { count: number, topArray: number[] }, number>(
   (nextIn, state, percentage) => {
     if (nextIn.done) return { done: true };
     const newCount = state.count + 1;

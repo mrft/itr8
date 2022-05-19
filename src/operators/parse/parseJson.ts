@@ -36,7 +36,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/parse
  */
-const parseJson = itr8OperatorFactory<Uint8Array | Buffer | string, Record<string,any>, Array<string>, { parser: typeof JSONParser, common: Record<string, any>, done: boolean }>(
+const parseJson = itr8OperatorFactory<Uint8Array | Buffer | string, Record<string,any>, { parser: typeof JSONParser, common: Record<string, any>, done: boolean }, Array<string>>(
   (nextIn, state, params) => {
     if (nextIn.done || state.done) {
       return { done: true };

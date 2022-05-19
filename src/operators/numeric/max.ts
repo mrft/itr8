@@ -12,7 +12,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/numeric
  */
-const max = itr8OperatorFactory<number, number, void, { done: boolean, max: number }>(
+const max = itr8OperatorFactory<number, number, { done: boolean, max: number }, void>(
   (nextIn: IteratorResult<any>, state: { done: boolean, max: number }) => {
     if (state.done) {
       return { done: true };

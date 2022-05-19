@@ -13,7 +13,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/numeric
  */
-const runningAverage = itr8OperatorFactory<number, number, void, { done: boolean, count: number, sum: number }>(
+const runningAverage = itr8OperatorFactory<number, number, { done: boolean, count: number, sum: number }, void>(
   (nextIn, state, params) => {
     if (nextIn.done) return { done: true };
     const newCount = state.count + 1;

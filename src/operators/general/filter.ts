@@ -8,7 +8,7 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/general
  */
-const filter = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, void>(
+const filter = itr8OperatorFactory<any, any, void, (any) => boolean | Promise<boolean>>(
   (nextIn, state, filterFn) => {
     if (nextIn.done) return { done: true };
 

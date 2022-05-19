@@ -114,7 +114,7 @@ const transIts = {
     () => null,
   ),
   // async nextFn, sync iterator
-  opr8MapAsyncSync: itr8OperatorFactory<(any) => any, any, any, void>(
+  opr8MapAsyncSync: itr8OperatorFactory<(any) => any, any, void, any>(
     async (nextIn, _state, params) => {
       if (nextIn.done) {
         return { done: true };
@@ -161,7 +161,7 @@ const transIts = {
   // that is sync/async nextFn and sync/async iterator
   ////////////////////////////////////////////////////////////////
   // sync nextFn, sync iterator
-  opr8RepeatEachSyncSync: itr8OperatorFactory<number, any, any, void>(
+  opr8RepeatEachSyncSync: itr8OperatorFactory<number, any, void, any>(
     (nextIn, _state, count) => {
       if (nextIn.done) {
         return { done: true };
@@ -174,7 +174,7 @@ const transIts = {
     () => undefined,
   ),
   // async nextFn, sync iterator
-  opr8RepeatEachAsyncSync: itr8OperatorFactory<number, any, any, void>(
+  opr8RepeatEachAsyncSync: itr8OperatorFactory<number, any, void, any>(
     async (nextIn, _state, count) => {
       if (nextIn.done) {
         return { done: true };
@@ -187,7 +187,7 @@ const transIts = {
     () => undefined,
   ),
   // sync nextFn, async iterator
-  opr8RepeatEachSyncAsync: itr8OperatorFactory<number, any, any, void>(
+  opr8RepeatEachSyncAsync: itr8OperatorFactory<number, any, void, any>(
     (nextIn, _state, count) => {
       if (nextIn.done) {
         return { done: true };
@@ -200,7 +200,7 @@ const transIts = {
     () => undefined,
   ),
   // async nextFn, async iterator
-  opr8RepeatEachAsyncAsync: itr8OperatorFactory<number, any, any, void>(
+  opr8RepeatEachAsyncAsync: itr8OperatorFactory<number, any, void, any>(
     async (nextIn, _state, count) => {
       if (nextIn.done) {
         return { done: true };

@@ -613,12 +613,12 @@ const forLoop = <State>(
  *
  * @category operators/factory
  */
-const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = unknown, TState = unknown>(
-  nextFn: (nextIn: IteratorResult<TIn>, state: TState, params: TParams) =>
+const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = unknown, TParam1 = void, TParam2 = void, TParam3 = void, TParam4 = void>(
+  nextFn: (nextIn: IteratorResult<TIn>, state: TState, param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) =>
     TNextFnResult<TOut, TState> | Promise<TNextFnResult<TOut, TState>>,
-  initialStateFactory: (params:TParams) => TState,
-): (params: TParams) => TTransIteratorSyncOrAsync<TIn, TOut> {
-  return function (params: TParams): TTransIteratorSyncOrAsync<TIn, TOut> {
+  initialStateFactory: (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) => TState,
+): (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) => TTransIteratorSyncOrAsync<TIn, TOut> {
+  return function (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]): TTransIteratorSyncOrAsync<TIn, TOut> {
     const operatorFunction = (itIn: Iterator<TIn> | AsyncIterator<TIn>, pState: TState) => {
       let nextInPromiseOrValue: IteratorResult<TIn> | Promise<IteratorResult<TIn>> | undefined = undefined;
       // let nextIn: IteratorResult<TIn> | undefined = undefined;
@@ -648,7 +648,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
        *    * set current iterator if it returns an iterable and call generateNextReturnVal
        * @returns
        */
-      const generateNextReturnVal = () => {
+      const generateNextReturnVal = ():IteratorResult<TOut> | Promise<IteratorResult<TOut>> => {
         // while loop instead of calling this function recursively (call stack can become too large)
         // eslint-disable-next-line no-constant-condition
         while (true) {
@@ -676,7 +676,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
             return generateNextReturnValAsync(false);
           }
           const nextIn = nextInPromiseOrValue as IteratorResult<any>;
-          const curNextFnResult = nextFn(nextIn as IteratorResult<TIn>, state, params) as TNextFnResult<TOut, TState>;
+          const curNextFnResult = nextFn(nextIn as IteratorResult<TIn>, state, param1, param2, param3, param4, ...otherParams) as TNextFnResult<TOut, TState>;
           if (isAsyncNextFn === undefined) isAsyncNextFn = isPromise(curNextFnResult);
           if (isAsyncNextFn) {
             return generateNextReturnValAsync(false, curNextFnResult);
@@ -711,7 +711,9 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
        * @param callUpdateNextInPromiseOrValue
        * @returns
        */
-      const generateNextReturnValAsync = async (callUpdateNextInPromiseOrValue = true, nextFnResponse?, currentOutputIteratorNext?) => {
+      const generateNextReturnValAsync = async (
+        callUpdateNextInPromiseOrValue = true, nextFnResponse?, currentOutputIteratorNext?
+      ):Promise<IteratorResult<TOut>> => {
         let doUpdateNextInPromiseOrValue = callUpdateNextInPromiseOrValue;
         let alreadyKnownNextFnResponse = nextFnResponse;
         let alreadyKnownCurrentOutputIteratorNext = currentOutputIteratorNext;
@@ -755,7 +757,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
             curNextFnResultPromiseOrValue = alreadyKnownNextFnResponse;
             alreadyKnownNextFnResponse = undefined; // only use it the first time !!!
           } else {
-            curNextFnResultPromiseOrValue = nextFn(nextIn as IteratorResult<TIn>, state, params);
+            curNextFnResultPromiseOrValue = nextFn(nextIn as IteratorResult<TIn>, state, param1, param2, param3, param4, ...otherParams);
           }
           if (isAsyncNextFn === undefined) isAsyncNextFn = isPromise(curNextFnResultPromiseOrValue);
           const curNextFnResult = (isAsyncNextFn ? await curNextFnResultPromiseOrValue : curNextFnResultPromiseOrValue) as TNextFnResult<TOut, TState>;
@@ -791,7 +793,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
        *
        * @returns a new array to return as the batch element
        */
-      const generateNextBatchReturnVal = () => {
+      const generateNextBatchReturnVal = ():IteratorResult<TOut[]> | Promise<IteratorResult<TOut[]>> => {
         // eslint-disable-next-line no-constant-condition
         while (true) {
           if (done) {
@@ -806,22 +808,23 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
             done = true;
           } else {
             const innerIterator = nextIn.value[Symbol.iterator]();
-            const resultIterator = operatorFunction(innerIterator, state);
+            const resultIterator = operatorFunction(innerIterator, state) as unknown as Iterator<TOut>;
             const possibleNext = resultIterator.next();
-            if (isPromise(possibleNext)) {
-              return generateNextBatchReturnValAsync(false, resultIterator, possibleNext);
-            } else {
+            // the inner iterator is always synchronous
+            // if (isPromise(possibleNext)) {
+            //   return generateNextBatchReturnValAsync(false, resultIterator, possibleNext);
+            // } else {
               let n = possibleNext;
               const resultArray: TOut[] = [];
               while (!n.done) {
                 resultArray.push(n.value);
                 n = resultIterator.next();
               }
-              state = resultIterator.getState();
+              state = (resultIterator as any).getState();
               if (resultArray.length > 0) {
                 return { done: false, value: resultArray };
               }
-            }
+            // }
           }
         }
       }
@@ -834,7 +837,9 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
        * @param callUpdateNextInPromiseOrValue if nextIn has been set already before calling this function, set this to false
        * @returns
        */
-      const generateNextBatchReturnValAsync = async (callUpdateNextInPromiseOrValue = true, innerIterator?: AsyncIterator<TOut>, innerIteratorFirstPromise?: Promise<any>) => {
+      const generateNextBatchReturnValAsync = async (
+        callUpdateNextInPromiseOrValue = true, innerIterator?: AsyncIterator<TOut>, innerIteratorFirstPromise?: Promise<any>
+      ):Promise<IteratorResult<TOut[]>> => {
         const doUpdateNextInPromiseOrValue = callUpdateNextInPromiseOrValue;
         let inputInnerIterator = innerIterator;
         let inputInnerPossibleNext = innerIteratorFirstPromise;
@@ -842,7 +847,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
         // eslint-disable-next-line no-constant-condition
         while (true) {
           if (done) {
-            return { value: undefined, done: true };
+            return { done: true, value: undefined };
           }
           if (doUpdateNextInPromiseOrValue) {
             updateNextInPromiseOrValue();
@@ -862,7 +867,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
               resultIterator = operatorFunction(innerIterator, state);
             }
 
-            const resultArray: any[] = [];
+            const resultArray: TOut[] = [];
             let possibleNext;
             if (inputInnerPossibleNext !== undefined) {
               possibleNext = inputInnerPossibleNext;
@@ -881,7 +886,6 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
             if (resultArray.length > 0) {
               return { done: false, value: resultArray };
             }
-
           }
         }
       }
@@ -896,7 +900,8 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
         [Symbol.iterator]: () => retVal,
         [Symbol.asyncIterator]: () => retVal,
         // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
-        next: () => {
+        next: ():IteratorResult<TOut> | Promise<IteratorResult<TOut>>
+                  | IteratorResult<TOut[]> | Promise<IteratorResult<TOut[]>> => {
           ////////////////////////////////////////////////////////////////////////////////
           // special case for 'batch' iterator !!!
           ////////////////////////////////////////////////////////////////////////////////
@@ -928,10 +933,12 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TParams = u
       // for internal use for batch: make sure we can get the state !!!
       retVal['getState'] = () => state;
 
-      return itr8FromIterator(retVal as any);
+      return itr8FromIterator(retVal as IterableIterator<TOut> | AsyncIterableIterator<TOut>);
     };
 
-    return (itIn: Iterator<TIn> | AsyncIterator<TIn>) => operatorFunction(itIn, initialStateFactory(params));
+    return (itIn: Iterator<TIn> | AsyncIterator<TIn>)
+          :TPipeable<any, any> & (IterableIterator<TOut> | AsyncIterableIterator<TOut>) =>
+        operatorFunction(itIn, initialStateFactory(param1, param2, param3, param4, ...otherParams));
   }
 };
 

@@ -8,7 +8,7 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/general
  */
-const takeWhile = itr8OperatorFactory<any, any, (any) => boolean | Promise<boolean>, void>(
+const takeWhile = itr8OperatorFactory<any, any, void, (any) => boolean | Promise<boolean>>(
   (nextIn, _state, filterFn) => {
     if (nextIn.done) return { done: true };
 

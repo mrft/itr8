@@ -16,7 +16,7 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/general
  */
-const zip = itr8OperatorFactory<any, any, Iterator<any> | AsyncIterator<any>, void>(
+const zip = itr8OperatorFactory<any, any, void, Iterator<any> | AsyncIterator<any>>(
   (nextIn, state, secondIterator) => {
     if (nextIn.done) {
       return { done: true };

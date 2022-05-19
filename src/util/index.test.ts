@@ -4,6 +4,7 @@ import { forLoop, itr8Pipe, thenable, itr8OperatorFactory } from '.';
 import { forEach } from '../interface/standard/forEach';
 import { itr8FromArray, itr8FromArrayAsync, itr8Range, itr8RangeAsync, itr8ToArray } from "../interface/standard/index";
 import { flatten, groupPer, map, skip, take } from '../operators';
+import { TNextFnResult } from '../types';
 
 /**
  * A bunch of operators created with the operator factory in order to test multiple
@@ -56,7 +57,7 @@ import { flatten, groupPer, map, skip, take } from '../operators';
     () => null,
   ),
   // async nextFn, sync iterator
-  opr8MapAsyncSync: itr8OperatorFactory<(any) => any, any, any, void>(
+  opr8MapAsyncSync: itr8OperatorFactory<(any) => any, any, void, (any) => any>(
     async (nextIn, state, params:(unknown) => unknown) => {
       if (nextIn.done) {
         return { done: true };
@@ -103,8 +104,8 @@ import { flatten, groupPer, map, skip, take } from '../operators';
   // that is sync/async nextFn and sync/async iterator
   ////////////////////////////////////////////////////////////////
   // sync nextFn, sync iterator
-  opr8RepeatEachSyncSync: itr8OperatorFactory<number, any, any, void>(
-    (nextIn, state, count) => {
+  opr8RepeatEachSyncSync: itr8OperatorFactory<number, any, void, number>(
+    (nextIn, _state, count) => {
       if (nextIn.done) {
         return { done: true };
       }
@@ -116,7 +117,7 @@ import { flatten, groupPer, map, skip, take } from '../operators';
     () => undefined,
   ),
   // async nextFn, sync iterator
-  opr8RepeatEachAsyncSync: itr8OperatorFactory<number, any, any, void>(
+  opr8RepeatEachAsyncSync: itr8OperatorFactory<number, any, void, number>(
     async (nextIn, state, count) => {
       if (nextIn.done) {
         return { done: true };
@@ -129,7 +130,7 @@ import { flatten, groupPer, map, skip, take } from '../operators';
     () => undefined,
   ),
   // sync nextFn, async iterator
-  opr8RepeatEachSyncAsync: itr8OperatorFactory<number, any, any, void>(
+  opr8RepeatEachSyncAsync: itr8OperatorFactory<number, any, void, number>(
     (nextIn, state, count) => {
       if (nextIn.done) {
         return { done: true };
@@ -142,7 +143,7 @@ import { flatten, groupPer, map, skip, take } from '../operators';
     () => undefined,
   ),
   // async nextFn, async iterator
-  opr8RepeatEachAsyncAsync: itr8OperatorFactory<number, any, any, void>(
+  opr8RepeatEachAsyncAsync: itr8OperatorFactory<number, any, void, number>(
     async (nextIn, state, count) => {
       if (nextIn.done) {
         return { done: true };
@@ -216,13 +217,25 @@ import { flatten, groupPer, map, skip, take } from '../operators';
   ),
   // operator that uses state params to initialize the state
   opr8TakeUseStateFactoryParams: itr8OperatorFactory(
-    (nextIn, state:number, _params) => {
+    (nextIn, state:number) => {
       if (nextIn.done || state <= 0) {
         return { done: true };
       }
       return { done: false, value:nextIn.value, state: state - 1 };
     },
-    (params) => (params)
+    (params:number) => (params)
+  ),
+  // operator that uses multiple params, and returns a tuple [TIn, p1, p2, p3]
+  opr8UseMultipleParams: itr8OperatorFactory<unknown, [unknown, number, string, boolean], boolean, number, string, boolean>(
+    // WHY DOES THE TYPE CHECKING for 'value' only kick in by specifying it in the nextFn?
+    // I guess the TOut from the type variables shoulmdbe enough to detect invalid types
+    (nextIn, state:boolean, param1, param2):TNextFnResult<[unknown, number, string, boolean],boolean> => {
+      if (nextIn.done) {
+        return { done: true };
+      }
+      return { done: false, value: [nextIn.value, param1, param2, state], state };
+    },
+    (_param1, _param2, param3) => (param3)
   ),
 };
 
@@ -749,6 +762,36 @@ describe('./util/index.ts', () => {
         'sync opr8TakeUseStateFactoryParams on async iterator fails',
       );
     });
+
+    it('opr8UseMultipleParams(...) operator works properly (sync operator created by combining existing operators with the itr8Pipe function)', async () => {
+      // synchronous
+      assert.deepEqual(
+        itr8Range(1,3).pipe(
+          transIts.opr8UseMultipleParams(234, 'onetwothree', true),
+          itr8ToArray,
+        ),
+        [
+          [1, 234, 'onetwothree', true],
+          [2, 234, 'onetwothree', true],
+          [3, 234, 'onetwothree', true],
+        ],
+        'sync opr8UseMultipleParams on sync iterator fails',
+      );
+      // asynchronous
+      assert.deepEqual(
+        await itr8RangeAsync(1,3).pipe(
+          transIts.opr8UseMultipleParams(234, 'onetwothree', true),
+          itr8ToArray,
+        ),
+        [
+          [1, 234, 'onetwothree', true],
+          [2, 234, 'onetwothree', true],
+          [3, 234, 'onetwothree', true],
+        ],
+        'sync opr8UseMultipleParams on async iterator fails',
+      );
+    });
+
   });
   
 });

@@ -12,7 +12,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/numeric
  */
-const runningTotal = itr8OperatorFactory<number, number, void, number>(
+const runningTotal = itr8OperatorFactory<number, number, number, void>(
   (nextIn: IteratorResult<any>, state: number) => {
     if (nextIn.done) {
       return { done: true };

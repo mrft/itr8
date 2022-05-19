@@ -6,7 +6,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/timeBased
  */
-const delay = itr8OperatorFactory<any, any, number, void>(
+const delay = itr8OperatorFactory<any, any, void, number>(
   (nextIn, state, timeout) => {
     return new Promise<any>(
       (resolve /*, reject*/) => {

@@ -11,7 +11,7 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/general
  */
-const map = itr8OperatorFactory<any, any, (any) => any, void>(
+const map = itr8OperatorFactory<any, any, void, (any) => any>(
   (nextIn, state, mapFn: (TIn) => any | Promise<any>) => {
     if (nextIn.done) {
       return { done: true };

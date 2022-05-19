@@ -10,7 +10,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const groupPer = itr8OperatorFactory<any, any, number, { done: boolean, buffer: any[] }>(
+const groupPer = itr8OperatorFactory<any, any, { done: boolean, buffer: any[] }, number>(
   (nextIn: IteratorResult<any>, state: { done: boolean, buffer: any[] }, batchSize: number) => {
     if (state.done || nextIn.done && state.buffer.length === 0) {
       return { done: true };

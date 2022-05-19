@@ -26,8 +26,8 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/general
  */
-const dedup = itr8OperatorFactory<any, any, void | ((v:any) => any), any>(
-  (nextIn: IteratorResult<any>, state:Set<any>, mapFn) => {
+const dedup = itr8OperatorFactory<any, any, unknown | undefined, void | ((v:any) => any)>(
+  (nextIn: IteratorResult<any>, state, mapFn) => {
     if (nextIn.done) {
       return { done: true };
     }

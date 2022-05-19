@@ -15,7 +15,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const intersperse = itr8OperatorFactory<any, any, any, boolean>(
+const intersperse = itr8OperatorFactory<any, any, boolean, any>(
   (nextIn: any, state, intersperseThing) => {
     if (nextIn.done) {
       return { done: true };

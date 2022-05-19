@@ -17,7 +17,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const uniqBy = itr8OperatorFactory<any, any, (v:any) => any, Set<any>>(
+const uniqBy = itr8OperatorFactory<any, any, Set<any>, (v:any) => any>(
   (nextIn: IteratorResult<any>, state:Set<any>, mapFn) => {
     if (nextIn.done) {
       return { done: true };

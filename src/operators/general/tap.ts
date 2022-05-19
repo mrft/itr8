@@ -8,7 +8,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
- const tap = itr8OperatorFactory<any, any, (any) => void, void>(
+ const tap = itr8OperatorFactory<any, any, void, (any) => void>(
   (nextIn, state, tapFn: (TIn) => void) => {
     if (nextIn.done) {
       return { done: true };

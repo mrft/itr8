@@ -15,7 +15,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const split = itr8OperatorFactory<any, any, any, any[] | undefined>(
+const split = itr8OperatorFactory<any, any, any[] | undefined, any>(
   (nextIn: any, state, delimiter) => {
     if (nextIn.done) {
       if (state === undefined) {

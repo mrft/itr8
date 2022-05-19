@@ -19,7 +19,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const sort = itr8OperatorFactory<any, any, ((a: any, b: any) => number) | void, { done: boolean, list: any[] }>(
+const sort = itr8OperatorFactory<any, any, { done: boolean, list: any[] }, ((a: any, b: any) => number) | void>(
   (nextIn: IteratorResult<any>, state, sortFn) => {
     if (state.done) {
       return { done: true };

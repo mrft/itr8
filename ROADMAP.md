@@ -6,6 +6,33 @@ This is a bunch of ideas of things to add or change.
 
 https://asciiflow.com
 
+## Make it usable both in NodeJS and in the browser
+
+Currently we use modeul: "CommonJS" in tsconfig.json, but ideally it should be ES2015
+so that the compiled typescript code can be used unmodified both in NodeJS and in the
+browser without forcing users to have build tools like webpack or browserify in between.
+
+## How to handle failures?
+
+Some of our operators (for example 'map') allow async methods to be run, so they can be used for things that
+are prone to failure (I am not considering the synchronous case because that
+can be controlled entirley by the user).
+
+The question is: if we know that things can potentially fail, are we going to add a specific
+protocol to handle these failures? Right now: if something fails that means that the next call
+will reject its promise, and the entire processing chain will break.
+
+We could say: it's up to the user to make sure that his function always resolves, and so it's up
+to him to invent a data format that can express failures, so that they can be handled further
+down the line.
+
+But I recently viewed this youtube video about the [Saga pattern](https://www.youtube.com/watch?v=xDuwrtwYHu8) which essentially means: on failure take compensating measures for every action
+that already happened (kind of like 'rollback' if possible, but in some cases - like sending an email - things cannot be undone and you have to send another message explaining that the previous
+email should be ignored).
+
+It could be that we can agree on a way to enforce (or at least support) people to implement this
+kind of pattern, which also helps in being aware of whatever can go wrong, in order to build more
+robust systems.
 
 ## Piping should have better typing
 

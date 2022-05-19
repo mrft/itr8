@@ -11,7 +11,7 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/numeric
  */
-const min = itr8OperatorFactory<number, number, void, { done: boolean, min: number }>(
+const min = itr8OperatorFactory<number, number, { done: boolean, min: number }, void>(
   (nextIn: IteratorResult<any>, state: { done: boolean, min: number }) => {
     if (state.done) {
       return { done: true };
