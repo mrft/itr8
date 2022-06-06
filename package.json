@@ -22,7 +22,8 @@
     "//pretest": "npm run clean && mkdir -p ./dist && npm run build",
     "testOld": "npm run echoForTest | ./node_modules/.bin/mocha --exit --timeout 200 --node-option max-old-space-size=200 --require ts-node/register ./test/*.ts",
     "testDebug": "npm run echoForTest | ./node_modules/.bin/mocha --exit --timeout 1000 --node-option max-old-space-size=300 --require ts-node/register $(find ./test ./src -iname '*.test.ts' -type f -printf '%h\\0%p\n' | sort | awk -F'\\0' '{print $2}')",
-    "test":      "npm run echoForTest | ./node_modules/.bin/mocha --exit --timeout  200 --node-option max-old-space-size=150 --require ts-node/register $(find ./test ./src -iname '*.test.ts' -type f -printf '%h\\0%p\n' | sort | awk -F'\\0' '{print $2}')",
+    "testPart": "npm run echoForTest | ./node_modules/.bin/mocha --grep util --exit --timeout 1000 --node-option max-old-space-size=300 --require ts-node/register $(find ./test ./src -iname '*.test.ts' -type f -printf '%h\\0%p\n' | sort | awk -F'\\0' '{print $2}')",
+    "test": "npm run echoForTest | ./node_modules/.bin/mocha --exit --timeout  200 --node-option max-old-space-size=150 --require ts-node/register $(find ./test ./src -iname '*.test.ts' -type f -printf '%h\\0%p\n' | sort | awk -F'\\0' '{print $2}')",
     "posttest": "npm run build && npm run builddocs"
   },
   "keywords": [],
@@ -42,6 +43,7 @@
     "lodash": "^4.17.21",
     "mocha": "^9.2.2",
     "rxjs": "^7.5.5",
+    "transducers-js": "^0.4.174",
     "ts-node": "^10.7.0",
     "typedoc": "^0.22.15",
     "typescript": "^4.6.4"
