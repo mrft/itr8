@@ -180,7 +180,9 @@ describe('operators/general/forEach.ts', () => {
       assert.deepEqual(results[descr].times.map((t) => Math.round(t / 5) * 5), [0, 5, 5, 5], `${descr}: 'times' fail!`);
     });
 
-    it('forEach(...) method works properly on a batched iterator', async () => {
+    // Removed the batch concept. If we want it, we'll add an operator that takes a transIterator
+    // to apply on the individual elements of each incoming array
+    it.skip('forEach(...) method works properly on a batched iterator', async () => {
       const plusOne = (a) => a + 1;
       const pow2 = (a) => a * a;
       const wrapString = (s) => `<-- ${s} -->`

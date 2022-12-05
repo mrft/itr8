@@ -7,8 +7,8 @@ import {
   forEach, itr8Pipe, itr8ToArray, itr8Range, itr8FromIterator, itr8RangeAsync,
   itr8FromString, itr8FromArrayAsync, thenable, forLoop, itr8FromArray, itr8FromSingleValue,
   itr8FromSingleValueAsync, itr8FromStringAsync, itr8Pushable, itr8Interval, itr8FromIterable,
-  itr8OperatorFactory, asNoBatch, lineByLine, unBatch, debounce, throttle, prefetch, mostRecent,
-  takeWhile, tap, asBatch, average, batch, dedup, flatten, groupPer, intersperse, take,
+  itr8OperatorFactory, lineByLine, debounce, throttle, prefetch, mostRecent,
+  takeWhile, tap, average, dedup, flatten, groupPer, intersperse, take,
   percentile, runningAverage, runningPercentile, runningReduce, runningTotal, some, sort, split,
   stringToChar, total, uniq, uniqBy, skip, map, delay, filter, min, max, zip, every, reduce, gzip,
   gunzip, parseJson, itr8FromStream, itr8ToReadableStream, itr8FromObservable, itr8ToObservable,
@@ -2434,7 +2434,8 @@ describe('itr8 test suite', () => {
   //  * iterator.
   //  */
   // describe.skip('our own special \'operators\'', () => {
-  //   describe('Everything related to \'batch\'', () => {
+  //   // batched iterators are OBSOLETE
+  //   describe.skip('Everything related to \'batch\'', () => {
   //     it('batch(...) operator works properly', async () => {
   //       // sync
   //       const itSync = itr8Range(1, 9).pipe(batch(3));
@@ -2935,177 +2936,180 @@ describe('itr8 test suite', () => {
 
   // });
 
-  describe('Check speed', () => {
-    it('compare the speed of native arrays with the iterator versions', () => {
-      const myLimit = 200;
+  describe('General perf and mem tests to prove the concept', () => {
+    describe('Check speed', () => {
+      it('compare the speed of native arrays with the iterator versions', () => {
+        const rangeMax = 20_000;
+        const myLimit = 200;
 
-      let resultIt: number[] = [];
-      const avgDurationIt = itr8Range(0, 10).pipe(
-        map((_x) => {
-          const start = hrtime();
-          resultIt = itr8Range(1, 10_000)
-            .pipe(
-              map((x) => x / 2),
-              filter((x) => x % 3 === 0),
-              skip(5),
-              take(myLimit),
-              itr8ToArray,
-            ) as number[];
-          const duration = hrtimeToMilliseconds(hrtime(start));
-          return duration;
-        }),
-        average(),
-      ).next().value;
+        let resultIt: number[] = [];
+        const avgDurationIt = itr8Range(0, 10).pipe(
+          map((_x) => {
+            const start = hrtime();
+            resultIt = itr8Range(1, rangeMax)
+              .pipe(
+                map((x) => x / 2),
+                filter((x) => x % 3 === 0),
+                skip(5),
+                take(myLimit),
+                itr8ToArray,
+              ) as number[];
+            const duration = hrtimeToMilliseconds(hrtime(start));
+            return duration;
+          }),
+          average(),
+        ).next().value;
 
-      let resultArr: number[] = [];
-      const avgDurationArr = itr8Range(0, 10).pipe(
-        map((_x) => {
-          const start = hrtime();
-          resultArr = (itr8ToArray(itr8Range(1, 10_000)) as number[])
-            .map((x) => x / 2)
-            .filter((x) => x % 3 === 0)
-            .slice(5)
-            .slice(0, myLimit)
-            ;
-          const duration = hrtimeToMilliseconds(hrtime(start));
-          return duration;
-        }),
-        average(),
-      ).next().value;
+        let resultArr: number[] = [];
+        const avgDurationArr = itr8Range(0, 10).pipe(
+          map((_x) => {
+            const start = hrtime();
+            resultArr = (itr8ToArray(itr8Range(1, rangeMax)) as number[])
+              .map((x) => x / 2)
+              .filter((x) => x % 3 === 0)
+              .slice(5)
+              .slice(0, myLimit)
+              ;
+            const duration = hrtimeToMilliseconds(hrtime(start));
+            return duration;
+          }),
+          average(),
+        ).next().value;
 
-      console.log('      - [native arrays versus iterators]', 'itr8 took', avgDurationIt, `(${resultIt.length} results)`, 'array took', avgDurationArr, `(${resultArr.length} results)`);
+        console.log('      - [native arrays versus iterators]', 'itr8 took', avgDurationIt, `(${resultIt.length} results)`, 'array took', avgDurationArr, `(${resultArr.length} results)`);
 
-      assert.equal(resultIt.length, resultArr.length);
-      assert.deepEqual(resultIt, resultArr);
+        assert.equal(resultIt.length, resultArr.length);
+        assert.deepEqual(resultIt, resultArr);
 
-      // iterators should be faster than creating the intermediate arrays
-      assert.isBelow(avgDurationIt, avgDurationArr);
+        // iterators should be faster than creating the intermediate arrays
+        assert.isBelow(avgDurationIt, avgDurationArr);
+      });
+
+      it.skip('compare the speed of async iterator versus batched async iterator (batched should be faster ?)', async () => {
+        // const size = 10_000; // size of the input range
+        // const batchSize = 200;
+
+        // // the speed difference should become more apparent with every added operator !
+        // const myOperations = itr8Pipe(
+        //   map((x) => x + 1),
+        //   filter((x) => x % 3 === 0),
+        //   transIts.opr8RepeatEachSyncSync(3),
+        //   map((x) => x - 1),
+        //   map((x) => `value: ${x}`),
+        //   skip(5),
+        // );
+
+
+        // let resultIt: number[] = [];
+        // const avgDurationIt = (
+        //   await itr8Range(0, 10).pipe(
+        //     map(async (_x) => {
+        //       const start = hrtime();
+        //       resultIt = await
+        //         itr8RangeAsync(1, size)
+        //           .pipe(
+        //             myOperations,
+        //             itr8ToArray
+        //           ) as number[];
+        //       const duration = hrtimeToMilliseconds(hrtime(start));
+        //       return duration;
+        //     }),
+        //     average(),
+        //   ).next()
+        // ).value;
+
+        // let resultBatch: number[] = [];
+        // const avgDurationBatch = (
+        //   await itr8Range(0, 10).pipe(
+        //     map(async (_x) => {
+        //       const start = hrtime();
+        //       resultBatch = await itr8ToArray(
+        //         itr8RangeAsync(1, size)
+        //           .pipe(batch(batchSize)) // batch per X, so X times less promises to resolve
+        //           .pipe(myOperations)
+        //       ) as number[];
+        //       const duration = hrtimeToMilliseconds(hrtime(start));
+        //       return duration;
+        //     }),
+        //     average(),
+        //   ).next()
+        // ).value;
+
+        // console.log('      - [async iterator versus batched async iterator]', 'itr8 took', avgDurationIt, `(result size ${resultIt.length})`, 'itr8 batched took', avgDurationBatch, `(result size ${resultBatch.length})`);
+
+        // // assert.equal(resultIt.length, resultBatch.length);
+        // assert.deepEqual(resultBatch, resultIt);
+
+        // // batched iterators should be faster than simple asynchronous iterator
+        // // because we have alot less promises to await
+        // assert.isAbove(avgDurationIt, avgDurationBatch);
+      }).timeout(4000);
+
     });
 
-    it('compare the speed of async iterator versus batched async iterator (batched should be faster ?)', async () => {
-      const size = 10_000; // size of the input range
-      const batchSize = 200;
+    describe('Check a really large set', () => {
+      it('when running over a really large set, we should not run out of memory', async () => {
+        const mem = process.memoryUsage();
+        console.log('heap mem left', (mem.heapTotal - mem.heapUsed) / 1024 / 1024, 'MB');
 
-      // the speed difference should become more apparent with every added operator !
-      const myOperations = itr8Pipe(
-        map((x) => x + 1),
-        filter((x) => x % 3 === 0),
-        transIts.opr8RepeatEachSyncSync(3),
-        map((x) => x - 1),
-        map((x) => `value: ${x}`),
-        skip(5),
-      );
-
-
-      let resultIt: number[] = [];
-      const avgDurationIt = (
-        await itr8Range(0, 10).pipe(
-          map(async (_x) => {
-            const start = hrtime();
-            resultIt = await
-              itr8RangeAsync(1, size)
-                .pipe(
-                  myOperations,
-                  itr8ToArray
-                ) as number[];
-            const duration = hrtimeToMilliseconds(hrtime(start));
-            return duration;
-          }),
-          average(),
-        ).next()
-      ).value;
-
-      let resultBatch: number[] = [];
-      const avgDurationBatch = (
-        await itr8Range(0, 10).pipe(
-          map(async (_x) => {
-            const start = hrtime();
-            resultBatch = await itr8ToArray(
-              itr8RangeAsync(1, size)
-                .pipe(batch(batchSize)) // batch per X, so X times less promises to resolve
-                .pipe(myOperations)
-            ) as number[];
-            const duration = hrtimeToMilliseconds(hrtime(start));
-            return duration;
-          }),
-          average(),
-        ).next()
-      ).value;
-
-      console.log('      - [async iterator versus batched async iterator]', 'itr8 took', avgDurationIt, `(result size ${resultIt.length})`, 'itr8 batched took', avgDurationBatch, `(result size ${resultBatch.length})`);
-
-      // assert.equal(resultIt.length, resultBatch.length);
-      assert.deepEqual(resultBatch, resultIt);
-
-      // batched iterators should be faster than simple asynchronous iterator
-      // because we have alot less promises to await
-      assert.isAbove(avgDurationIt, avgDurationBatch);
-    }).timeout(4000);
-
-  });
-
-  describe('Check a really large set', () => {
-    it('when running over a really large set, we should not run out of memory', async () => {
-      const mem = process.memoryUsage();
-      console.log('heap mem left', (mem.heapTotal - mem.heapUsed) / 1024 / 1024, 'MB');
-
-      const words = [
-        'one ------------------------------------------------------------',
-        'two ------------------------------------------------------------',
-        'three ----------------------------------------------------------',
-        'four -----------------------------------------------------------',
-        'five -----------------------------------------------------------',
-        'six ------------------------------------------------------------',
-        'seven ----------------------------------------------------------',
-        'eight ----------------------------------------------------------',
-        'nine -----------------------------------------------------------',
-      ];
-      function* syncGen() {
-        while (true) {
-          const word = words[Math.floor(Math.random() * 10)]
-          yield `${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word}`;
+        const words = [
+          'one ------------------------------------------------------------',
+          'two ------------------------------------------------------------',
+          'three ----------------------------------------------------------',
+          'four -----------------------------------------------------------',
+          'five -----------------------------------------------------------',
+          'six ------------------------------------------------------------',
+          'seven ----------------------------------------------------------',
+          'eight ----------------------------------------------------------',
+          'nine -----------------------------------------------------------',
+        ];
+        function* syncGen() {
+          while (true) {
+            const word = words[Math.floor(Math.random() * 10)]
+            yield `${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word}`;
+          }
         }
-      }
-      async function* asyncGen() {
-        while (true) {
-          const word = words[Math.floor(Math.random() * 10)]
-          yield `${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word}`;
+        async function* asyncGen() {
+          while (true) {
+            const word = words[Math.floor(Math.random() * 10)]
+            yield `${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word}`;
+          }
         }
-      }
 
-      const startIt = hrtime();
-      const itSync = itr8FromIterator(syncGen())
-        .pipe(
-          take(1_000_000),
-          map((x) => x.startsWith('nine') ? `9: ${x}` : x),
-          groupPer(10),
-        ) as Iterator<string>;
-      let syncCounter = 0;
-      for (let x = itSync.next(); !x.done; x = await itSync.next()) {
-        syncCounter++;
-      }
-      const durationIt = hrtimeToMilliseconds(hrtime(startIt));
+        const startIt = hrtime();
+        const itSync = itr8FromIterator(syncGen())
+          .pipe(
+            take(1_000_000),
+            map((x) => x.startsWith('nine') ? `9: ${x}` : x),
+            groupPer(10),
+          ) as Iterator<string>;
+        let syncCounter = 0;
+        for (let x = itSync.next(); !x.done; x = await itSync.next()) {
+          syncCounter++;
+        }
+        const durationIt = hrtimeToMilliseconds(hrtime(startIt));
 
-      console.log('      - [mem usage for really large set]', 'itr8 took', durationIt);
+        console.log('      - [mem usage for really large set]', 'itr8 took', durationIt);
 
-      assert.equal(syncCounter, 100_000);
+        assert.equal(syncCounter, 100_000);
 
-      const startItAsync = hrtime();
-      const itAsync = itr8FromIterator(asyncGen())
-        .pipe(
-          take(1_000_000),
-          map((x) => x.startsWith('nine') ? `9: ${x}` : x),
-          groupPer(10),
-        );
-      let asyncCounter = 0;
-      for (let x = await itAsync.next(); !x.done; x = await itAsync.next()) {
-        asyncCounter++;
-      }
-      const durationItAsync = hrtimeToMilliseconds(hrtime(startItAsync));
+        const startItAsync = hrtime();
+        const itAsync = itr8FromIterator(asyncGen())
+          .pipe(
+            take(1_000_000),
+            map((x) => x.startsWith('nine') ? `9: ${x}` : x),
+            groupPer(10),
+          );
+        let asyncCounter = 0;
+        for (let x = await itAsync.next(); !x.done; x = await itAsync.next()) {
+          asyncCounter++;
+        }
+        const durationItAsync = hrtimeToMilliseconds(hrtime(startItAsync));
 
-      console.log('      - [mem usage for really large set]', 'itr8 async took', durationItAsync);
+        console.log('      - [mem usage for really large set]', 'itr8 async took', durationItAsync);
 
-      assert.equal(asyncCounter, 100_000);
-    }).timeout(4000);
+        assert.equal(asyncCounter, 100_000);
+      }).timeout(4000);
+    });
   });
 });

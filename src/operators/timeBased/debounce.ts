@@ -8,9 +8,6 @@ import { itr8OperatorFactory } from "../../util/index";
  * So an event will either not be handled (busy period),
  * or handled after the calm period (so with a delay of x milliseconds)
  *
- * REMARK: probably useless with batched iterators, as all elements in the batch will arrive
- * at the same time...
- *
  * @category operators/timeBased
  */
 const debounce = itr8OperatorFactory<any,any,number,number>(

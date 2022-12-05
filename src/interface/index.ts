@@ -6,7 +6,11 @@
  * like RxJS or NodeJS streams or ...
  *
  * This module will export ALL interface functions, easy if bundle size doesn't matter that much.
+ * @example
+ * ```import { interfaceFn } from 'itr8'```
  *
+ * WATCH OUT: importing the entire module requires all peer dependencies to be installed as well
+ * (for example: interface/observable has RxJS as a peer dependency)
  * If bundle size does matter, it could be better to
  * ```import { interfaceFn } from 'itr8/interface/interfaceGroup/interfaceFn'```
  *
