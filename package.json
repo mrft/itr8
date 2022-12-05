@@ -2,8 +2,9 @@
   "name": "itr8",
   "version": "1.0.0",
   "description": "An experiment to create a unified interface such that the same reducers can be used in various contexts.",
-  "main": "dist/index",
-  "types": "dist/index.d.ts",
+  "// about main and types": "they are not pointing to dist/ folder because the prepare script copies everything to root after the build!!!",
+  "main": "index",
+  "types": "index.d.ts",
   "// no files section !!!": "so we won't keep what's specified here, but instead remove what is specified in .npmignore",
   "// files": [
     "/dist"
