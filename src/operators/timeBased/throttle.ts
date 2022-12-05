@@ -9,9 +9,6 @@ import { itr8OperatorFactory } from "../../util/index";
  * and the next ones will be ignored until enough time (x ms) has passed with
  * the previously handled event.
  *
- * REMARK: probably useless with batched iterators, as all elements in the batch will arrive
- * at the same time...
- *
  * @category operators/timeBased
  */
 const throttle = itr8OperatorFactory<any,any,number,number>(

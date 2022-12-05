@@ -22,9 +22,6 @@ import { itr8FromIterable } from './itr8FromIterable';
  * current one. This will waste less time than using 'for await (... of ...)' while still
  * processing things in the expected order!
  *
- * REMARK: forEach respects a batched iterator so it will operate on each individual element.
- * To work on the batches, use asNoBatch before piping into forEach.
- *
  * @param handler
  * @param options: { concurrency: number } will control how many async handler are alowed to run in parallel. Default: 1
  * @returns
@@ -33,8 +30,6 @@ import { itr8FromIterable } from './itr8FromIterable';
  */
 const forEach = function <T = any>(handler: (T) => void | Promise<void>, options?: { concurrency?: number }): ((it: Iterator<T> | AsyncIterator<T>) => void) {
   return (it: Iterator<T>) => {
-    const isBatch = it['itr8Batch'] === true;
-
     const maxRunningHandlers = options?.concurrency || 1;
     const runningHandlers: Set<Promise<void>> = new Set();
     const waitForOpenSpot = async () => {
@@ -73,13 +68,7 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
       return (async () => {
         let next = (await nextPromise) as IteratorResult<any>;
         while (!next.done) {
-          if (isBatch) {
-            for (const v of next.value as unknown as Iterable<any>) {
-              await handleNext(v);
-            }
-          } else {
-            await handleNext(next.value);
-          }
+          await handleNext(next.value);
           next = await it.next();
         }
         // wait until all remaining handlers are done before resolving the current promise!
@@ -88,41 +77,19 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
     } else {
       let next = nextPromiseOrValue;
       if (!next.done) {
-        let handlerPossiblePromise: Promise<void> | void;
-        let batchIterator;
-        if (isBatch) {
-          batchIterator = itr8FromIterable(next.value as unknown as Iterable<any>);
-          // we make the assumption that there will not be empty batches!!!
-          const n = batchIterator.next();
-          handlerPossiblePromise = handler(n.value);
-        } else {
-          handlerPossiblePromise = handler(next.value);
-        }
+        const handlerPossiblePromise: Promise<void> | void = handler(next.value);
         if (isPromise(handlerPossiblePromise)) {
           return (async () => {
             let handlerPossiblePromiseIn: Promise<void> | undefined = handlerPossiblePromise;
             while (!next.done) {
               await waitForOpenSpot();
 
-              if (isBatch) {
-                if (handlerPossiblePromiseIn !== undefined) {
-                  addToRunningHandlersList(handlerPossiblePromiseIn);
-                  handlerPossiblePromiseIn = undefined;
-                }
-                const subIterator = batchIterator || itr8FromIterable(next.value as unknown as Iterable<any>);
-                batchIterator = undefined;
-                for (const v of subIterator) {
-                  const handlerPromise = handler(v) as Promise<void>;
-                  addToRunningHandlersList(handlerPromise);
-                }
-              } else {
-                // TODO: add a try catch so errors can be handled properly?
-                // or maybe we should leave it to the user???
-                const handlerPromise = handlerPossiblePromiseIn || handler(next.value) as Promise<void>;
-                handlerPossiblePromiseIn = undefined;
+              // TODO: add a try catch so errors can be handled properly?
+              // or maybe we should leave it to the user???
+              const handlerPromise = handlerPossiblePromiseIn || handler(next.value) as Promise<void>;
+              handlerPossiblePromiseIn = undefined;
 
-                addToRunningHandlersList(handlerPromise);
-              }
+              addToRunningHandlersList(handlerPromise);
               next = it.next();
             }
             // wait until all remaining handlers are done before resolving the current promise!
@@ -131,13 +98,7 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
         } else {
           next = it.next();
           while (!next.done) {
-            if (isBatch) {
-              for (const v of next.value as unknown as Iterable<any>) {
-                handler(v);
-              }
-            } else {
-              handler(next.value);
-            }
+            handler(next.value);
             next = it.next();
             // console.log('[forEach] next', next);
           }
