@@ -800,7 +800,7 @@ const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown,
 
             /**
              * Can return a value or undefined
-             * @param curNextFn 
+             * @param curNextFn
              */
             const handleCurNextFnResult = (curNextFnResult:TNextFnResult<TOut,TState>):IteratorResult<TOut> | undefined => {
               if (curNextFnResult.done) {
@@ -1376,7 +1376,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
        * This method will replace itself with the right method once we know
        * in which case we are (sync, async)
        *
-       * @returns 
+       * @returns
        */
        let generateNextReturnVal = () => {
         if (isAsyncInput || isAsyncNextFn) {
@@ -1417,7 +1417,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
      * we'll get a nextFn that combines multiple oeprations meaning we only need one 'intermediate'
      * iterator. This might be more performant.
      * But that can only be done if input and output match so they can be composed.
-     * 
+     *
      * So instead of getting (nextIn, state, params) as input (without the state) and
      * TNextFnResult as output (without the state as well) we could create a function that
      * gets TNextFnResult as input as well (or at least a subset of all the possibilities).
@@ -1782,5 +1782,5 @@ export {
 
   thenable,
   forLoop,
-  itr8OperatorFactory as itr8OperatorFactory,
+  itr8OperatorFactory,
 }

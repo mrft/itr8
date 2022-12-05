@@ -8,7 +8,7 @@ import { itr8FromIterator } from "../../index";
  * make sure to do one or more next calls to the incoming iterator up-front, to decrease the
  * waiting time.
  *
- * This can be used to kind of 'parallelize' the processing, while respenting the order.
+ * This can be used to kind of 'parallelize' the processing, while respecting the order.
  * If the order is not important, you might want to take a look a the parallel(...) operator!
  *
  * This one can be useful, when the result needs to do some I/O (for example an API get

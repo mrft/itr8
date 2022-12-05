@@ -579,60 +579,60 @@ describe('./util/index.ts', () => {
     // *  sync input iterator, async operator producing an async iterator
     // * async input iterator, async operator producing an async iterator
     // ALSO: produced iterators containing no or mulitple elements !!!
-  
+
     // define a few operators, and test their functionality afterwards
-  
+
     it('opr8Map(...) operator works properly', async () => {
       const plusOne = (a) => a + 1;
       const wrapString = (s) => `<-- ${s} -->`
-  
+
       // map(plusOne)(itr8Range(4, 7));
-  
+
       // synchronous
       assert.deepEqual(
         itr8ToArray(transIts.opr8Map(plusOne)(itr8Range(4, 7))),
         [5, 6, 7, 8],
       );
-  
+
       assert.deepEqual(
         itr8ToArray(transIts.opr8Map(wrapString)(itr8Range(4, 7))),
         ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
       );
-  
+
       // asynchronous
       assert.deepEqual(
         await itr8ToArray(transIts.opr8Map(plusOne)(itr8RangeAsync(4, 7))),
         [5, 6, 7, 8],
       );
-  
+
       assert.deepEqual(
         await itr8ToArray(transIts.opr8Map(wrapString)(itr8RangeAsync(4, 7))),
         ['<-- 4 -->', '<-- 5 -->', '<-- 6 -->', '<-- 7 -->'],
       );
-  
+
       const iterableIterator = transIts.opr8Map(plusOne)(itr8Range(4, 7));
       assert.strictEqual(
         iterableIterator[Symbol.iterator](),
         iterableIterator,
       )
     });
-  
+
     const testMap = async (asyncIterator: boolean, mapFn: (any) => any) => {
       const mapFnName = transItToName(mapFn);
       const syncOrAsyncIterator = asyncIterator ? 'async' : 'sync';
       const plusOne = (a) => a + 1;
       const timesTwo = (a) => a * 2;
       const wrapString = (s) => `<-- ${s} -->`;
-  
+
       const generateItr = () => asyncIterator ? itr8RangeAsync(4, 7) : itr8Range(4, 7);
-  
+
       // console.log(`        TESTING ${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with plusOne`);
       assert.deepEqual(
         await itr8ToArray((generateItr().pipe(mapFn(plusOne), mapFn(timesTwo)))),
         [10, 12, 14, 16],
         `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with plus one fails`,
       );
-  
+
       // console.log(`        TESTING ${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with wrapString`);
       assert.deepEqual(
         await itr8ToArray(mapFn(wrapString)(generateItr())),
@@ -640,88 +640,88 @@ describe('./util/index.ts', () => {
         `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with wrap string fails`,
       );
     }
-  
+
     it('opr8MapSyncSync(...) operator works properly', async () => {
       await testMap(false, transIts.opr8MapSyncSync);
       await testMap(true, transIts.opr8MapSyncSync);
     });
-  
+
     it('opr8MapAsyncSync(...) operator works properly', async () => {
       await testMap(false, transIts.opr8MapAsyncSync);
       await testMap(true, transIts.opr8MapAsyncSync);
     });
-  
+
     it('opr8MapSyncAsync(...) operator works properly', async () => {
       testMap(false, transIts.opr8MapSyncAsync);
       testMap(true, transIts.opr8MapSyncAsync);
     });
-  
+
     it('opr8MapAsyncAsync(...) operator works properly', async () => {
       testMap(false, transIts.opr8MapAsyncAsync);
       testMap(true, transIts.opr8MapAsyncAsync);
     });
-  
+
     const testRepeatEach = async (useAsyncIterator: boolean, repeatEachFn: (any) => any) => {
       const repeatEachFnName = transItToName(repeatEachFn);
       const syncOrAsyncIterator = useAsyncIterator ? 'async' : 'sync';
-  
+
       const generateItr = () => useAsyncIterator ? itr8RangeAsync(4, 7) : itr8Range(4, 7);
-  
+
       // console.log(`        TESTING ${syncOrAsyncIterator} input iterator with mapFn ${mapFnName}`);
       assert.deepEqual(
         await itr8ToArray(repeatEachFn(2)(generateItr())),
         [4, 4, 5, 5, 6, 6, 7, 7],
         `${syncOrAsyncIterator} input iterator with mapFn ${repeatEachFnName} with 2 FAILED`,
       );
-  
+
       assert.deepEqual(
         await itr8ToArray(repeatEachFn(3)(generateItr())),
         [4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7],
         `${syncOrAsyncIterator} input iterator with mapFn ${repeatEachFnName} with 3 FAILED`,
       );
     }
-  
+
     it('opr8RepeatEachSyncSync(...) operator works properly', async () => {
       await testRepeatEach(false, transIts.opr8RepeatEachSyncSync);
       await testRepeatEach(true, transIts.opr8RepeatEachSyncSync);
     });
-  
+
     it('opr8RepeatEachAsyncSync(...) operator works properly', async () => {
       await testRepeatEach(false, transIts.opr8RepeatEachAsyncSync);
       await testRepeatEach(true, transIts.opr8RepeatEachAsyncSync);
     });
-  
+
     it('opr8RepeatEachSyncAsync(...) operator works properly', async () => {
       await testRepeatEach(false, transIts.opr8RepeatEachSyncAsync);
       await testRepeatEach(true, transIts.opr8RepeatEachSyncAsync);
     });
-  
+
     it('opr8RepeatEachAsyncAsync(...) operator works properly', async () => {
       await testRepeatEach(false, transIts.opr8RepeatEachAsyncAsync);
       await testRepeatEach(true, transIts.opr8RepeatEachAsyncAsync);
     });
-  
-  
+
+
     it('opr8Skip(...) operator works properly', async () => {
       assert.deepEqual(
         itr8ToArray(transIts.opr8Skip(5)(itr8Range(1, 7))),
         [6, 7],
       );
-  
+
       // asynchronous
       assert.deepEqual(
         await itr8ToArray(transIts.opr8Skip(5)(itr8RangeAsync(1, 7))),
         [6, 7],
       );
     });
-  
+
     it('opr8Delay(...) operator works properly (async operator created with an async nextFn function)', async () => {
       assert.deepEqual(
         await itr8ToArray(transIts.opr8Delay(10)(itr8Range(1, 7))),
         [1, 2, 3, 4, 5, 6, 7],
         'async opr8Delay on sync iterator fails',
       );
-  
+
       // asynchronous
       assert.deepEqual(
         await itr8ToArray(transIts.opr8Delay(10)(itr8RangeAsync(1, 7))),
@@ -729,11 +729,11 @@ describe('./util/index.ts', () => {
         'async opr8Delay on async iterator fails',
       );
     });
-  
+
     it('redim(...) operator works properly (sync operator created by combining existing operators with the itr8Pipe function)', async () => {
       const startArray = [[1, 2], [3, 4], [5, 6]];
       const expected = [[1, 2, 3], [4, 5, 6]];
-  
+
       // synchronous
       assert.deepEqual(
         itr8ToArray(transIts.redim(3)(itr8FromArray(startArray))),

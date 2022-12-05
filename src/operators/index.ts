@@ -15,7 +15,7 @@
  *
  * @module
  */
- 
+
 export * from './async/index';
 
 export * from './boolean/index';

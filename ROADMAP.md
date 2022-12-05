@@ -227,7 +227,7 @@ itr8/operators, and people with a strict bundle size can import /itr8/operators/
   * another way is to view the entire application as 1 single transIterator where the input is 'events' and the output is html (or lit-html templateresult).
     * a zip operation would zip that event and the current state together
     * a tap operation would send the newState back into the pushable state iterator
-    * A for each at the end would take the html and use it to update the DOM 
+    * A for each at the end would take the html and use it to update the DOM
 * Explain how an ASYNC iterator is actually an extremely simple 2-way protocol:
   * every next() call informs the sender that we're ready to receive another value
   * every resolved promise hands the new message to the receiver
@@ -273,7 +273,6 @@ itr8/operators, and people with a strict bundle size can import /itr8/operators/
   * the buffer should be kept as long as one subscriber didn't ask for that next()
   * there should be a way to 'disconnect', tell the iterable that we are not interested in more, so it won't keep buffering for no reason because we stop asking for next stuff.
   * we could add a timeout to automatically clean up the buffer if a subscriber didn't ask for a next element within a certain time (1 minute default?)
-  * 
 
 ## use iterators everywhere
 Think about how to make it easy to use operator parameters that are iterators themselves.
