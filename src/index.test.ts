@@ -2939,13 +2939,14 @@ describe('itr8 test suite', () => {
   describe('General perf and mem tests to prove the concept', () => {
     describe('Check speed', () => {
       it('compare the speed of native arrays with the iterator versions', () => {
+        const rangeMax = 20_000;
         const myLimit = 200;
 
         let resultIt: number[] = [];
         const avgDurationIt = itr8Range(0, 10).pipe(
           map((_x) => {
             const start = hrtime();
-            resultIt = itr8Range(1, 10_000)
+            resultIt = itr8Range(1, rangeMax)
               .pipe(
                 map((x) => x / 2),
                 filter((x) => x % 3 === 0),
@@ -2963,7 +2964,7 @@ describe('itr8 test suite', () => {
         const avgDurationArr = itr8Range(0, 10).pipe(
           map((_x) => {
             const start = hrtime();
-            resultArr = (itr8ToArray(itr8Range(1, 10_000)) as number[])
+            resultArr = (itr8ToArray(itr8Range(1, rangeMax)) as number[])
               .map((x) => x / 2)
               .filter((x) => x % 3 === 0)
               .slice(5)
