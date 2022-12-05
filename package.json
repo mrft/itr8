@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "// about prepare (run when the package is installed as a dependency, BUT ALSO when you run 'npm install' without arguments locally in the project root)": "Copy everything below dist/ to the root to make require('itr8/...') work (instead of require('itr8/dist/...') like now) and then remove what is not necessary by specifying the unnecessary ones in .npmignore cfr. https://stackoverflow.com/questions/49858168/how-to-publish-typescript-modules-on-npm-without-dist-in-import and https://docs.npmjs.com/cli/v9/configuring-npm/package-json?v=true#files and also (for not running the postprepare script on a local npm install) https://github.com/nmccready/skip-npm-task/blob/master/index.js",
-    "prepare": "npm run build && if [ \"$INIT_CWD\" = \"$PWD\" -o \"$INIT_CWD\" = '' ]; then echo '[itr8 postprepare] LOCAL INSTALL: not copying files under dist/ to root!!!'; else echo '[itr8 postprepare] NON local install (installed as dependency), so copy all files under dist/ to root folder' && cp -r dist/* . && echo \"INIT_CWD = $INIT_CWD and PWD = $PWD\"; fi",
+    "prepare": "npm run build && if [ \"$INIT_CWD\" = \"$PWD\" -o \"$INIT_CWD\" = '' ]; then echo '[itr8 prepare] LOCAL INSTALL: not copying files under dist/ to root!!!'; else echo '[itr8 prepare] NON local install (installed as dependency), so copy all files under dist/ to root folder' && cp -r dist/* . ; fi",
     "//build_mjs and build_cjs": "experiments building esm-modules inpired by https://styfle.dev/blog/es6-modules-today-with-typescript",
     "build_mjs": "tsc -d && mv dist/index.js dist/index.mjs",
     "build_cjs": "tsc -m commonjs",
