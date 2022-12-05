@@ -17,6 +17,7 @@
     "build_mjs": "tsc -d && mv dist/index.js dist/index.mjs",
     "build_cjs": "tsc -m commonjs",
     "prebuild": "npm run clean",
+    "// about build": "Use tsconfig.prod.json which extends tsconfig.json but excludes building the tests and testUtils",
     "build": "tsc --project ./tsconfig.prod.json",
     "//postbuild": "npm run builddocs",
     "clean": "rm -rf ./dist",
