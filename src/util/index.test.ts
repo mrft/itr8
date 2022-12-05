@@ -1,9 +1,11 @@
 import { assert } from 'chai';
+import { hrtime } from 'process';
 import { isPromise } from 'util/types';
 import { forLoop, itr8Pipe, thenable, itr8OperatorFactory } from '.';
 import { forEach } from '../interface/standard/forEach';
 import { itr8FromArray, itr8FromArrayAsync, itr8Range, itr8RangeAsync, itr8ToArray } from "../interface/standard/index";
 import { flatten, groupPer, map, skip, take } from '../operators';
+import { hrtimeToMilliseconds } from '../testUtils';
 import { TNextFnResult } from '../types';
 
 /**
@@ -236,6 +238,10 @@ import { TNextFnResult } from '../types';
       return { done: false, value: [nextIn.value, param1, param2, state], state };
     },
     (_param1, _param2, param3) => (param3)
+  ),
+  opr8TransNextFn: itr8OperatorFactory<unknown, unknown, unknown,  (input:TNextFnResult<unknown,undefined>) => TNextFnResult<unknown,undefined>>(
+    (nextIn, state, transNextFn) => transNextFn(nextIn as TNextFnResult<unknown, undefined>),
+    (transNextFn) => undefined,
   ),
 };
 
@@ -792,8 +798,92 @@ describe('./util/index.ts', () => {
       );
     });
 
+    /**
+     * If we expose a function representing the operator that can be composed (output same as input)
+     * we might be able to improve performance because we'll have less intermediate iterators.
+     *
+     * It is to be proven though whether that will have a big impact.
+     */
+    describe('allow composing of operators (more like transducers)', () => {
+      it('all operators created with itr8OperatorFactory have a working transNextFn', () => {
+        const transMapTimes2 = (transIts.opr8Map((x) => x * 2) as any).transNextFn;
+        const transFilterEven = (transIts.opr8FilterSyncSync((x) => x % 2 === 0) as any).transNextFn;
+        assert.isDefined(transMapTimes2);
+        assert.isDefined(transFilterEven);
+
+        assert.deepEqual(
+          transMapTimes2({done: false, value: 3}),
+          { done: false, value: 6 },
+        );
+
+        assert.deepEqual(
+          transFilterEven({done: false, value: 3}),
+          { done: false },
+        );
+
+        assert.deepEqual(
+          transFilterEven({done: false, value: 4}),
+          { done: false, value: 4 },
+        );
+
+        // without any helper function to apply these 'transNextFn' to an actual iterator,
+        // we cannot do anything useful with them
+        // assert.deepEqual(
+        //   itr8Range(1,10).pipe()
+
+        // );
+      });
+
+      it('an operator exists that can apply a transNextFn to an iterator', () => {
+        const transItMapTimes2 = transIts.opr8Map((x) => x * 2);
+        const transItFilterOver6 = transIts.opr8FilterSyncSync((x) => x > 6);
+        const transMapTimes2 = (transItMapTimes2 as any).transNextFn;
+        const transFilterOver6 = (transItFilterOver6 as any).transNextFn;
+        assert.isDefined(transMapTimes2);
+        assert.isDefined(transFilterOver6);
+
+        assert.deepEqual(
+          itr8Range(1, 5).pipe(
+            transIts.opr8TransNextFn((x) => transFilterOver6(transMapTimes2(x))),
+            itr8ToArray,
+          ),
+          [8, 10],
+        );
+
+        const startTransIt = hrtime();
+        const maxAndCountTransIt = { max: 0, count: 0 };
+        itr8Range(1, 100_000).pipe(
+          transItMapTimes2,
+          transItFilterOver6,
+          forEach((v) => {
+            maxAndCountTransIt.max = Math.max(maxAndCountTransIt.max, v);
+            maxAndCountTransIt.count += 1;
+          }),
+        );
+        const durationTransIt = hrtimeToMilliseconds(hrtime(startTransIt));
+
+        const startTransNext = hrtime();
+        const maxAndCountTransNext = { max: 0, count: 0 };
+        itr8Range(1, 100_000).pipe(
+          transIts.opr8TransNextFn((x) => transFilterOver6(transMapTimes2(x))),
+          forEach((v) => {
+            maxAndCountTransNext.max = Math.max(maxAndCountTransNext.max, v);
+            maxAndCountTransNext.count += 1;
+          }),
+        );
+        const durationTransNext = hrtimeToMilliseconds(hrtime(startTransNext));
+        assert.deepEqual(
+          maxAndCountTransIt,
+          { max: 200_000, count: 100_000 - 3 },
+        );
+        assert.deepEqual(maxAndCountTransNext, maxAndCountTransIt);
+
+        console.log(` * transIts took ${durationTransIt} ms and transNexts took ${durationTransNext} ms`);
+      });
+
+    });
   });
-  
+
 });
 
 
