@@ -50,8 +50,9 @@ Install the module using npm
 
 And then import it in your source code file:
 ```typescript
-import { itr8Range, itr8FromIterator, itr8Pipe, itr8FromArray, itr8ToArray } from 'itr8'
-import { map, filter, skip, limit, forEach } from 'itr8/operators'
+import { itr8Range, itr8FromIterator, itr8FromArray, itr8ToArray, forEach } from 'itr8/interface/standard'
+import { map, filter, skip, take } from 'itr8/operators/general'
+import { itr8Pipe } from 'itr8/util'
 
 // create an iterator to start from with a utility function
 const myIterator = () => itr8Range(0, 10_000_000); // or itr8FromArray([...])
@@ -71,7 +72,7 @@ const myTransformedIterator = myIterator()
         map((x) => x / 2),
         filter((x) => x % 3 === 0),
         skip(5),
-        limit(50),
+        take(50),
     )
 );
 
@@ -80,7 +81,7 @@ const myTransformedIterator2 = myIterator()
     .pipe(map((x) => x / 2))
     .pipe(filter((x) => x % 3 === 0))
     .pipe(skip(5))
-    .pipe(limit(50))
+    .pipe(take(50))
 );
 
 // use forEach to do something with every element (it will handle async handlers as well, you can even control the concurrency easily)
@@ -98,7 +99,7 @@ myIterator().pipe(
   map((x) => x / 2),
   filter((x) => x % 3 === 0),
   skip(5),
-  limit(50),
+  take(50),
   forEach(
     async (id) => {
       const descr = await getElementFromDisk(id);
@@ -117,7 +118,7 @@ const transIt = itr8Pipe(
     map((x) => x / 2),
     filter((x) => x % 3 === 0),
     skip(5),
-    limit(50),
+    take(50),
 );
 // an 'operator' is a function that produces a transIterator
 const myOperator = () => transIt;
@@ -229,7 +230,7 @@ Now what is nextIn, state and param?
 
  * nextIn is simply the result of the next call of the incoming iterator. (The next call of an iterator always returns an object of the form { done: \<true of false\>, value: \<current value\> })
  * state is used to store intermediate data, for example if you want to make a sum, the state will be the sum until now, or if you need to buffer things, state could be the array of things in the buffer.
- * params is the argument that you can pass to your operator, like the number of elements in a limit operator, or the mapping function in a map operator
+ * params is the argument that you can pass to your operator, like the number of elements in a 'take' operator, or the mapping function in a map operator
 
 What does that function return?
 

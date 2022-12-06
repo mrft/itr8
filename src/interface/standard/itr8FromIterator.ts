@@ -33,7 +33,7 @@ import { itr8Pipe } from "../../util/index";
  *
  * @category interface/standard
  */
-function itr8FromIterator<PTIterator extends IterableIterator<any> | AsyncIterableIterator<any>>
+function itr8FromIterator<PTIterator extends Iterator<any> | AsyncIterator<any>>
  (iterator:PTIterator):TPipeable & PTIterator {
  const retVal = (iterator as TPipeable & PTIterator);
  retVal.pipe = <A=any,B=any>(

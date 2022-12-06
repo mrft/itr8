@@ -52,7 +52,7 @@ const parseJson = itr8OperatorFactory<Uint8Array | Buffer | string, Record<strin
       const parser = new JSONParser({
         paths: params, // ['$.*'],
         // paths: ['$.*.key', '$.*.name'],
-  
+
         // true seems to use too much memory, and we don't need to keep the parent
         // we just want to be able to build the 'path'
         keepStack: false,
@@ -70,15 +70,15 @@ const parseJson = itr8OperatorFactory<Uint8Array | Buffer | string, Record<strin
         } else {
           delete parent[key]; // don't waste memory
         }
-  
+
         const path = stack.map((si) => '' + (si.key === undefined ? '$' : si.key)).join('.') + '.' + key;
 
         // return an array instead of a string for the path?
         // const {_, substack } = stack;
         // const pathArray = (substack && substack.map((si) => si.key)) || [];
-  
+
         newState.common.parsedObjects.push([value, path]);
-  
+
         // remove values from stack
         for (const s of stack) {
           // console.log('stack item', s);

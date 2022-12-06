@@ -12,11 +12,183 @@ Currently we use modeul: "CommonJS" in tsconfig.json, but ideally it should be E
 so that the compiled typescript code can be used unmodified both in NodeJS and in the
 browser without forcing users to have build tools like webpack or browserify in between.
 
+## Support the 'official' transducer/transformer spec?
+
+The way transducers have been implemented in Ramda and a few other libraries has always confused
+me (as in you really have to dig into it to really understand how they work).
+
+James Long has a great explanation about __separation of concerns__ in [his article about Transducers.js](https://archive.jlongster.com/Transducers.js--A-JavaScript-Library-for-Transformation-of-Data).
+He argues that **iterate, transform and build** are three separate problems, and that transducers decouple this in such away that the transform can be used on any data structure.
+To quote him:
+> These are completely separate concerns, and yet most transformations in JavaScript are tightly coupled with specific data structures. Transducers decouples this and you can apply all the available transformations on any data structure.
+
+Something he also mentions in the final notes of the post that is [introducing his transducers.js library](https://archive.jlongster.com/Transducers.js--A-JavaScript-Library-for-Transformation-of-Data#Final-Notes)
+> Lazy sequences are something I think should be added to transducers.js in the future. (edit: well, this paragraph isn't exactly true, but we'll have to explain laziness more in the future)
+
+I think that itr8 also decouples this, but in a different way: with transducers you'd need to implement another protocol (the most important method being 'step')
+
+The [transformer protocol](https://github.com/cognitect-labs/transducers-js#transformer-protocol) requires you to add these methods on any data structure that wants to play along, or to define a transformation:
+{
+  '@@transducer/init': () => 'some inital value';
+  '@@transducer/result': (r) => r;
+  '@@transducer/step': (acc, cur) => ...;
+}
+
+In itr8, we assume that anything can be made iterable (even push-streams, by buffering). The thing about push-streams is: if a stream is push-based and the receiving end can't handle the speed, you'd get in trouble eventually, so we can safely assume that any push-based stream, can be buffered and pulled from, because the puller will be fast enough, and the buffer will always be near-empty anyway.
+
+With this assumption in mind, we actually don't decouple iteration from transformation, but we do decouple iteration from 'build'.
+First of all: maybe you don't want to 'build something' in the end, but simply perform actions based on each item, and secondly: it feels like everything can easily be made iterable, and I think it's equally easy to build something from an iterator in most cases. Besides: with transducers it also looks as if you somehow have to make it compatible with some kind of spec to make it iterable, so we might as well agree that that protocol will always be the iterator protocol. The 'step' function feels very much like the 'next' function of an iterator anyway.
+
+So for me personally, I feel like there is less new things to learn - given you know how the iterator protocol works (it's simple, well-supported and widely used, so we might as well embrace it).
+
+So instead of trying to be entirely agnostic about the source, I think we end up with something that's even easier to understand (maybe that's just me of course) because we assume the source to always be the same thing, an iterator. It gives us one less degree of freedom, which makes for one less thing to explain or worry about in my opinion.
+
+Another post trying to explain transducers: https://medium.com/@shaadydawood/transducers-functional-transducers-async-transducers-e0ec65964fc2
+Check out: https://www.npmjs.com/package/functional-pipelines
+
+### What are the consequences for itr8?
+
+It looks like itr8 has chosen a different path, by composing iterators instead of operators.
+
+Could we think of another protocol that allows us to compose 'operators' that looks more like the iterator protocol?
+I mean: if the signature would be
+```typescript
+(inValue:[{ done: boolean, value?: any }, state]) => [{ done: boolean, value?: any }, state]
+```
+they could very easily be composed, but unfortunately our output format is more complex
+as in: we also allow 'iterable'.
+Of course we could change that to disallow iterable, and put that responsibility in the hands of
+the developer => he should keep the iterator in the state and return all values as long as there are any?
+It could be done, and if we do that, we'd have operators that are as easy to compose as the ones from the transducer protocol, and some people might find that easier to understand than the way transducers are implemented, because both done (or 'reduced' in transducer terms) and the value
+are returned.
+There's still a problem with 'state' being inside the inValue and outValue, because it belongs to a specific operator, so state should be kept 'locally' somehow in that case (this.state).
+### Some ideas to also make our 'transformers' (the nextFn we currently pass to itr8OperatorFactory) composable
+
+If we compose the transformations rather than the iterators, we might be able to gain some performance, but I find writing transducers cumbersome, because you have to think about 'writing a function that gets another function as input' and how to combine them.
+When writing the nextFn for the itr8OperatorFactory, we don't care about how they will be composed
+as that will be done for us, so we only have to think about what an input element produces on the output side, which is quite easy most of the time. Adding that extra complexity of havng to call "the other function" somewhere adds a mental burden that I find too high, which might be part of the reason transducers haven't really been embraced by the masses.
+
+**Why would I try composing the transformers then instead of the iterators?**
+
+For performance reasons: once 1 element in the chain is async, every iterator that comes behind it will necessarily become async, causing for a lot of functions being put onto the event loop (This also means that each 'transIterator' is running a lot of code to check whether the input iterator is sync or async). I have actually proven (in the 'transduce' operator tests) that transducer based version of the same operations (filter, map, repeat, ...) was quite a lot faster (probably because of the single intermediate iterator, and probably also because all the transducers are synchronous, so there are way less isPromise checks, but maybe in general, because the transducers call the next transducer there are less intermediate allocations of new data structures?)
+If we combine the transformations into 1 single method, we'd end up with a single 'intermediate' iterator that executes a single function - in case  everything is synchronous - for every element in the stream.
+
+So I have been trying to figure out a way to also make our 'transformers' composable, without changing how they work. So instead of relying on a theoretical model, I would provide helper functions to make composing possible, while maintaining the easy-to-use interface. So while (or maybe just because) theoretically less advanced than transducers, we might end up with something that is easier to use, which in my view is really important. (if we find a way to compose them, we might also find a way to turn them into actual transformers for a transducer as well, in which case we might also have helped the transducer-loving world forward)
+
+```typescript
+// Transformer spec defines these methods on an object
+// init:
+// step:
+// result:
+// reduced:
+// value:
+
+// processing fn:
+  step(prevOut, curIn) => newOut
+
+// map:
+  nextFn(nextIn, state) => {
+    return { done: false, value: state.mapFn(nextIn.value) }
+  }
+// filter
+  nextFn(nextIn, state) => {
+    return state.filterFn(nextIn.value) ? nextIn : { done: false }
+  }
+
+// nextFn returns a nextIn and to compose we'd need a function
+// that takes a nextFn and produces another nextFn
+
+// composing a map, then filter would be written manually as
+const result1 = /* await is some cases */ nextFnMap(nextIn, stateOfMap)
+return nextFnFilter(result1, stateOfFilter)
+
+itr8OperDefFactory(nextFn, initFn) => // we could produce a 'stateful' nextFn()?
+// or a nextFn, that already has state applied? and thus only takes 1 argument
+// which is an input next?
+// and if input and output would be compatible,
+// this would create functions that can be composed/piped
+// unfortunately they are not 100% compatible right currently because the output
+// 1. can contain iterable instead of value and  2. can be a promise
+// which means that we'd need tooling to link them together
+// 1. could be replaced by always returning an iterator or by adding a boolean
+//    to the state (which we 'internalized') informing the 'engine' whether
+//    a new next is needed already
+// so if we want to 'compose' the nextFns (turning the 'pull' into a 'push' to the next nextFn)
+// so that we can create a single transIterator from multiple 'transformers' combined,
+// we'd need a composer function to do that for us so it can interpret for example the iterable field
+// and as a result call the next one multiple times?
+// all this should produce another nextFn that is the combination of all the others
+// so then we could have a method called transIt(nextFn, nextFn, nextFn) that turns that list into
+// a single transIterator, instead of a chain of many
+// OH AND I GUESS MAYBE WE CAN USE SOMETHING LIKE MONADS TO TURN NEXTFN INTO A FUNCTION THAT CAN BE COMPOSED???
+// (instead of writing a manual function to do it?) state will always be a problem when it's an argument I guess
+(...args) => { // each arg is a 'transform' function (nextFn)
+  // return another nextFn function that is the combination of all the arguments
+  return {
+    nextFn: (nextIn, state) => {
+      let curPrevOut = nextIn; // a 'normal' IteratorResult is compatible with a nextOut value
+      let result;
+      for (const aFn of args) {
+        if (curPrevOut.iterable) {
+          result = { done: false, iterable: [] };
+          let count = 0;
+          for (const c of curPrevOut.iterable) {
+            const r =  aFn(c, state[aFn.id]);
+            if (r.done) break;
+            result.iterable.push(r.value); // iterable should be created with a generator function
+            count += 1;
+          }
+          if ( count <= 0 ) {
+            result = { done: true, iterable: [] };
+          }
+        } else {
+          result = aFn(curPrevOut, state[aFn.id]) // state thing is pseudo code to get the idea across
+        }
+        if (result.done) {
+          return result;
+        }
+        curPrevOut = result;
+      }
+      return result;
+    },
+    initStateFn: () => {} // combine all the init-states of all the args?
+  }
+}
+
+/**
+ * the "monad-inspired" version would have a "bind" function to turn
+ * ```(nextIn:IteratorResult, state) => nextFnResult```
+ * into an ```(nextFnResult) => nextFnResult``` version
+ * state from the output is kept for next time
+ * (the 'state' will be 'against pure functional programming', but I see no way around it
+ * in order to create some truly useful operations)
+ *
+ * The 'unity' function and the 'lift' function - lift(f, x) = unit(f(x)) - to
+ * the "lift" function should make sure the right part of the input is handed over
+ * to the original function.
+ * So in short (ignoring the iterable property) unit should be like IteratorResult => NextFnOutputResult
+ */
+const unity = (nextIn) => {
+  let state;
+  let done = false;
+  return (nextFnFormattedNextIn) => {
+    if (nextFnFormattedNextIn.iterable) {
+      // call nextIn on every element from the iterable, and return
+      // a response also containing an iterable with all the results
+      // from calling
+      // watch out: when it returns done: true on one, we'd need to keep some state
+      // so we can tell we are 'done' the next time
+    } else {
+      return nextIn(nextFnFormattedNextIn /* without the state */, state)
+    }
+  }
+}
+```
+
 ## How to handle failures?
 
 Some of our operators (for example 'map') allow async methods to be run, so they can be used for things that
-are prone to failure (I am not considering the synchronous case because that
-can be controlled entirley by the user).
+are prone to failure (I am not considering the synchronous case because that can be controlled entirely by the user).
 
 The question is: if we know that things can potentially fail, are we going to add a specific
 protocol to handle these failures? Right now: if something fails that means that the next call
@@ -55,7 +227,7 @@ itr8/operators, and people with a strict bundle size can import /itr8/operators/
   * another way is to view the entire application as 1 single transIterator where the input is 'events' and the output is html (or lit-html templateresult).
     * a zip operation would zip that event and the current state together
     * a tap operation would send the newState back into the pushable state iterator
-    * A for each at the end would take the html and use it to update the DOM 
+    * A for each at the end would take the html and use it to update the DOM
 * Explain how an ASYNC iterator is actually an extremely simple 2-way protocol:
   * every next() call informs the sender that we're ready to receive another value
   * every resolved promise hands the new message to the receiver
@@ -101,7 +273,6 @@ itr8/operators, and people with a strict bundle size can import /itr8/operators/
   * the buffer should be kept as long as one subscriber didn't ask for that next()
   * there should be a way to 'disconnect', tell the iterable that we are not interested in more, so it won't keep buffering for no reason because we stop asking for next stuff.
   * we could add a timeout to automatically clean up the buffer if a subscriber didn't ask for a next element within a certain time (1 minute default?)
-  * 
 
 ## use iterators everywhere
 Think about how to make it easy to use operator parameters that are iterators themselves.
@@ -134,4 +305,39 @@ forLoop is like a for loop that will be synchronous if the input is synchronous 
 
 Currently I don't see a lot of performance benefits of the batch support, so it could be that we might as well remove the support for that, because it complicates building new operators.
 
-Further improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significantly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always `unBatch |> batch(size)` to force a new batch size, but it could be more efficient if the itr8OperatorFactory handles the batch size and keeps it constant throughtout the chain.
+1 thing is important: **'itr8batch' should not be a property (literally a JS property now) of the iterator, nor should it make the itr8OperatorFactory more complex (as it currently does). That code should be removed ASAP**.
+If we would still want to support it, it should be done as an operator that has a transIterator as its argument (or maybe support multiple arguments in order to avoid needing another itr8Pipe)
+
+Example:
+```typescript
+// Instead of
+myIt.pipe(
+  asBatch(),
+  someOp(),
+  someOtherOp(),
+  asNoBatch(),
+)
+
+// it would become something like below (so the asBatch operator would make sure all its
+// transIt arguments would be applied to each array element separately)
+myIt.pipe(
+  asBatch(,
+    someOp(),
+    someOtherOp(),
+  ),
+)
+
+// or if the batch operator would only support a single argument it would become a bit less
+// elegant as we'd need 'itr8Pipe' to compose the transIterators.
+myIt.pipe(
+  asBatch(,
+    itr8Pipe(
+      someOp(),
+      someOtherOp(),
+    ),
+  ),
+)
+```
+
+Other questions about how the batch things should work:
+Improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significantly for example, but batches with only a few elements don't have a very big advantage performance wise). Of course you could always `unBatch |> batch(size)` to force a new batch size, but it could be more efficient if the itr8OperatorFactory handles the batch size and keeps it constant throughtout the chain???
