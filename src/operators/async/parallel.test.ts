@@ -6,7 +6,7 @@ import { parallel } from './parallel';
 import { itr8OperatorFactory, itr8Pipe } from '../../util';
 import { map } from '../general/map';
 import { tap } from '../general/tap';
-import { itr8Range, itr8ToArray } from '../../interface';
+import { itr8FromIterable, itr8Range, itr8ToArray } from '../../interface';
 
 /**
  * Produces an iterator that will return 1, 2, 3, 4
@@ -67,7 +67,7 @@ const repeatEach = itr8OperatorFactory<number, any, void, number>(
 );
 
 describe('operators/async/parallel.ts', () => {
-  it('parallel(...) operator works properly', async () => {
+  it('parallel(...) operator works properly when keepOrder = true', async () => {
 
     // by sleeping for a while after the first next() call
     // and recording the times between ending processing and starting processing the next,
@@ -86,7 +86,7 @@ describe('operators/async/parallel.ts', () => {
     f = fnThatStoresResultsFactory(descr, 10, results);
     result = await iteratorFactory().pipe(
       parallel(
-        4,
+        { concurrency: 4, keepOrder: true },
         itr8Pipe(
           map((x) => x * 2),
           map(async (x) => {
@@ -100,7 +100,6 @@ describe('operators/async/parallel.ts', () => {
     assert.deepEqual(result, [2, 4, 6, 8], `${descr}: result in the proper order fails!`);
     assert.deepEqual(results[descr].values, [2, 4, 6, 8], `${descr}: 'values' in the order as processed fail!`);
     assert.deepEqual(results[descr].times.map((t) => Math.round(t / 10) * 10), [10, 0, 0, 0], `${descr}: 'times' fail!`);
-    console.log(`        '${descr}' worked as expected`);
 
     // parallel of 3 and processing time of 10
     // should bring the waiting time to 0 after the first one, but again 10 on the third
@@ -109,7 +108,7 @@ describe('operators/async/parallel.ts', () => {
     f = fnThatStoresResultsFactory(descr, 10, results);
     result = await iteratorFactory().pipe(
       parallel(
-        3,
+        { concurrency: 3 },
         itr8Pipe(
           map((x) => x * 2),
           map(async (x) => {
@@ -123,7 +122,6 @@ describe('operators/async/parallel.ts', () => {
     assert.deepEqual(result, [2, 4, 6, 8], `${descr}: result in the proper order fails!`);
     assert.deepEqual(results[descr].values, [2, 4, 6, 8], `${descr}: 'values' in the order as processed fail!`);
     assert.deepEqual(results[descr].times.map((t) => Math.round(t / 10) * 10), [10, 0, 0, 10], `${descr}: 'times' fail!`);
-    console.log(`        '${descr}' worked as expected`);
 
     // parallel of 4 and processing time differs
     // should change the order of the results, but not the order of the output!
@@ -132,7 +130,7 @@ describe('operators/async/parallel.ts', () => {
     f = fnThatStoresResultsFactory(descr, 10, results);
     result = await itr8Range(50, 10, 20).pipe(
       parallel(
-        4,
+        { concurrency: 4 },
         itr8Pipe(
           // ,
           map(async (x) => {
@@ -147,7 +145,6 @@ describe('operators/async/parallel.ts', () => {
     assert.deepEqual(result, [100, 60, 20], `${descr}: result in the proper order fails!`);
     assert.deepEqual(results[descr].values, [10, 30, 50], `${descr}: 'values' in the order as processed fail!`);
     assert.deepEqual(results[descr].times.map((t) => Math.round(t / 10) * 10), [10, 20, 20], `${descr}: 'times' fail!`);
-    console.log(`        '${descr}' worked as expected`);
 
     return;
 
@@ -207,7 +204,7 @@ describe('operators/async/parallel.ts', () => {
 
   }).timeout(1_000);
 
-  it('parallel(...) operator works properly when the processing chain produces more elements than the input', async () => {
+  it('parallel(...) operator works properly when keepOrder = true and the processing chain produces more elements than the input', async () => {
     const results: Record<string, { values: any[], times: number[] }> = {};
 
     let descr: string;
@@ -221,7 +218,7 @@ describe('operators/async/parallel.ts', () => {
     f = fnThatStoresResultsFactory(descr, 10, results);
     result = await iteratorFactory().pipe(
       parallel(
-        4,
+        { concurrency: 4 },
         itr8Pipe(
           map((x) => x * 2),
           repeatEach(2),
@@ -236,7 +233,6 @@ describe('operators/async/parallel.ts', () => {
     assert.deepEqual(result, [2, 2, 4, 4, 6, 6, 8, 8], `${descr}: result in the proper order fails!`);
     assert.deepEqual(results[descr].values, [2, 4, 6, 8, 2, 4, 6, 8], `${descr}: 'values' in the order as processed fail!`);
     assert.deepEqual(results[descr].times.map((t) => Math.round(t / 10) * 10), [10, 0, 0, 0, 10, 0, 0, 0], `${descr}: 'times' fail!`);
-    console.log(`        '${descr}' worked as expected`);
 
     return;
 
@@ -247,7 +243,7 @@ describe('operators/async/parallel.ts', () => {
     f = fnThatStoresResultsFactory(descr, 10, results);
     result = await iteratorFactory().pipe(
       parallel(
-        3,
+        { concurrency: 3 },
         itr8Pipe(
           map((x) => x * 2),
           map(async (x) => {
@@ -261,7 +257,6 @@ describe('operators/async/parallel.ts', () => {
     assert.deepEqual(result, [2, 4, 6, 8], `${descr}: result in the proper order fails!`);
     assert.deepEqual(results[descr].values, [2, 4, 6, 8], `${descr}: 'values' in the order as processed fail!`);
     assert.deepEqual(results[descr].times.map((t) => Math.round(t / 10) * 10), [10, 0, 0, 10], `${descr}: 'times' fail!`);
-    console.log(`        '${descr}' worked as expected`);
 
     // parallel of 4 and processing time differs
     // should change the order of the results, but not the order of the output!
@@ -270,7 +265,7 @@ describe('operators/async/parallel.ts', () => {
     f = fnThatStoresResultsFactory(descr, 10, results);
     result = await itr8Range(50, 10, 20).pipe(
       parallel(
-        4,
+        { concurrency: 4 },
         itr8Pipe(
           // ,
           map(async (x) => {
@@ -285,11 +280,10 @@ describe('operators/async/parallel.ts', () => {
     assert.deepEqual(result, [100, 60, 20], `${descr}: result in the proper order fails!`);
     assert.deepEqual(results[descr].values, [10, 30, 50], `${descr}: 'values' in the order as processed fail!`);
     assert.deepEqual(results[descr].times.map((t) => Math.round(t / 10) * 10), [10, 20, 20], `${descr}: 'times' fail!`);
-    console.log(`        '${descr}' worked as expected`);
 
   }).timeout(1_000);
 
-  it.skip('parallel(...) operator works properly when the processing chain produces less elements than the input', async () => {
+  it.skip('parallel(...) operator works properly when keepOrder = true and the processing chain produces less elements than the input', async () => {
     const results: Record<string, { values: any[], times: number[] }> = {};
 
     let descr: string;
@@ -303,7 +297,7 @@ describe('operators/async/parallel.ts', () => {
     f = fnThatStoresResultsFactory(descr, 10, results);
     result = await iteratorFactory().pipe(
       parallel(
-        4,
+        { concurrency: 4 },
         itr8Pipe(
           map((x) => x * 2),
           map(async (x) => {
@@ -317,7 +311,6 @@ describe('operators/async/parallel.ts', () => {
     assert.deepEqual(result, [2, 4, 6, 8], `${descr}: result in the proper order fails!`);
     assert.deepEqual(results[descr].values, [2, 4, 6, 8], `${descr}: 'values' in the order as processed fail!`);
     assert.deepEqual(results[descr].times.map((t) => Math.round(t / 10) * 10), [10, 0, 0, 0], `${descr}: 'times' fail!`);
-    console.log(`        '${descr}' worked as expected`);
 
     // parallel of 3 and processing time of 10
     // should bring the waiting time to 0 after the first one, but again 10 on the third
@@ -326,7 +319,7 @@ describe('operators/async/parallel.ts', () => {
     f = fnThatStoresResultsFactory(descr, 10, results);
     result = await iteratorFactory().pipe(
       parallel(
-        3,
+        { concurrency: 3 },
         itr8Pipe(
           map((x) => x * 2),
           map(async (x) => {
@@ -340,7 +333,6 @@ describe('operators/async/parallel.ts', () => {
     assert.deepEqual(result, [2, 4, 6, 8], `${descr}: result in the proper order fails!`);
     assert.deepEqual(results[descr].values, [2, 4, 6, 8], `${descr}: 'values' in the order as processed fail!`);
     assert.deepEqual(results[descr].times.map((t) => Math.round(t / 10) * 10), [10, 0, 0, 10], `${descr}: 'times' fail!`);
-    console.log(`        '${descr}' worked as expected`);
 
     // parallel of 4 and processing time differs
     // should change the order of the results, but not the order of the output!
@@ -349,7 +341,7 @@ describe('operators/async/parallel.ts', () => {
     f = fnThatStoresResultsFactory(descr, 10, results);
     result = await itr8Range(50, 10, 20).pipe(
       parallel(
-        4,
+        { concurrency: 4 },
         itr8Pipe(
           // ,
           map(async (x) => {
@@ -364,7 +356,68 @@ describe('operators/async/parallel.ts', () => {
     assert.deepEqual(result, [100, 60, 20], `${descr}: result in the proper order fails!`);
     assert.deepEqual(results[descr].values, [10, 30, 50], `${descr}: 'values' in the order as processed fail!`);
     assert.deepEqual(results[descr].times.map((t) => Math.round(t / 10) * 10), [10, 20, 20], `${descr}: 'times' fail!`);
-    console.log(`        '${descr}' worked as expected`);
+
+  }).timeout(1_000);
+
+  it('parallel(...) operator works properly when keepOrder = false', async () => {
+
+    // by sleeping for a while after the first next() call
+    // and recording the times between ending processing and starting processing the next,
+    // we could check whether the parallelizing worked
+    // (because the promises should be resolved sooner)
+    const results: Record<string, { values: any[], times: number[] }> = {};
+
+    let descr: string;
+    let f;
+    let result:any;
+
+    // parallel of 4 and processing time differs
+    // should change the order of the results, AND the order of the output!
+    // bacause the faster ones will overtake the slower ones
+    descr = 'parallel 4 & processing times = 10, 30, 50';
+    // console.log(descr);
+    f = fnThatStoresResultsFactory(descr, 10, results);
+    result = await itr8FromIterable([50, 30, 10]).pipe(
+      parallel(
+        { concurrency: 4, keepOrder: false },
+        itr8Pipe(
+          // ,
+          map(async (x) => {
+            await f(x, x);
+            return x;
+          }),
+          map((x) => x * 2),
+        ),
+      ),
+      itr8ToArray,
+    );
+    assert.deepEqual(result, [20, 60, 100], `${descr}: result in the proper order fails!`);
+    assert.deepEqual(results[descr].values, [10, 30, 50], `${descr}: 'values' in the order as processed fail!`);
+    assert.deepEqual(results[descr].times.map((t) => Math.round(t / 10) * 10), [10, 20, 20], `${descr}: 'times' fail!`);
+
+    // parallel of 2 and processing time differs
+    // should change the order of the results, AND the order of the output!
+    // bacause the faster ones will overtake the slower ones (but the nr of lanes is limited!)
+    descr = 'parallel 2 & processing times = 50, 30, 30 & keepOrder = false';
+    // console.log(descr);
+    f = fnThatStoresResultsFactory(descr, 10, results);
+    result = await itr8FromIterable([50, 30, 30]).pipe(
+      parallel(
+        { concurrency: 2, keepOrder: false },
+        itr8Pipe(
+          // ,
+          map(async (x) => {
+            await f(x, x);
+            return x;
+          }),
+          map((x) => x * 2),
+        ),
+      ),
+      itr8ToArray,
+    );
+    assert.deepEqual(result, [60, 100, 60], `${descr}: result in the proper order fails!`);
+    assert.deepEqual(results[descr].values, [30, 50, 30], `${descr}: 'values' in the order as processed fail!`);
+    assert.deepEqual(results[descr].times.map((t) => Math.round(t / 10) * 10), [30, 20, 10], `${descr}: 'times' fail!`);
 
   }).timeout(1_000);
 

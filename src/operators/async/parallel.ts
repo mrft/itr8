@@ -52,48 +52,90 @@ import { map } from "../general/map";
  * // }
  * ```
  *
- * @param concurrency
+ * @param options
  * @param transIt
  * @returns
  * 
  * @category operators/async
  */
-const parallel = (concurrency:number, transIt:(it:Iterator<unknown> | AsyncIterator<unknown>)=>TPipeable & AsyncIterableIterator<unknown> | AsyncIterator<unknown>) => {
-  return <T>(inIt: Iterator<T> | AsyncIterator<T>):AsyncIterableIterator<T> => {
-    type TItOfItsElement = { callbackIt: TPushable & AsyncIterableIterator<boolean>, subIt: TPushable & AsyncIterableIterator<T> };
+const parallel = (options:{concurrency:number, keepOrder?:boolean}, transIt:(it:Iterator<unknown> | AsyncIterator<unknown>)=>TPipeable & AsyncIterableIterator<unknown> | AsyncIterator<unknown>) => {
+  if (options.keepOrder === undefined || options.keepOrder) {
+    return <T>(inIt: Iterator<T> | AsyncIterator<T>):AsyncIterableIterator<T> => {
+      type TItOfItsElement = { callbackIt: TPushable & AsyncIterableIterator<boolean>, subIt: TPushable & AsyncIterableIterator<T> };
 
-    const outIteratorOfIterators = itr8Pushable<TItOfItsElement>();
-    (async () => {
-      await itr8FromIterator(inIt).pipe(
-        forEach(
-          async (inElement) => {
-            const itOfItsElement:TItOfItsElement = { callbackIt: itr8Pushable<boolean>(), subIt: itr8Pushable()};
-            outIteratorOfIterators.push(itOfItsElement);
-            // actively drain the subIterator to force parallel processing
-            // and push the results onto the subItPushable
-            const subIt = transIt(itr8FromSingleValue(inElement));
-            await forEach(itOfItsElement.subIt.push)(subIt);
-            itOfItsElement.subIt.done();
-            // now wait until we get a signal that this subIterator has been processed (pulled in)
-            // so this 'lane' can start processing a new record
-            await itr8ToArray(itOfItsElement.callbackIt);
-          },
-          { concurrency },
-        ),
-      );
+      const outIteratorOfIterators = itr8Pushable<TItOfItsElement>();
+      (async () => {
+        await itr8FromIterator(inIt).pipe(
+          forEach(
+            async (inElement) => {
+              const itOfItsElement:TItOfItsElement = { callbackIt: itr8Pushable<boolean>(), subIt: itr8Pushable()};
+              outIteratorOfIterators.push(itOfItsElement);
+              // actively drain the subIterator to force parallel processing
+              // and push the results onto the subItPushable
+              const subIt = transIt(itr8FromSingleValue(inElement));
+              await forEach(itOfItsElement.subIt.push)(subIt);
+              itOfItsElement.subIt.done();
+              // now wait until we get a signal that this subIterator has been processed (pulled in)
+              // so this 'lane' can start processing a new record
+              await itr8ToArray(itOfItsElement.callbackIt);
+            },
+            { concurrency: options.concurrency },
+          ),
+        );
 
-      // after the forEach, make sure we indicate that the iterator is done!
-      outIteratorOfIterators.done();
-    })();
+        // after the forEach, make sure we indicate that the iterator is done!
+        outIteratorOfIterators.done();
+      })();
 
-    async function* iteratorOfIterables() {
-      for await (const subItElement of outIteratorOfIterators) {
-        yield* subItElement.subIt;
-        // send signal back to forEach that the processing has finished for this subIterator
-        subItElement.callbackIt.done();
+      async function* iteratorOfIterables() {
+        for await (const subItElement of outIteratorOfIterators) {
+          yield* subItElement.subIt;
+          // send signal back to forEach that the processing has finished for this subIterator
+          subItElement.callbackIt.done();
+        }
       }
+      return itr8FromIterator(iteratorOfIterables());
     }
-    return itr8FromIterator(iteratorOfIterables());
+  } else {
+    return <T>(inIt: Iterator<T> | AsyncIterator<T>):AsyncIterableIterator<T> => {
+      type TItElement = { callbackIt: TPushable & AsyncIterableIterator<boolean> } | { value: T };
+
+      const outIterator = itr8Pushable<TItElement>();
+      (async () => {
+        await itr8FromIterator(inIt).pipe(
+          forEach(
+            async (inElement) => {
+              // actively drain the subIterator to force parallel processing
+              // and push the results onto the pushable outIterator
+              const subIt = transIt(itr8FromSingleValue(inElement));
+              await forEach((v) => outIterator.push({ value: v }))(subIt);
+              const callbackIt = itr8Pushable<boolean>();
+              outIterator.push({ callbackIt });
+              // now wait until we get a signal that this subIterator has been processed (pulled in)
+              // so this 'lane' can start processing a new record
+              await itr8ToArray(callbackIt);
+            },
+            { concurrency: options.concurrency },
+          ),
+        );
+
+        // after the forEach, make sure we indicate that the iterator is done!
+        outIterator.done();
+      })();
+
+      async function* iteratorOfValues() {
+        for await (const subItElement of outIterator) {
+          if ((subItElement as any).callbackIt === undefined) {
+            yield (subItElement as { value: T }).value;
+          } else {
+            // send signal back to forEach that the processing has finished for this subIterator
+            (subItElement as { callbackIt: TPushable & AsyncIterableIterator<boolean> })
+              .callbackIt.done();
+          }
+        }
+      }
+      return itr8FromIterator(iteratorOfValues());
+    }
   }
 };
 
