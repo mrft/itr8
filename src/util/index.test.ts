@@ -879,7 +879,7 @@ describe('./util/index.ts', () => {
         assert.deepEqual(maxAndCountTransNext, maxAndCountTransIt);
 
         console.log(` * transIts took ${durationTransIt} ms and transNexts took ${durationTransNext} ms`);
-      });
+      }).timeout(500);
 
     });
   });
