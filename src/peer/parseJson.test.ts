@@ -7,7 +7,7 @@ import { parseJson } from './parseJson';
 const a: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const b: string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
 
-describe('operators/parse/parseJson.ts', () => {
+describe('peer/parseJson.ts', () => {
   it('can parse json on an iterator', async () => {
     const jsonString = JSON.stringify({
       a: 'this is A',

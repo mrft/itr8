@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { itr8FromStringAsync } from "./itr8FromStringAsync";
 
-describe('interface/.ts', () => {
+describe('interface/itr8FromStringAsync.ts', () => {
   it('itr8FromStringAsync(...) can turn a string into an async iterator', async () => {
     const iterator: AsyncIterator<string> = itr8FromStringAsync('hello') as AsyncIterator<string>;
 

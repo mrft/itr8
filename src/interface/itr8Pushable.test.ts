@@ -3,7 +3,7 @@ import { sleep } from "../testUtils";
 import { itr8Pushable } from "./itr8Pushable";
 import { itr8ToArray } from "./itr8ToArray";
 
-describe('interface/.ts', () => {
+describe('interface/itr8Pushable.ts', () => {
   it('itr8Pushable(...) works properly', async () => {
     // this is the case where the buffer is not set so it'll keep growing
     const pushIt = itr8Pushable();
