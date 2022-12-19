@@ -1,7 +1,6 @@
 import { assert } from 'chai';
-import { forEach } from '../..';
 import { intersperse, map, takeWhile, tap } from '../operators';
-import { itr8ToArray, itr8RangeAsync, itr8Pushable, itr8FromIterable } from '../..';
+import { forEach, itr8ToArray, itr8RangeAsync, itr8Pushable, itr8FromIterable } from '../interface';
 import { parseJson } from './parseJson';
 
 
