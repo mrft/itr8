@@ -1,23 +1,14 @@
 import { assert } from 'chai';
 import * as Stream from 'stream';
-import * as fs from 'fs';
-import * as zlib from 'zlib';
 
 import {
-  forEach, itr8Pipe, itr8ToArray, itr8Range, itr8FromIterator, itr8RangeAsync,
-  itr8FromString, itr8FromArrayAsync, thenable, forLoop, itr8FromArray, itr8FromSingleValue,
-  itr8FromSingleValueAsync, itr8FromStringAsync, itr8Pushable, itr8Interval, itr8FromIterable,
-  itr8OperatorFactory, lineByLine, debounce, throttle, prefetch, mostRecent,
-  takeWhile, tap, average, dedup, flatten, groupPer, intersperse, take,
-  percentile, runningAverage, runningPercentile, runningReduce, runningTotal, some, sort, split,
-  stringToChar, total, uniq, uniqBy, skip, map, delay, filter, min, max, zip, every, reduce, gzip,
-  gunzip, parseJson, itr8FromStream, itr8ToReadableStream, itr8FromObservable, itr8ToObservable,
+  itr8Pipe, itr8ToArray, itr8Range, itr8FromIterator,
+  itr8OperatorFactory,
+  average, flatten, groupPer, take,
+  skip, map, filter,
   TNextFnResult,
 } from './'
 import { hrtime } from 'process';
-import { promisify } from 'util';
-import { isPromise } from 'util/types';
-import { concatMap, from, of, delay as rxjsDelay } from 'rxjs';
 
 const a: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const b: string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];

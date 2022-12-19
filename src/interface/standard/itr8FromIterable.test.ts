@@ -1,3 +1,0 @@
-
-describe('interface/standard/.ts', () => {
-});

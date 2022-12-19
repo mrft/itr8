@@ -1,1 +1,1 @@
-export * from './parseJson';
+// no exports currently (well json parser is under src/peer because it has a peer dependency)

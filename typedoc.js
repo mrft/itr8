@@ -8,6 +8,7 @@ module.exports = {
     'src/operators/index.ts',
     'src/util/index.ts',
     'src/index.ts',
+    'src/peer/index.ts',
   ],
   tsconfig: "./tsconfig.prod.json",
   // the typedoc-plugin-pages can add more pages to the output

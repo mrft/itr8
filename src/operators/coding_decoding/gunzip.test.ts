@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import * as fs from 'fs';
 import { forEach } from '../..';
-import { itr8FromStream } from '../../interface';
+import { itr8FromStream } from '../../peer/stream';
 import { flatten } from '../general/flatten';
 import { map } from '../general/map';
 import { zip } from '../general/zip';

@@ -1,10 +1,5 @@
-import { nextTick } from "process";
-import { TimeInterval } from "rxjs/internal/operators/timeInterval";
-import { isPromise } from "util/types";
-import { forEach, itr8FromArray, itr8FromIterator, itr8FromSingleValue, itr8Pushable, itr8Range, itr8ToArray } from "../../interface";
-import { TPipeable, TPushable, TTransIterator } from "../../types";
-import { itr8OperatorFactory, thenable } from "../../util";
-import { map } from "../general/map";
+import { forEach, itr8FromIterator, itr8FromSingleValue, itr8Pushable, itr8ToArray } from "../../interface";
+import { TPipeable, TPushable } from "../../types";
 
 /**
  * This operator should make it easy to run things in parallel (in order to speed things up),
@@ -25,7 +20,7 @@ import { map } from "../general/map";
  *
  * This should be an ideal combination with the runInWorker operator we can easilly distribute
  * the work over the wanted amount of worker threads.
- * 
+ *
  * @example
  * ```typescript
  * // run google searches and transform the result with an online api to produce a map of results
@@ -55,7 +50,7 @@ import { map } from "../general/map";
  * @param options
  * @param transIt
  * @returns
- * 
+ *
  * @category operators/async
  */
 const parallel = (options:{concurrency:number, keepOrder?:boolean}, transIt:(it:Iterator<unknown> | AsyncIterator<unknown>)=>TPipeable & AsyncIterableIterator<unknown> | AsyncIterator<unknown>) => {
@@ -65,19 +60,28 @@ const parallel = (options:{concurrency:number, keepOrder?:boolean}, transIt:(it:
 
       const outIteratorOfIterators = itr8Pushable<TItOfItsElement>();
       (async () => {
+        // const start = Date.now();
+        // const timePassed = () => Date.now() - start;
         await itr8FromIterator(inIt).pipe(
           forEach(
             async (inElement) => {
+              // console.log(`${JSON.stringify(inElement)}: taking lane (${timePassed()} ms)`);
               const itOfItsElement:TItOfItsElement = { callbackIt: itr8Pushable<boolean>(), subIt: itr8Pushable()};
               outIteratorOfIterators.push(itOfItsElement);
               // actively drain the subIterator to force parallel processing
               // and push the results onto the subItPushable
               const subIt = transIt(itr8FromSingleValue(inElement));
-              await forEach(itOfItsElement.subIt.push)(subIt);
+              // await forEach(itOfItsElement.subIt.push)(subIt);
+              await forEach((v) => {
+                // console.log(`${JSON.stringify(inElement)}: Pushing ${JSON.stringify(v)} to outIterator (${timePassed()} ms)`);
+                itOfItsElement.subIt.push(v);
+              })(subIt);
+              // console.log(`${JSON.stringify(inElement)}: Pushing DONE to outIterator (${timePassed()} ms)`);
               itOfItsElement.subIt.done();
               // now wait until we get a signal that this subIterator has been processed (pulled in)
               // so this 'lane' can start processing a new record
               await itr8ToArray(itOfItsElement.callbackIt);
+              // console.log(`${JSON.stringify(inElement)}: clearing lane because outIterator has processed all elemants... (${timePassed()} ms)`);
             },
             { concurrency: options.concurrency },
           ),
@@ -109,11 +113,17 @@ const parallel = (options:{concurrency:number, keepOrder?:boolean}, transIt:(it:
               // and push the results onto the pushable outIterator
               const subIt = transIt(itr8FromSingleValue(inElement));
               await forEach((v) => outIterator.push({ value: v }))(subIt);
+              // await forEach((v) => {
+              //   console.log(`${JSON.stringify(inElement)}: Pushing ${JSON.stringify(v)} to outIterator`);
+              //   outIterator.push({ value: v });
+              // })(subIt);
               const callbackIt = itr8Pushable<boolean>();
+              // console.log(`${JSON.stringify(inElement)}: Pushing DONE to outIterator`);
               outIterator.push({ callbackIt });
               // now wait until we get a signal that this subIterator has been processed (pulled in)
               // so this 'lane' can start processing a new record
               await itr8ToArray(callbackIt);
+              // console.log(`${JSON.stringify(inElement)}: clearing lane because outIterator has processed all elemants...`);
             },
             { concurrency: options.concurrency },
           ),
