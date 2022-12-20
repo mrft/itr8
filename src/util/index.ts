@@ -611,6 +611,8 @@ const forLoop = <State>(
 // };
 
 /**
+ * UNFINISHED (some tests are failing when using this version) !!!
+ *
  * EXPERIMENTAL VERSION OF THIS FUNCTION that tries to rewrite the functions
  * after we've established which parts are synchronous (input iterator next, nextFn result, ...)
  * in order to avoid checking this over and over again.

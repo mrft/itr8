@@ -17,6 +17,8 @@
  * @example
  * ```import { interfaceFn } from 'itr8'```
  *
+ * WATCH OUT: importing the entire module requires all peer dependencies to be installed as well
+ * (for example: interface/observable has RxJS as a peer dependency)
  * If bundle size does matter, it could be better to
  * ```import { interfaceFn } from 'itr8/interface/interfaceFn'```
  *
