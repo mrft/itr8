@@ -13,18 +13,18 @@ import { TNextFnResult, TPipeable, TTransIteratorSyncOrAsync } from '../types';
 
 // THIS MIGHT BE AN ALTERNATIVE TO REMOVE THE DEPENDENCY to Node's uil/types
 ////////////////////////////////////////////////////////////////////////////
-let isPromise = function isPromise(p:unknown):p is Promise<unknown> {
+const isPromise = function isPromise(p:unknown):p is Promise<unknown> {
   return p !== undefined && p!== null && Object.prototype.toString.call(p) === "[object Promise]";
 }
 
 // import { isPromise } from 'util/types'
 
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  isPromise = require('util/types').isPromise;
-} catch {
-  // ignore
-}
+// try {
+//   // eslint-disable-next-line @typescript-eslint/no-var-requires
+//   isPromise = require('util/types').isPromise;
+// } catch {
+//   // ignore
+// }
 
 /**
  * Shim for allowing async function creation similar to new Function.
