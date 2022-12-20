@@ -1,5 +1,5 @@
 import * as Stream from 'stream';
-import { isPromise } from 'util/types';
+import { isPromise } from '../util';
 import { itr8FromIterator, itr8FromIterable } from '../index';
 import { map } from '../operators/general/map';
 import { stringToChar } from '../operators/strings/stringToChar';

@@ -5,7 +5,7 @@
  * @module
  */
 
-import { isPromise } from 'util/types';
+import { isPromise } from '../util';
 import { itr8FromIterable } from './itr8FromIterable';
 
 /**

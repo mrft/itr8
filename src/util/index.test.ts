@@ -1,7 +1,6 @@
 import { assert } from 'chai';
 import { hrtime } from 'process';
-import { isPromise } from 'util/types';
-import { forLoop, itr8Pipe, thenable, itr8OperatorFactory } from '.';
+import { forLoop, itr8Pipe, thenable, itr8OperatorFactory, isPromise } from '.';
 import { forEach } from '../interface/forEach';
 import { itr8FromArray, itr8FromArrayAsync, itr8Range, itr8RangeAsync, itr8ToArray } from "../interface/index";
 import { flatten, groupPer, map, skip, take } from '../operators';
