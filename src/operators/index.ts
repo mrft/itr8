@@ -26,7 +26,7 @@ export * from './general/index';
 
 export * from './numeric/index';
 
-export * from './parse/index';
+// export * from './parse/index';
 
 export * from './strings/index';
 

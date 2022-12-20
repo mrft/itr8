@@ -49,6 +49,6 @@ export * from './interface/index';
 
 export * from './operators/index';
 
-// this file cnotains only re-exports, no own exports
+// this file contains only re-exports, no own exports
 export {
 }

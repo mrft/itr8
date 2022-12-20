@@ -1,9 +1,8 @@
 import { assert } from 'chai';
 import { hrtime } from 'process';
-import { isPromise } from 'util/types';
-import { forLoop, itr8Pipe, thenable, itr8OperatorFactory } from '.';
-import { forEach } from '../interface/standard/forEach';
-import { itr8FromArray, itr8FromArrayAsync, itr8Range, itr8RangeAsync, itr8ToArray } from "../interface/standard/index";
+import { forLoop, itr8Pipe, thenable, itr8OperatorFactory, isPromise } from '.';
+import { forEach } from '../interface/forEach';
+import { itr8FromArray, itr8FromArrayAsync, itr8Range, itr8RangeAsync, itr8ToArray } from "../interface/index";
 import { flatten, groupPer, map, skip, take } from '../operators';
 import { hrtimeToMilliseconds } from '../testUtils';
 import { TNextFnResult } from '../types';
@@ -879,11 +878,7 @@ describe('./util/index.ts', () => {
         assert.deepEqual(maxAndCountTransNext, maxAndCountTransIt);
 
         console.log(` * transIts took ${durationTransIt} ms and transNexts took ${durationTransNext} ms`);
-      });
-
-      it.skip('applying a composed transNextFn on an iterator is faster than applying the transIterators separately', () => {
-        // TODO
-      });
+      }).timeout(500);
 
     });
   });

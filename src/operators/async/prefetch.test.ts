@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { hrtime } from 'process';
 import { hrtimeToMilliseconds, sleep } from '../../testUtils';
-import { itr8FromIterator } from '../../interface/standard/itr8FromIterator';
+import { itr8FromIterator } from '../../interface/itr8FromIterator';
 import { prefetch } from './prefetch';
 
 describe('operators/async/prefetch.ts', () => {

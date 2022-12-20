@@ -1,5 +1,5 @@
 import { TTransIteratorSyncOrAsync } from "../../index";
-import { itr8FromIterator } from "../../interface/standard/itr8FromIterator";
+import { itr8FromIterator } from "../../interface/itr8FromIterator";
 
 /**
  * This operator will simply produce the same output, but the new Iterator will be marked

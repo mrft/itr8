@@ -1,4 +1,4 @@
-import { itr8FromString } from "../../interface/standard/itr8FromString";
+import { itr8FromString } from "../../interface/itr8FromString";
 import { itr8OperatorFactory } from "../../util/index";
 
 /**

@@ -1,4 +1,4 @@
-import { isPromise } from "util/types";
+import { isPromise } from "../../util";
 import { itr8FromIterator } from "../../index";
 
 /**
@@ -9,8 +9,6 @@ import { itr8FromIterator } from "../../index";
  *
  * Every value on the incoming iterator will be returned at least once in order to keep
  * the operator 'passive'. This operator will not actively drain the incoming iterator.
- *
- * REMARK: it will always create an unbatched iterator, regardless of the input
  *
  * @example
  * ```typescript

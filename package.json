@@ -10,8 +10,20 @@
     "/dist"
   ],
   "scripts": {
-    "// about prepare (run when the package is installed as a dependency, BUT ALSO when you run 'npm install' without arguments locally in the project root)": "Copy everything below dist/ to the root to make require('itr8/...') work (instead of require('itr8/dist/...') like now) and then remove what is not necessary by specifying the unnecessary ones in .npmignore cfr. https://stackoverflow.com/questions/49858168/how-to-publish-typescript-modules-on-npm-without-dist-in-import and https://docs.npmjs.com/cli/v9/configuring-npm/package-json?v=true#files and also (for not running the postprepare script on a local npm install) https://github.com/nmccready/skip-npm-task/blob/master/index.js",
-    "prepare": "npm run build && if [ \"$INIT_CWD\" = \"$PWD\" -o \"$INIT_CWD\" = '' ]; then echo '[itr8 prepare] LOCAL INSTALL: not copying files under dist/ to root!!!'; else echo '[itr8 prepare] NON local install (installed as dependency), so copy all files under dist/ to root folder' && cp -r dist/* . ; fi",
+    "find": "find . -path ./dist -prune -o -wholename './package.json' -prune -o -wholename './README.md' -o -wholename './LICENSE' -prune -o -print | less",
+    "preparetest": "echo $PWD/node_modules/itr8 | sed 's:^.*/node_modules/.*$':TRUE:g; [ `echo $PWD | sed 's:^.*/node_modules/.*$':TRUE:g` = 'TRUE' ] && echo true || echo false",
+    "// prepare 01": "(run when the package is installed as a dependency, BUT ALSO when you run 'npm install' without arguments locally in the project root)",
+    "// prepare 02": "Copy everything below dist/ to the root to make require('itr8/...') work (instead of require('itr8/dist/...'))",
+    "// prepare 03": "and then remove what is not necessary with an rm $(find ...) command that will ",
+    "// prepare 04": "list all files that can be removed ()",
+    "// prepare 05": "OBSOLETE: and then remove what is not necessaryby specifying the unnecessary ones in .npmignore cfr. https://stackoverflow.com/questions/49858168/how-to-publish-typescript-modules-on-npm-without-dist-in-import and https://docs.npmjs.com/cli/v9/configuring-npm/package-json?v=true#files and also (for not running the postprepare script on a local npm install) https://github.com/nmccready/skip-npm-task/blob/master/index.js",
+    "// prepare 06": "CURRENT: removeUnneedeFiles() could have been written with find, but I use a simple ls (-A if you also want to remove hidden files, but not . and ..)",
+    "// prepare 07": "  combined with inverse grep of some files we want to keep",
+    "// prepare 08": "we do an extra check to make sure we are being installed as a dependency: see if $PWD is under node_modules",
+    "// prepare 09": "[ \"${PWD#*/node_modules/}\" != \"${PWD}\" ] will return true if $PWD contains /node_modules/ cfr. https://stackoverflow.com/a/8811800",
+    "// prepare 10": "removed the check for || [ \"${PWD#*/node_modules/}\" = \"${PWD}\" ]",
+
+    "prepare": "removeUnneedeFiles() { ls -A | grep -E -v '^package.json|LICENSE|README.md|dist$' | while read F; do rm -rf \"$F\"; done }; npm run build && echo \"[itr8] $INIT_CWD =? $PWD\" && if [ \"$INIT_CWD\" = \"$PWD\" -o \"$INIT_CWD\" = '' ] ; then echo '[itr8 prepare] LOCAL INSTALL: not copying files under dist/ to root!!!'; else echo '[itr8 prepare] NON local install (installed as dependency), so remove unneeded files & copy all files under dist/ to root folder' && removeUnneedeFiles && mv dist/* . && rmdir dist; fi",
     "//build_mjs and build_cjs": "experiments building esm-modules inpired by https://styfle.dev/blog/es6-modules-today-with-typescript",
     "build_mjs": "tsc -d && mv dist/index.js dist/index.mjs",
     "build_cjs": "tsc -m commonjs",
@@ -22,13 +34,14 @@
     "clean": "rm -rf ./dist",
     "builddocs": "typedoc --options typedoc.js",
     "postbuilddocs": "./optimize_generated_docs_for_git.sh",
-    "echoForTest": "echo -e \"01 this is stdin\n02 So we can do some stream tests in the program\n03\n04\"",
+    "echoForTest": "echo \"01 this is stdin\n02 So we can do some stream tests in the program\n03\n04\"",
     "//pretest": "npm run clean && mkdir -p ./dist && npm run build",
-    "testOld": "npm run echoForTest | ./node_modules/.bin/mocha --exit --timeout 200 --node-option max-old-space-size=200 --require ts-node/register ./test/*.ts",
-    "testDebug": "npm run echoForTest | ./node_modules/.bin/mocha --exit --timeout 1000 --node-option max-old-space-size=300 --require ts-node/register $(find ./test ./src -iname '*.test.ts' -type f -printf '%h\\0%p\n' | sort | awk -F'\\0' '{print $2}')",
+    "testOld": "npm run echoForTest --silent | ./node_modules/.bin/mocha --exit --timeout 200 --node-option max-old-space-size=200 --require ts-node/register ./test/*.ts",
+    "testDebug": "npm run echoForTest --silent | ./node_modules/.bin/mocha --exit --timeout 1000 --node-option max-old-space-size=300 --require ts-node/register $(find ./test ./src -iname '*.test.ts' -type f -printf '%h\\0%p\n' | sort | awk -F'\\0' '{print $2}')",
     "//": "./node_modules/.bin/mocha --grep util will only run test files containing util in the name, but it is easier to add a grep after the find command",
-    "testPart": "npm run echoForTest | ./node_modules/.bin/mocha  --exit --timeout 1000 --node-option max-old-space-size=300 --require ts-node/register $(find ./test ./src -iname '*.test.ts' -type f -printf '%h\\0%p\n' | sort | awk -F'\\0' '{print $2}' | grep -v 'src/index' | grep -v 'parseJson' | grep -v 'transduce' | grep -v 'gzip' )",
-    "test": "npm run echoForTest | ./node_modules/.bin/mocha --exit --timeout  200 --node-option max-old-space-size=150 --require ts-node/register $(find ./test ./src -iname '*.test.ts' -type f -printf '%h\\0%p\n' | sort | awk -F'\\0' '{print $2}')",
+    "testPart": "npm run echoForTest --silent | ./node_modules/.bin/mocha  --exit --timeout 1000 --node-option max-old-space-size=300 --require ts-node/register $(find ./test ./src -iname '*.test.ts' -type f -printf '%h\\0%p\n' | sort | awk -F'\\0' '{print $2}' | grep -v 'src/index' | grep -v 'parseJson' | grep -v 'transduce' | grep -v 'gzip' | grep 'parallel' )",
+    "testOnly": "testOnly() { [ \"$1\" = \"\" ] && echo \"Usage:\n  npm run testOnly -- 'grepRegexToMatchTestFilename'\nExample to run the tests about itr8ToObject and the parallel operator:\n  npm run testOnly -- 'itr8ToObject|parallel'\" >&2 && exit 1; npm run echoForTest --silent | ./node_modules/.bin/mocha  --exit --timeout 1000 --node-option max-old-space-size=300 --require ts-node/register $(find ./test ./src -iname '*.test.ts' -type f -printf '%h\\0%p\n' | sort | awk -F'\\0' '{print $2}' | grep -v 'src/index' | grep -E \"$1\" ); }; testOnly",
+    "test": "npm run echoForTest --silent | ./node_modules/.bin/mocha --exit --timeout  200 --node-option max-old-space-size=150 --require ts-node/register $(find ./test ./src -iname '*.test.ts' -type f -printf '%h\\0%p\n' | sort | awk -F'\\0' '{print $2}')",
     "posttest": "npm run build && npm run builddocs"
   },
   "keywords": [],
@@ -36,7 +49,7 @@
   "license": "ISC",
   "devDependencies": {
     "@knodes/typedoc-plugin-pages": "^0.22.5",
-    "@streamparser/json": "0.0.6",
+    "@streamparser/json": "^0.0.6",
     "@types/chai": "^4.3.1",
     "@types/mocha": "^9.1.1",
     "@types/node": "^17.0.29",
@@ -54,6 +67,6 @@
     "typescript": "^4.6.4"
   },
   "peerDependencies": {
-    "@streamparser/json": "0.0.6"
+    "@streamparser/json": "^0.0.6"
   }
 }

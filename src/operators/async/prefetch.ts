@@ -1,4 +1,4 @@
-import { isPromise } from "util/types";
+import { isPromise } from "../../util";
 import { itr8FromIterator } from "../../index";
 
 /**
