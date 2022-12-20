@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { isPromise } from "util/types";
+import { isPromise } from "../util";
 import { itr8RangeAsync } from "./itr8RangeAsync";
 import { itr8ToArray } from "./itr8ToArray";
 

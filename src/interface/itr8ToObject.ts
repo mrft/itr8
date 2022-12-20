@@ -1,4 +1,4 @@
-import { isPromise } from "util/types";
+import { isPromise } from "../util";
 
 /**
  * Turns an itr8 into an object. It is like Object.fromEntries,
