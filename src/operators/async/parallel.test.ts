@@ -3,7 +3,7 @@ import { hrtime } from 'process';
 import { hrtimeToMilliseconds, sleep } from '../../testUtils';
 import { itr8FromIterator } from '../../interface/itr8FromIterator';
 import { parallel } from './parallel';
-import { itr8OperatorFactory, itr8Pipe } from '../../util';
+import { itr8OperatorFactory } from '../../util';
 import { map } from '../general/map';
 import { tap } from '../general/tap';
 import { itr8FromArray, itr8FromIterable, itr8Range, itr8ToArray } from '../../interface';
@@ -90,13 +90,11 @@ describe('operators/async/parallel.ts', () => {
     result = await iteratorFactory().pipe(
       parallel(
         { concurrency: 4, keepOrder: true },
-        itr8Pipe(
-          map((x) => x * 2),
-          map(async (x) => {
-            await f(x);
-            return x;
-          }),
-        ),
+        map((x) => x * 2),
+        map(async (x) => {
+          await f(x);
+          return x;
+        }),
       ),
       itr8ToArray,
     );
@@ -112,13 +110,11 @@ describe('operators/async/parallel.ts', () => {
     result = await iteratorFactory().pipe(
       parallel(
         { concurrency: 3 },
-        itr8Pipe(
-          map((x) => x * 2),
-          map(async (x) => {
-            await f(x);
-            return x;
-          }),
-        ),
+        map((x) => x * 2),
+        map(async (x) => {
+          await f(x);
+          return x;
+        }),
       ),
       itr8ToArray,
     );
@@ -134,14 +130,11 @@ describe('operators/async/parallel.ts', () => {
     result = await itr8Range(50, 10, 20).pipe(
       parallel(
         { concurrency: 4 },
-        itr8Pipe(
-          // ,
-          map(async (x) => {
-            await f(x, x);
-            return x;
-          }),
-          map((x) => x * 2),
-        ),
+        map(async (x) => {
+          await f(x, x);
+          return x;
+        }),
+        map((x) => x * 2),
       ),
       itr8ToArray,
     );
@@ -222,14 +215,12 @@ describe('operators/async/parallel.ts', () => {
     result = await iteratorFactory().pipe(
       parallel(
         { concurrency: 4 },
-        itr8Pipe(
-          map((x) => x * 2),
-          repeatEach(2),
-          map(async (x) => {
-            await f(x);
-            return x;
-          }),
-        ),
+        map((x) => x * 2),
+        repeatEach(2),
+        map(async (x) => {
+          await f(x);
+          return x;
+        }),
       ),
       itr8ToArray,
     );
@@ -247,13 +238,11 @@ describe('operators/async/parallel.ts', () => {
     result = await iteratorFactory().pipe(
       parallel(
         { concurrency: 3 },
-        itr8Pipe(
-          map((x) => x * 2),
-          map(async (x) => {
-            await f(x);
-            return x;
-          }),
-        ),
+        map((x) => x * 2),
+        map(async (x) => {
+          await f(x);
+          return x;
+        }),
       ),
       itr8ToArray,
     );
@@ -269,14 +258,11 @@ describe('operators/async/parallel.ts', () => {
     result = await itr8Range(50, 10, 20).pipe(
       parallel(
         { concurrency: 4 },
-        itr8Pipe(
-          // ,
-          map(async (x) => {
-            await f(x, x);
-            return x;
-          }),
-          map((x) => x * 2),
-        ),
+        map(async (x) => {
+          await f(x, x);
+          return x;
+        }),
+        map((x) => x * 2),
       ),
       itr8ToArray,
     );
@@ -301,13 +287,11 @@ describe('operators/async/parallel.ts', () => {
     result = await itr8FromArray([35, 30, 25, 20, 15, 10, 5, 0]).pipe(
       parallel(
         { concurrency: 4 },
-        itr8Pipe(
-          filter((x) => x % 2 === 0), // is even
-          map(async (x) => {
-            await f(x, x * 2);
-            return x;
-          }),
-        ),
+        filter((x) => x % 2 === 0), // is even
+        map(async (x) => {
+          await f(x, x * 2);
+          return x;
+        }),
       ),
       itr8ToArray,
     );
@@ -325,13 +309,11 @@ describe('operators/async/parallel.ts', () => {
     result = await iteratorFactory().pipe(
       parallel(
         { concurrency: 3 },
-        itr8Pipe(
-          map((x) => x * 2),
-          map(async (x) => {
-            await f(x);
-            return x;
-          }),
-        ),
+        map((x) => x * 2),
+        map(async (x) => {
+          await f(x);
+          return x;
+        }),
       ),
       itr8ToArray,
     );
@@ -347,14 +329,11 @@ describe('operators/async/parallel.ts', () => {
     result = await itr8Range(50, 10, 20).pipe(
       parallel(
         { concurrency: 4 },
-        itr8Pipe(
-          // ,
-          map(async (x) => {
-            await f(x, x);
-            return x;
-          }),
-          map((x) => x * 2),
-        ),
+        map(async (x) => {
+          await f(x, x);
+          return x;
+        }),
+        map((x) => x * 2),
       ),
       itr8ToArray,
     );
@@ -385,14 +364,11 @@ describe('operators/async/parallel.ts', () => {
     result = await itr8FromIterable([50, 30, 10]).pipe(
       parallel(
         { concurrency: 4, keepOrder: false },
-        itr8Pipe(
-          // ,
-          map(async (x) => {
-            await f(x, x);
-            return x;
-          }),
-          map((x) => x * 2),
-        ),
+        map(async (x) => {
+          await f(x, x);
+          return x;
+        }),
+        map((x) => x * 2),
       ),
       itr8ToArray,
     );
@@ -409,14 +385,11 @@ describe('operators/async/parallel.ts', () => {
     result = await itr8FromIterable([50, 30, 30]).pipe(
       parallel(
         { concurrency: 2, keepOrder: false },
-        itr8Pipe(
-          // ,
-          map(async (x) => {
-            await f(x, x);
-            return x;
-          }),
-          map((x) => x * 2),
-        ),
+        map(async (x) => {
+          await f(x, x);
+          return x;
+        }),
+        map((x) => x * 2),
       ),
       itr8ToArray,
     );
@@ -441,13 +414,11 @@ describe('operators/async/parallel.ts', () => {
     result = await itr8FromArray([35, 30, 25, 20, 15, 10, 5, 0]).pipe(
       parallel(
         { concurrency: 4, keepOrder: false },
-        itr8Pipe(
-          filter((x) => x % 2 === 0), // is even
-          map(async (x) => {
-            await f(x, x * 2);
-            return x;
-          }),
-        ),
+        filter((x) => x % 2 === 0), // is even
+        map(async (x) => {
+          await f(x, x * 2);
+          return x;
+        }),
       ),
       itr8ToArray,
     );
@@ -463,13 +434,11 @@ describe('operators/async/parallel.ts', () => {
     result = await itr8FromArray([['A', 30], ['B', 10], ['C', 10], ['D', 20], ['E', 20] ]).pipe(
       parallel(
         { concurrency: 2, keepOrder: false },
-        itr8Pipe(
-          filter(([code, _time]) => code != 'E'), // skip E
-          map(async ([code, time]) => {
-            await f(code, time);
-            return code;
-          }),
-        ),
+        filter(([code, _time]) => code != 'E'), // skip E
+        map(async ([code, time]) => {
+          await f(code, time);
+          return code;
+        }),
       ),
       itr8ToArray,
     );

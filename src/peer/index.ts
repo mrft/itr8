@@ -6,9 +6,10 @@
  * **WATCH OUT**: importing the entire module requires all **peer dependencies** to be installed as well
  * (for example: observable has RxJS as a peer dependency)
  *
- * If bundle size does matter, or if you don't need the peer dependencies, it is advised to
- * import more specifically what you need:
- * ```import { operator } from 'itr8/peer/stream'```
+ * You could also import more specifically what you need:
+ * ```
+ * import { itr8FromStdIn } from 'itr8/peer/stream'
+ * ```
  *
  * @module
  */

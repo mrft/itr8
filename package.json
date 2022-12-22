@@ -22,7 +22,6 @@
     "// prepare 08": "we do an extra check to make sure we are being installed as a dependency: see if $PWD is under node_modules",
     "// prepare 09": "[ \"${PWD#*/node_modules/}\" != \"${PWD}\" ] will return true if $PWD contains /node_modules/ cfr. https://stackoverflow.com/a/8811800",
     "// prepare 10": "removed the check for || [ \"${PWD#*/node_modules/}\" = \"${PWD}\" ]",
-
     "prepare": "removeUnneedeFiles() { ls -A | grep -E -v '^package.json|LICENSE|README.md|dist$' | while read F; do rm -rf \"$F\"; done }; npm run build && echo \"[itr8] $INIT_CWD =? $PWD\" && if [ \"$INIT_CWD\" = \"$PWD\" -o \"$INIT_CWD\" = '' ] ; then echo '[itr8 prepare] LOCAL INSTALL: not copying files under dist/ to root!!!'; else echo '[itr8 prepare] NON local install (installed as dependency), so remove unneeded files & copy all files under dist/ to root folder' && removeUnneedeFiles && mv dist/* . && rmdir dist; fi",
     "//build_mjs and build_cjs": "experiments building esm-modules inpired by https://styfle.dev/blog/es6-modules-today-with-typescript",
     "build_mjs": "tsc -d && mv dist/index.js dist/index.mjs",
@@ -48,11 +47,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@knodes/typedoc-plugin-pages": "^0.22.5",
+    "@knodes/typedoc-plugin-pages": "^0.23.1",
     "@streamparser/json": "^0.0.6",
     "@types/chai": "^4.3.1",
     "@types/mocha": "^9.1.1",
-    "@types/node": "^17.0.29",
+    "@types/node": "^18.11.17",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
     "chai": "^4.3.6",
@@ -62,9 +61,9 @@
     "mocha": "^9.2.2",
     "rxjs": "^7.5.5",
     "transducers-js": "^0.4.174",
-    "ts-node": "^10.7.0",
-    "typedoc": "^0.22.15",
-    "typescript": "^4.6.4"
+    "ts-node": "^10.9.1",
+    "typedoc": "^0.23.23",
+    "typescript": "^4.9.4"
   },
   "peerDependencies": {
     "@streamparser/json": "^0.0.6"

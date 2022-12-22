@@ -1,17 +1,24 @@
 /**
- * This module will export ALL operators, easy if bundle size doesn't matter that much.
+ * The operator functions are the heart of the library!
  *
- * ```import { operator } from 'itr8/operators'```
+ * The operators produce the transIterators that can be chained together
+ * in order to produce the desired behaviour.
  *
- * **WATCH OUT**: importing the entire module requires all **peer dependencies** to be installed as well
- * (for example: parseJson has a peer dependency)
+ * This module will export ALL operators.
+ * @example
+ * ```
+ * import { operator } from 'itr8/operators'
+ * ```
  *
- * If bundle size does matter, or if you don't need the peer dependencies, it is advised to
- * import more specifically what you need:
- * ```import { operator } from 'itr8/operators/operatorGroup/operatorName'```
+ * You can also import more specifically what you need:
+ * ```
+ * import { operator } from 'itr8/operators/operatorGroup/operatorName'
+ * ```
  *
- * You could also import all from a single group with
- * ```import { operator } from 'itr8/operators/operatorGroup'```
+ * You can also import all from a single group with
+ * ```
+ * import { operator } from 'itr8/operators/operatorGroup'
+ * ```
  *
  * @module
  */

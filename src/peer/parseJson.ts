@@ -15,7 +15,7 @@ import { itr8OperatorFactory } from "../util/index";
  * the things that interest you.
  * Defaults to undefined which emits everything. The paths are intended to support
  * jsonpath although at the time being it only supports the root object selector ($)
- * and subproperties selectors including wildcards ($.a, $.*, $.a.b, , $.*.b, etc).
+ * and subproperties selectors including wildcards ($.a, $.\*, $.a.b, , $.\*.b, etc).
  *
  * @example
  * ```typescript
@@ -34,7 +34,7 @@ import { itr8OperatorFactory } from "../util/index";
  * @param params
  * @returns tuples [ value, path ]
  *
- * @category operators/parse
+ * @category peer/parseJson
  */
 const parseJson = itr8OperatorFactory<Uint8Array | Buffer | string, Record<string,any>, { parser: typeof JSONParser, common: Record<string, any>, done: boolean }, Array<string>>(
   (nextIn, state, params) => {
