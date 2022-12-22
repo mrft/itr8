@@ -18,7 +18,7 @@ import { TPipeable } from '../types';
  *
  * @param stream
  *
- * @category interface/stream
+ * @category peer/stream
  */
 const itr8FromStream = (stream:Stream.Readable):TPipeable & AsyncIterableIterator<any> => {
   return itr8FromIterator(stream[Symbol.asyncIterator]());
@@ -79,7 +79,7 @@ const itr8FromStream = (stream:Stream.Readable):TPipeable & AsyncIterableIterato
  *
  * @returns
  *
- * @category interface/stream
+ * @category peer/stream
  */
 const itr8FromStdin:()=>TPipeable & AsyncIterableIterator<string> = () => itr8FromStream(process.stdin)
         .pipe(
@@ -93,7 +93,7 @@ const itr8FromStdin:()=>TPipeable & AsyncIterableIterator<string> = () => itr8Fr
  * If this works well, we should be able to use transform-streams (for example gzip)
  * just as easily as our own operators.
  *
- * @category interface/stream
+ * @category peer/stream
  */
 const itr8ToReadableStream = (iterable:Iterable<any> | AsyncIterable<any>) => {
   const itr = itr8FromIterable(iterable);

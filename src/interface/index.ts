@@ -13,17 +13,23 @@
  * to itr8/peer, which keeps this part of the library dependency-free, and theoretically usable
  * both in the browser and from NodeJS.
  *
- * This module will export ALL interface functions, easy if bundle size doesn't matter that much.
- * @example
- * ```import { interfaceFn } from 'itr8'```
+ * This module will export ALL interface functions.
  *
- * WATCH OUT: importing the entire module requires all peer dependencies to be installed as well
- * (for example: interface/observable has RxJS as a peer dependency)
- * If bundle size does matter, it could be better to
- * ```import { interfaceFn } from 'itr8/interface/interfaceFn'```
+ * @Example
+ * ```
+ * import { interfaceFn } from 'itr8'
+ * ```
  *
- * You could also import all interface functions with
- * ```import { interfaceFn } from 'itr8/interface'```
+ * You can also import more specifically what you need:
+ * ```
+ * import { interfaceFn } from 'itr8/interface/interfaceFn'
+ * ```
+ *
+ * You can also import all interface functions with
+ * ```
+ * import { interfaceFn } from 'itr8/interface'
+ * ```
+ *
  * @module
  */
 

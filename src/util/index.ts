@@ -13,6 +13,14 @@ import { TNextFnResult, TPipeable, TTransIteratorSyncOrAsync } from '../types';
 
 // THIS MIGHT BE AN ALTERNATIVE TO REMOVE THE DEPENDENCY to Node's uil/types
 ////////////////////////////////////////////////////////////////////////////
+/**
+ * Check whether the parameter is a promise.
+ *
+ * @param p
+ * @returns true if p is a promise
+ *
+ * @category util
+ */
 const isPromise = function isPromise(p:unknown):p is Promise<unknown> {
   return p !== undefined && p!== null && Object.prototype.toString.call(p) === "[object Promise]";
 }
@@ -90,7 +98,7 @@ type TThenable<T = any> = {
  * @returns an object that has a then function and a src property pointing to the original input
  *          regardless whether it is a Promise or not
  *
- * @category utils
+ * @category util
  */
 const thenable = <T>(x: T): TThenable<T> => {
   if (isPromise(x)) {
@@ -133,7 +141,7 @@ const thenable = <T>(x: T): TThenable<T> => {
  * @param codeToExecute
  * @returns void | Promise<void>
  *
- * @category utils
+ * @category util
  */
 const forLoop = <State>(
   initialStateFactory:() => State | Promise<State>,
@@ -249,7 +257,7 @@ const forLoop = <State>(
  * @param initialStateFactory a function that generates the initialSate
  * @returns a funtion taking an iterator (and optionally some argument) as input and that has an iterator as output
  *
- * @category operators/factory
+ * @category util
  */
 // const itr8OperatorFactoryWithForLoop = function <TIn = any, TOut = any, TParams = any, TState = any>(
 //   nextFn: (nextIn: IteratorResult<TIn>, state: any, params: any) =>
@@ -659,7 +667,7 @@ const forLoop = <State>(
  * @param initialStateFactory a function that generates the initialSate
  * @returns a funtion taking an iterator (and optionally some argument) as input and that has an iterator as output
  *
- * @category operators/factory
+ * @category util
  */
 const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown, TState = unknown, TParam1 = void, TParam2 = void, TParam3 = void, TParam4 = void>(
   nextFn: (nextIn: IteratorResult<TIn>, state: TState, param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) =>
@@ -1202,7 +1210,7 @@ const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown,
  * @param initialStateFactory a function that generates the initialSate
  * @returns a funtion taking an iterator (and optionally some argument) as input and that has an iterator as output
  *
- * @category operators/factory
+ * @category util
  */
 const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = unknown, TParam1 = void, TParam2 = void, TParam3 = void, TParam4 = void>(
   nextFn: (nextIn: IteratorResult<TIn>, state: TState, param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) =>
@@ -1735,7 +1743,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
  *
  * @param params a list of transIterators
  *
- * @category utils
+ * @category util
  */
 // function itr8Pipe<TIn=any,TOut=any>(
 //   first:TTransIteratorSyncOrAsync,

@@ -2,6 +2,8 @@
 
 # Tries to put a few things in the typedoc generated html files on their own line
 # to make the changes easier to see, and to make the commits smaller
+echo "[optimize_generated_docs_for_git.sh] Exiting without doing anything"
+exit 0
 
 (
   IFS=$'\n'
