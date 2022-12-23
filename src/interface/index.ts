@@ -61,4 +61,8 @@ export * from './itr8RangeAsync';
 
 export * from './itr8ToArray';
 
+export * from './itr8ToObject';
+
+export * from './itr8ToString';
+
 export * from './itr8ToMultiIterable';
