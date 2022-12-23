@@ -8,9 +8,13 @@ export * from './groupPer';
 
 export * from './intersperse';
 
+export * from './peek';
+
 export * from './map';
 
 export * from './reduce';
+
+export * from './repeatEach';
 
 export * from './runningReduce';
 
