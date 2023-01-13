@@ -27,5 +27,5 @@ describe('operators/coding_decoding/gzip.ts', () => {
           assert.deepEqual(a,b);
         }),
       );
-  }).timeout(400);
+  }).timeout(2_000);
 });

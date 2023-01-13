@@ -48,10 +48,12 @@
   "license": "ISC",
   "devDependencies": {
     "@knodes/typedoc-plugin-pages": "^0.23.1",
+    "@sinonjs/fake-timers": "^10.0.2",
     "@streamparser/json": "^0.0.6",
     "@types/chai": "^4.3.1",
     "@types/mocha": "^9.1.1",
     "@types/node": "^18.11.17",
+    "@types/sinonjs__fake-timers": "^8.1.2",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
     "chai": "^4.3.6",

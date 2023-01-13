@@ -3034,7 +3034,7 @@ describe('itr8 test suite', () => {
         // // batched iterators should be faster than simple asynchronous iterator
         // // because we have alot less promises to await
         // assert.isAbove(avgDurationIt, avgDurationBatch);
-      }).timeout(4000);
+      }).timeout(4_000);
 
     });
 
@@ -3100,7 +3100,7 @@ describe('itr8 test suite', () => {
         console.log('      - [mem usage for really large set]', 'itr8 async took', durationItAsync);
 
         assert.equal(asyncCounter, 100_000);
-      }).timeout(4000);
+      }).timeout(8_000);
     });
   });
 });

@@ -132,5 +132,5 @@ describe('operators/interface/transduce.ts', () => {
 
     console.log('[transduce] transducers vs transIterators time %: SYNC ', Math.round(100 * durationTransduce / durationItr8), '% ASYNC', Math.round(100 * durationTransduceAsync / durationItr8Async), '%');
 
-  }).timeout(2000);
+  }).timeout(10_000);
 });

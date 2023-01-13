@@ -6,6 +6,7 @@
  */
 
 import { Stream } from "stream";
+import * as FakeTimers from '@sinonjs/fake-timers';
 
 /**
  * A function that will produce a readable NodeJS stream based on an
@@ -46,9 +47,39 @@ function hrtimeToMilliseconds([seconds, nanoseconds]: [number, number]): number 
   return seconds * 1000 + nanoseconds / 1000000;
 }
 
+/**
+ * Helper function to make it less verbose to 'await a promise'.
+ *
+ * With the FakeTimers clock, you cannot just 'await someAsyncFunctionCall()';
+ * because it would never resolve until clock.runAllAsync() had been called.
+ *
+ * So instead of the one-liner:
+ * ```typescript
+ * await someAsyncFunctionCall();
+ * ```
+ * you'd have to write:
+ * ```typescript
+ *  const promise = someAsyncFunctionCall();
+ *  clock.clock.runAllAsync(); // make the promise actually resolve by advancing the clock
+ *  const value = await promise;
+ * ```
+ * which is a lot more verbose than:
+ * ```typescript
+ *  await awaitPromiseWithFakeTimers(clock, someAsyncFunctionCall());
+ * ```
+ *
+ * @param clock 
+ * @param p 
+ */
+async function awaitPromiseWithFakeTimers<T>(clock:FakeTimers.InstalledClock, p:Promise<T>):Promise<T> {
+  await clock.runAllAsync();
+  return p;
+}
+
 
 export {
   arrayToStream,
   sleep,
   hrtimeToMilliseconds,
+  awaitPromiseWithFakeTimers,
 }
