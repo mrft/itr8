@@ -1756,17 +1756,17 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
 //   ;
 // }
 
-// /**
-//  * A more generic pipe function that takes multiple functions as input
-//  * and outputs a single function where input = input of the first function
-//  * and output = output where every funtion has been applied to the output of the previous on.
-//  *
-//  * So itr8Pipe(f1:(A)=>B, f2:(B)=>C, f3:(C)=>D) returns (a:A):D => f3(f2(f1(a)))
-//  *
-//  * @param first
-//  * @param params
-//  * @returns
-//  */
+/**
+ * A more generic pipe function that takes multiple functions as input
+ * and outputs a single function where input = input of the first function
+ * and output = output where every funtion has been applied to the output of the previous on.
+ *
+ * So itr8Pipe(f1:(A)=>B, f2:(B)=>C, f3:(C)=>D) returns (a:A):D => f3(f2(f1(a)))
+ *
+ * @param first
+ * @param params
+ * @returns
+ */
 // COPY-PASTED FROM RxJS source code
 // export function pipe<T, A>(fn1: UnaryFunction<T, A>): UnaryFunction<T, A>;
 // export function pipe<T, A, B>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>): UnaryFunction<T, B>;
@@ -1799,8 +1799,94 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
   }
 }
 
+
+/**
+ * A generic compose function that takes multiple functions as input
+ * and outputs a single function where input = input of the first function
+ * and output = output where every funtion has been applied to the output of the previous on.
+ *
+ * So
+ * ```typescript
+ * compose(f1:(A)=>B, f2:(B)=>C, f3:(C)=>D)
+ * ```
+ * will return a single unary function
+ * ```typescript
+ * (a:A):D => f3(f2(f1(a)))
+ * ```
+ *
+ * @param first
+ * @param params
+ * @returns
+ */
+// COPY-PASTED FROM RxJS source code
+// export function compose<T, A>(fn1: UnaryFunction<T, A>): UnaryFunction<T, A>;
+// export function compose<T, A, B>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>): UnaryFunction<T, B>;
+// export function compose<T, A, B, C>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>): UnaryFunction<T, C>;
+// export function compose<T, A, B, C, D>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>): UnaryFunction<T, D>;
+// export function compose<T, A, B, C, D, E>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>): UnaryFunction<T, E>;
+// export function compose<T, A, B, C, D, E, F>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>): UnaryFunction<T, F>;
+// export function compose<T, A, B, C, D, E, F, G>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>): UnaryFunction<T, G>;
+// export function compose<T, A, B, C, D, E, F, G, H>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>, fn8: UnaryFunction<G, H>): UnaryFunction<T, H>;
+// export function compose<T, A, B, C, D, E, F, G, H, I>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>, fn8: UnaryFunction<G, H>, fn9: UnaryFunction<H, I>): UnaryFunction<T, I>;
+// export function compose<T, A, B, C, D, E, F, G, H, I>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>, fn8: UnaryFunction<G, H>, fn9: UnaryFunction<H, I>, ...fns: UnaryFunction<any, any>[]): UnaryFunction<T, {}>;
+//
+function compose<A,B>(fn1:(A) => B):(A) => B;
+function compose<A,B,C>(fn1:(A) => B, fn2:(B) => C):(A) => C;
+function compose<A,B,C,D>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D):(A) => D;
+function compose<A,B,C,D,E>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D, fn4:(D) => E):(A) => E;
+function compose<A,B>(
+  first:(A) => B,
+  ...params:Array<(any) => any>
+):any {
+  if (params.length === 0) {
+    return first;
+  } else {
+    return params.reduce<(any) => any>(
+      (acc, cur) => {
+        return (arg) => cur(acc(arg))
+      },
+      first,
+    );
+  }
+}
+
+/**
+ * A pipe function applies the multiple functions to the first parameter
+ *
+ * So
+ * ```typescript
+ * pipe(x: A, f1:(A)=>B, f2:(B)=>C, f3:(C)=>D)
+ * ```
+ * returns the result of (a:A):D => f3(f2(f1(a)))
+ *
+ * @param first
+ * @param params
+ * @returns
+ */
+// function pipe<IN,A>(input:IN, fn1:(IN) => A): A;
+// function pipe<IN,A,B>(input:IN, fn1:(IN) => A, fn2:(A) => B): B;
+// function pipe<IN,A,B,C>(input:IN, fn1:(IN) => A, fn2:(A) => B, fn3:(B) => C): C;
+// function pipe<IN,A,B,C,D>(input:IN, fn1:(IN) => A, fn2:(A) => B, fn3:(B) => C, fn4:(C) => D): D;
+// function pipe<IN,A,B,C,D,E>(input:IN, fn1:(IN) => A, fn2:(A) => B, fn3:(B) => C, fn4:(C) => D, fn5:(D) => E): E;
+// function pipe<IN,A>(
+//   input: IN,
+//   fn1:(IN) => A,
+//   ...functionsToApply:Array<(unknown) => unknown>
+// ):unknown {
+//   return compose(fn1, ...functionsToApply)(input);
+// }
+
+
 export {
   itr8Pipe,
+
+  compose,
+  // pipe,
+  // compose<A,B>(fn1:(A) => B):(A) => B,
+//   function compose<A,B,C>(fn1:(A) => B, fn2:(B) => C):(A) => C;
+// export function compose<A,B,C,D>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D):(A) => D;
+// export function compose<A,B,C,D,E>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D, fn4:(D) => E):(A) => E;
+
 
   isPromise,
   thenable,
