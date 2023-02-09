@@ -10,6 +10,9 @@ describe('operators/strings/lineByLine.ts', () => {
     const input2 = ['0', '1', '\n', '0', '2', '\n', '\n', '\n', '0', '5', '\n'];
     const expected2 = ['01', '02', '', '', '05', ''];
 
+    const input3 = ['Hel', 'lo\nWorld\n\nGo', 'od', 'by', 'e', '\nSpace', '!'];
+    const expected3 = ['Hello', 'World', '', 'Goodbye', 'Space!'];
+
     // sync
     assert.deepEqual(
       itr8ToArray(
@@ -23,6 +26,13 @@ describe('operators/strings/lineByLine.ts', () => {
         itr8FromArray(input2).pipe(lineByLine()),
       ),
       expected2,
+    );
+
+    assert.deepEqual(
+      itr8ToArray(
+        itr8FromArray(input3).pipe(lineByLine()),
+      ),
+      expected3,
     );
 
     // async
@@ -39,5 +49,13 @@ describe('operators/strings/lineByLine.ts', () => {
       ),
       expected2,
     );
+
+    assert.deepEqual(
+      await itr8ToArray(
+        itr8FromArrayAsync(input3).pipe(lineByLine()),
+      ),
+      expected3,
+    );
+
   });
 });
