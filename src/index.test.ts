@@ -2974,7 +2974,7 @@ describe('itr8 test suite', () => {
 
         // iterators should be faster than creating the intermediate arrays
         assert.isBelow(avgDurationIt, avgDurationArr);
-      });
+      }).timeout(2000);
 
       it.skip('compare the speed of async iterator versus batched async iterator (batched should be faster ?)', async () => {
         // const size = 10_000; // size of the input range
