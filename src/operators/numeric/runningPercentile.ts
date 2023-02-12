@@ -4,8 +4,10 @@ import { itr8OperatorFactory } from "../../util/index";
  * On every item, output the percentile(x) so far
  * @example
  * ```typescript
- *    itr8Range(1,10)
- *      .pipe(percentile(50))  // => [ 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5 ]
+ *    pipe(
+ *      itr8Range(1,10),
+ *      percentile(50),  // => [ 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5 ]
+ *    );
  * ```
  *
  * @param amount

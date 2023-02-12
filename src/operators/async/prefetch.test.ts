@@ -4,6 +4,7 @@ import { hrtime } from 'process';
 import { awaitPromiseWithFakeTimers, hrtimeToMilliseconds, sleep } from '../../testUtils';
 import { itr8FromIterator } from '../../interface/itr8FromIterator';
 import { prefetch } from './prefetch';
+import { pipe } from '../../util';
 
 describe('operators/async/prefetch.ts', () => {
   it('prefetch(...) operator works properly', async () => {
@@ -58,7 +59,7 @@ describe('operators/async/prefetch.ts', () => {
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 5);
       await awaitPromiseWithFakeTimers(clock, (async () => {
-        for await (const v of iteratorFactory().pipe(prefetch(1))) {
+        for await (const v of pipe(iteratorFactory(), prefetch(1)) as AsyncIterableIterator<any>) {
           await f(v);
         }
       })());
@@ -71,7 +72,7 @@ describe('operators/async/prefetch.ts', () => {
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10);
       await awaitPromiseWithFakeTimers(clock, (async () => {
-        for await (const v of iteratorFactory().pipe(prefetch(1))) {
+        for await (const v of pipe(iteratorFactory(), prefetch(1)) as AsyncIterableIterator<any>) {
           // console.log('start processing', v);
           await f(v);
         }
@@ -85,7 +86,7 @@ describe('operators/async/prefetch.ts', () => {
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 5);
       await awaitPromiseWithFakeTimers(clock, (async () => {
-        for await (const v of iteratorFactory().pipe(prefetch(3))) {
+        for await (const v of pipe(iteratorFactory(), prefetch(3)) as AsyncIterableIterator<any>) {
           // console.log('start processing', v);
           await f(v);
         }
@@ -102,7 +103,7 @@ describe('operators/async/prefetch.ts', () => {
       const processingTimes = [30, 0, 0];
       f = fnThatStoresResultsFactory(descr, 30);
       await awaitPromiseWithFakeTimers(clock, (async () => {
-        for await (const v of iteratorFactory().pipe(prefetch(3))) {
+        for await (const v of pipe(iteratorFactory(), prefetch(3)) as AsyncIterableIterator<any>) {
           // console.log('start processing', v);
           await f(v, processingTimes[index]);
           index++;
@@ -118,7 +119,7 @@ describe('operators/async/prefetch.ts', () => {
       f = fnThatStoresResultsFactory(descr, 30);
       index = 0;
       await awaitPromiseWithFakeTimers(clock, (async () => {
-        for await (const v of iteratorFactory().pipe(prefetch(1))) {
+        for await (const v of pipe(iteratorFactory(), prefetch(1)) as AsyncIterableIterator<any>) {
           // console.log('start processing', v);
           await f(v, processingTimes[index]);
           index++;

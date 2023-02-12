@@ -18,9 +18,8 @@ import { TPipeable } from '../types';
  * // each next() call will return a Buffer
  * itr8FromStream(fs.createReadStream("./myfile.bin"));
  * // if you have a txt file you want to process line by line:
- * const readableStream = fs.createReadStream("D://mytextfile.txt");
- * readableStream.setEncoding('utf8');
- * itr8FromStream(readableStream).pipe(lineByLine());
+ * const readableStream = fs.createReadStream("/home/me/mytextfile.txt", 'utf8');
+ * pipe(readableStream, lineByLine());
  * ```
  *
  * Did you know that [all readable streams are Iterables](https://2ality.com/2018/04/async-iter-nodejs.html#reading-asynchronously-via-async-iteration)?
@@ -95,7 +94,8 @@ const itr8FromStdin:()=>TPipeable & AsyncIterableIterator<string> = () => {
   process.stdin.setEncoding('utf8');
   return itr8FromStream(process.stdin);
     // OBSOLETE BECAUSE OF the setEnconding
-    // .pipe(
+    // pipe(
+    //   itr8FromStream(process.stdin),
     //   map(x => x.toString()),
     //   // stringToChar(),
     // );

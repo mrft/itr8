@@ -28,108 +28,113 @@ Install the module using npm
 And then import it in your source code file:
 ```typescript
 import {
-  itr8Range, itr8FromIterator, itr8FromArray, itr8ToArray, forEach, // interface
-  map, filter, skip, take,  // operators
-  itr8Pipe                  // utils
+  // interface
+  itr8FromIterable, itr8Range, itr8ToArray, forEach,
+  // operators
+  map, filter, skip, take, lineByLine,
+  // utils
+  pipe, compose
 } from 'itr8'
 
-// create an iterator to start from with a utility function
-const myIterator = () => itr8Range(0, 10_000_000); // or itr8FromArray([...])
+const inputArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 
-// or create your own Iterator or AsyncIterator (for example with a generator function)
+const resultArray = pipe(
+  itr8FromIterable(inputArray),  // the input iterator (= inputArray[Symbol.iterator]())
+  map((x) => x * 2),          // => 2 4 6 8 10 12 14 16 ... [34 36 38 ...]
+  filter((x) => x % 3 === 0), // => 6 12 18 24 30 [36 42 ...]
+  skip(2),                    // => 18 24 30 [36 42 ...]
+  take(3),                    // => 18 24 30
+  itr8ToArray,
+);
+// 1) you should be aware that the values between square brackets will never actually be calculated
+//    because only as many elements as needed will be pulled from the iterator!
+//    (If you'd have written the same with array.filter, array.map etc. you'd have created
+//    many 'intermediate arrays' - using more memory - and the calculations would have been
+//    executed needlessly for all elements in the array)
+// 2) you should also be aware that if 'itr8ToArray' was not there, nothing would have happened!
+//    only when you start doing next() calls on the iterator something would actually be executed
+// 3) due to the current lack of a pipe operator in JS we are using a pipe function so we can
+//    read from left to right (or top to bottom), instead of right to left when applying functions
+//    to the rsult of the previous function.
+// 4) this pipe function can be used for any function, as long as they expect one argument each,
+//    and as long as the output of the current matches the expected input of the next
+
+// Now assume you need to apply the same algorithm to an asynchronous source (like a file or an api).
+// In plain javascript you'd have to eiter load the entire file into an array (which could be
+// problematic for large files), or rewrite your algorithm (which would typically have used
+// array.map, array.filter) with other tools that help you with asynchronous code.
+// But with itr8 that would simply become (assuming one number per line).
+const resultArray2 = await pipe(
+  itr8FromIterable(createReadStream('test.js', 'utf8')), // readable streams are async iterables!
+  lineByLine(), // interpret each line in the file as a single element
+  map(Number.parseFloat), // turn the text into a number
+
+  map((x) => x * 2),          // => 2 4 6 8 10 12 14 16 ... [34 36 38 ...]
+  filter((x) => x % 3 === 0), // => 6 12 18 24 30 [36 42 ...]
+  skip(2),                    // => 18 24 30 [36 42 ...]
+  take(3),                    // => 18 24 30
+  itr8ToArray,
+);
+// as you can see the actual algorithm did not change at all, we just had to 'await' the result
+// because we are now using an asynchronous iterator as input!!!
+
+// But we'd want to be able to reuse that algorithm, so it would be nice if we can store it as a
+// function and apply it when needed.
+// This is where the 'compose' function comes in handy.
+// It will help you to easily create new 'operators' by combining existing operators.
+const myOperator = () => compose(
+  map((x) => x * 2),          // => 2 4 6 8 10 12 14 16 ... [34 36 38 ...]
+  filter((x) => x % 3 === 0), // => 6 12 18 24 30 [36 42 ...]
+  skip(2),                    // => 18 24 30 [36 42 ...]
+  take(3),                    // => 18 24 30
+);
+// 1) this is essentially the same as the totally unreadable
+//    (iterator) => take(3)(skip(2)(filter((x) => x % 3 === 0)(map((x) => x * 2)(iterator))))
+// 2) the compose function is also generic, so it will work for any functions expecting a single
+//    parameter
+
+// And with that, we can now simply do
+const resultArray = pipe(
+  itr8FromIterable(inputArray), // the input iterator
+  myOperator(),
+  itr8ToArray,
+);
+
+// if we need to execute some code for every element of the resulting iterator, use forEach
+// (which support both synchronous and asynchronous handlers, and allows you to easily set the
+// allowed concurrency as well!)
+pipe(
+  itr8FromIterable(inputArray), // the input iterator
+  myOperator(),
+  forEach(async (e) => {
+      const descr = await getElementFromDisk(id);
+      console.log('element = ', descr);
+    },
+    { concurrency: 1 }, // these options are optional (default concurrency is 1)
+  ),
+);
+
+
+// So now that we know that we can easily apply any operator to any iterator
+// You just need to be awre of the various ways to create an iterator
+// 1) create an iterator to start from with a utility function
+const myIterator = () => itr8Range(0, 10_000_000);
+// 2) OR create your own Iterator or AsyncIterator (for example with a generator function)
 function* myGeneratorFunction() {
   for (let i = 0; i < 10_000_000; i++) {
     yield i;
   }
 }
-// 'itr8FromIterator' is only needed to make .pipe work which is just very convenient
-const myOwnIterator = () => itr8FromIterator(myGeneratorFunction());
+// 3) 'itr8FromIterable' is an easy way to get an iterator from many buikt-in data structures
+const myOwnIterator = () => itr8FromIterable(myGeneratorFunction());
 
-// All iterables returned by itr8 are also 'pipeable', meaning that each returned iterator
-// also exposes a pipe function to add other operators to the chain
-// be ware that no code will be executed yet (until we actually start iterating the iterator)!
-const myTransformedIterator = myIterator()
-    .pipe(
-        map((x) => x / 2),
-        filter((x) => x % 3 === 0),
-        skip(5),
-        take(50),
-    )
-);
-
-// this will work as well (because pipe produces another 'pipeable')
-// be ware that no code will be executed yet (until we actually start iterating the iterator)!
-const myTransformedIterator2 = myIterator()
-    .pipe(map((x) => x / 2))
-    .pipe(filter((x) => x % 3 === 0))
-    .pipe(skip(5))
-    .pipe(take(50))
-);
-
-// we can use standard JS 'for ... of' to loop over an iterable
-// (but forEach is more powerful)
-// which means that it will actually execute code and start 'draining' the iterator
-for (let x of myTransformedIterator2) {
+// we can use standard JS 'for ... of' to loop over an iterable, which works because every operator
+// returns an IterableIterator (an iterator that returns itself when being asked to return an iterator)
+// (but forEach is more powerful !)
+// This means that it will actually execute code and start 'draining' the iterator
+for (let x of pipe(itr8Range(1,1000), filter(x => x % 3 === 0))) {
   console.log(x);
 }
-
-// You can use forEach to loop over every element and do something with it
-// (it will handle async handlers as well, you can even control the concurrency easily)
-// which means that forEach will actually execute code and start 'draining' the iterator
-await myTransformedIterator.pipe(
-  forEach(
-    async (id) => {
-      const descr = await getElementFromDisk(id);
-      console.log('element = ', descr);
-    },
-    { concurrency: 1 }, // these options are optional (default concurrency is 1)
-  )
-)
-
-// or simply pipe everything together including the forEach at the end!
-await myIterator()
-  .pipe(
-    map((x) => x / 2),
-    filter((x) => x % 3 === 0),
-    skip(5),
-    take(50),
-    forEach(
-      async (id) => {
-        const descr = await getElementFromDisk(id);
-        console.log('element = ', descr);
-      },
-    ),
-  );
-
-// but we can also put all the results in an array if we want
-// (we add 'await' because there is an asynchronous step somewhere in the chain)
-// which means that itr8ToArray will actually execute code and start 'draining' the iterator
-const array = await myIterator()
-  .pipe(
-    map((x) => x / 2),
-    filter((x) => x % 3 === 0),
-    skip(5),
-    take(50),
-    // next step is asynchronous because getElementFromDisk returns a promise
-    map(async (id) => getElementFromDisk(id)),
-    itr8ToArray,
-  );
-
-// we can create a new 'transIterator' by combining some existing operators with a utility function
-const transIt = itr8Pipe(
-    map((x) => x / 2),
-    filter((x) => x % 3 === 0),
-    skip(5),
-    take(50),
-);
-// an 'operator' is a function that produces a transIterator
-const myOperator = () => transIt;
-
-const myTransformedIteratorAsArray = myIterator().pipe(
-  myOperator(),
-  itr8ToArray,
-);
-// myIterator.pipe(transIt) would work as well but always using 'operators' would be a good convention
 ```
 You, can find some more [documentation](#documentation) further in this file or go straight to
 [the github site about itr8](https://mrft.github.io/itr8)
@@ -223,12 +228,12 @@ It can be created with the filter operator, like this:
 const filterNil = () => filter((x) => x !== undefined && x !== null)
 ```
 
-Another example: a 'regroup' operator can be created by combining flatten and groupPer. This is where the `itr8Pipe(...)` method will come in handy.
+Another example: a 'regroup' operator can be created by combining flatten and groupPer. This is where the `compose(...)` method will come in handy.
 So to turn [ [ 1, 2 ], [ 3, 4 ], [ 5, 6 ] ] into [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
 You'll want the regroup(3) operator (3 being the new 'rowSize').
 
 ```typescript
-const regroup = (rowSize:number) => itr8Pipe(
+const regroup = (rowSize:number) => compose(
     flatten(),
     groupPer(rowSize),
 );
@@ -262,17 +267,17 @@ const filterNil = itr8OperatorFactory<void, any, any, null>(
 
 Now what is nextIn, state and param?
 
- * nextIn is simply the result of the next call of the incoming iterator. (The next call of an iterator always returns an object of the form { done: \<true of false\>, value: \<current value\> })
+ * nextIn is simply the result of the next call of the incoming iterator. (The next call of an iterator always returns an object of the form ```{ done: <true or false>, value: <current value> }```)
  * state is used to store intermediate data, for example if you want to make a sum, the state will be the sum until now, or if you need to buffer things, state could be the array of things in the buffer.
  * params is the argument(s) that you can pass to your operator, like the number of elements in a 'take' operator, or the mapping function in a map operator
 
 What does that function return?
 
 It returns an object that looks a lot like ...drum roll... the result of a next call of an iterator (*but it's not entirely the same!*). Make sure you've read and understood the [iterator protocol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol)!
-  * if the output iterator will return no more elements it is { done:true }
-  * if the output iterator is not done, but does not return anything based on the current value of the input iterator, the value is { done: false }, without a value or { done: false, state: \<newState\> } if you need to update the state
-  * if the output iterator is not done, and it does need to return a value, it is { done: false, value: \<output value\> } (again with an optional state property if you need to pass state to the next step)
-  * if the output iterator is not done, and the current input iterator value would output *more than a single item*, it is { done: false, iterable: \<your iterable\> }. Any Iterable (or IterableIterator) will do. (That means in practice that you can use a *simple array*, but a *generator function* will work as well, or some iterator that is the result of some input with a few itr8 operators applied to it).
+  * if the output iterator will return no more elements it is ```{ done:true }```
+  * if the output iterator is not done, but does not return anything based on the current value of the input iterator, the value is ```{ done: false }```, without a value or ```{ done: false, state: <newState\> }``` if you need to update the state
+  * if the output iterator is not done, and it does need to return a value, it is ```{ done: false, value: <output value\> }``` (again with an optional state property if you need to pass state to the next step)
+  * if the output iterator is not done, and the current input iterator value would output *more than a single item*, it is ```{ done: false, iterable: <your iterable\> }```. Any Iterable (or IterableIterator) will do. (That means in practice that you can use a *simple array*, but a *generator function* will work as well, or some iterator that is the result of some input with a few itr8 operators applied to it).
 
 Knowing all this we can break down the example:
 * if the input iterator is done, we'll return that it's done
@@ -340,7 +345,7 @@ const total = itr8OperatorFactory<void, number, number, { done: boolean, total: 
 Here you can see that we also specified the second argument of the itr8OperatorFactory function, which is the initialSate (not done, and the total so far = 0).
 
 So this iterator will only return a value on the output iterator once the input iterator has finished. Hence the 'done' flag on the state to indicate that we've seen the last element of the input iterator.
-* When we see that we're done in the state (= the next call after the one where we finally sent a value to the output iterator) we'll send { done: true }.
+* When we see that we're done in the state (= the next call after the one where we finally sent a value to the output iterator) we'll send ```{ done: true }```.
 * When we see the last element of the input iterator, we don't modify the sum anymore, but send the total sum as the value, and indicate that there won't be any more values by setting the 'done' flag on the state
 * In all other cases, we don't send a value, but we generate a new version of the state where the 'total' property is set to the current state's total + nextIn.value
 
@@ -359,7 +364,7 @@ Prefetch and mostRecent are actually returning a custom built iterator.
 As long as your operator returns a function transforming the input iterator into another iterator,
 you're good (and try to be polite: always support both sync and async iterators as input, and if
 possible, make sure that if the input iterator is synchronous, the output iterator is synchronous
-as well, and wrap it with itr8FromIterator so .pipe(...) can be used on the result).
+as well).
 
 #### Notes
 
@@ -431,12 +436,17 @@ In my view, if we create a set of functions that take some arguments as input, a
 
 But because not all iterators can produce the data synchronously, we will need to make sure all of them can handle *both synchronous and asynchronous* iterators (where a 'next()' call will return a Promise). This will allow us to support streams, as well as Observables (+ all the basics like arrays). Actually [NodeJs streams are already AsyncIterables](https://nodejs.org/api/stream.html#stream_streams_compatibility_with_async_generators_and_async_iterators) right now, so we don't even need a helper funtion to use them as a source!
 
-So with a few utility functions that would make an iterator from its input (array, stream, Observable, ...).
+So with a few utility functions that would make an iterator from its input (built-in iterables like array, string, stream, the arguments object, or other things that could easily be iterated over like Observables, ...). Also check [Built-In Iterables on MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#built-in_iterables)
 
-    itr8FromArray(something)
-    itr8FromStream(someStream) // not really needed
-    itr8FromObservable(someStream)
+```typescript
+itr8FromIterable(myArray);
+itr8FromIterable(myString);
+// streams are AsyncIterables, way easier than stream.on('data', ...)!!!
+itr8FromIterable(someStream);
 
+// or if you're into Observables
+itr8FromObservable(someObservable)
+```
 We could then write a bunch of 'operators' which are simply functions taking an iterator
 (+ some arguments) as input and returning another iterator as output.
 

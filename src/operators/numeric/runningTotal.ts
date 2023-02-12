@@ -4,8 +4,10 @@ import { itr8OperatorFactory } from "../../util/index";
  * On every item, output the total so far.
  * @example
  * ```typescript
- *    itr8FromArray([ 1, 2, 3, 4 ])
- *      .pipe(runningTotal())  // => [ 1, 3, 6, 10 ]
+ *    pipe(
+ *      itr8FromArray([ 1, 2, 3, 4 ]),
+ *      runningTotal(),  // => [ 1, 3, 6, 10 ]
+ *    );
  * ```
  *
  * @param amount

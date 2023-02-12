@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8FromArray, itr8FromArrayAsync } from "../..";
+import { itr8ToArray, itr8FromArray, itr8FromArrayAsync, pipe } from "../..";
 import { sort } from "./sort";
 
 describe('operators/general/sort.ts', () => {
@@ -12,9 +12,10 @@ describe('operators/general/sort.ts', () => {
 
     // async
     assert.deepEqual(
-      await itr8ToArray(
-        itr8FromArrayAsync([{ v: 1 }, { v: -4 }, { v: 7 }, { v: 2 }])
-          .pipe(sort((a: { v: number }, b: { v: number }) => a.v - b.v))
+      await pipe(
+        itr8FromArrayAsync([{ v: 1 }, { v: -4 }, { v: 7 }, { v: 2 }]),
+        sort((a: { v: number }, b: { v: number }) => a.v - b.v),
+        itr8ToArray,
       ),
       [{ v: -4 }, { v: 1 }, { v: 2 }, { v: 7 }],
     );

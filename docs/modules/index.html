@@ -38,8 +38,8 @@
 <li><strong>utility</strong> functions: functions used to implement the rest of the library that culd be used by others to help them write their own &#39;operators&#39;<ul>
 <li><code>isPromise</code></li>
 <li><code>itr8OperatorFactory</code>: build your own operators easily</li>
-<li><code>forLoop</code>: do a for (init; check; after) {} loop, regardless whether init and/or check and/or after is asynchronous or not</li>
-<li><code>itr8Pipe</code>: chain functions together, passing the output of the first as input of the next (so you can read from left to right)</li>
+<li><code>forLoop</code>: do a <code>for (init; check; after) {}</code> loop, regardless whether init and/or check and/or after is asynchronous or not</li>
+<li><code>compose</code>: chain functions together, passing the output of the first as input of the next (so you can read from left to right)</li>
 <li><code>thenable</code>: write the same code, regardless whether the input is a promise or a regular value</li>
 </ul>
 </li>
@@ -52,7 +52,7 @@
 <li>data that changes over time (every element in the stream is the new current value)</li>
 </ul>
 <p>An iterator has an extremely simple interface that exposes a parameter-less next() function
-that will return { done: boolean, value: any } (or Promise&lt;{ done: boolean, value: any }&gt;
+that will return <code>{ done: boolean, value: any }</code> (or <code>Promise&lt;{ done: boolean, value: any }&gt;</code>
 for async iterators). Checkout the MDN page about
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol">the iterator protocol</a>
 for more details.</p>
@@ -81,7 +81,7 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 </ul>
 </div></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/mrft/itr8/blob/f678e5e/src/index.ts#L64">index.ts:64</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/mrft/itr8/blob/a165d0d/src/index.ts#L64">index.ts:64</a></li></ul></aside>
 <section class="tsd-panel-group">
 <section class="tsd-panel tsd-typography"></section></section>
 <section class="tsd-panel-group tsd-index-group">
@@ -92,6 +92,7 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">References</h3>
 <div class="tsd-index-list"><a href="index.html#average" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF4D82" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-8388608-path"></rect><path d="M10.354 17V8.24H13.066C13.586 8.24 14.042 8.348 14.434 8.564C14.826 8.772 15.13 9.064 15.346 9.44C15.562 9.816 15.67 10.256 15.67 10.76C15.67 11.352 15.514 11.86 15.202 12.284C14.898 12.708 14.482 13 13.954 13.16L15.79 17H14.518L12.838 13.28H11.434V17H10.354ZM11.434 12.308H13.066C13.514 12.308 13.874 12.168 14.146 11.888C14.418 11.6 14.554 11.224 14.554 10.76C14.554 10.288 14.418 9.912 14.146 9.632C13.874 9.352 13.514 9.212 13.066 9.212H11.434V12.308Z" fill="var(--color-text)" id="icon-8388608-text"></path></svg><span>average</span></a>
+<a href="index.html#compose" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>compose</span></a>
 <a href="index.html#debounce" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>debounce</span></a>
 <a href="index.html#dedup" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>dedup</span></a>
 <a href="index.html#delay" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>delay</span></a>
@@ -131,6 +132,7 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 <a href="index.html#parallel" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>parallel</span></a>
 <a href="index.html#peek" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>peek</span></a>
 <a href="index.html#percentile" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>percentile</span></a>
+<a href="index.html#pipe" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>pipe</span></a>
 <a href="index.html#prefetch" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>prefetch</span></a>
 <a href="index.html#reduce" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>reduce</span></a>
 <a href="index.html#repeatEach" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>repeat<wbr/>Each</span></a>
@@ -164,6 +166,8 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 <h2>References</h2>
 <section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="average" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>average</span><a href="#average" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>Re-exports <a href="../functions/operators.average.html">average</a></section>
+<section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="compose" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>compose</span><a href="#compose" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>Renames and re-exports <a href="../functions/util.itr8Pipe.html">itr8Pipe</a></section>
 <section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="debounce" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>debounce</span><a href="#debounce" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>Re-exports <a href="../functions/operators.debounce.html">debounce</a></section>
 <section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="dedup" class="tsd-anchor"></a>
@@ -242,6 +246,8 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 <h3 class="tsd-anchor-link"><span>peek</span><a href="#peek" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>Re-exports <a href="../functions/operators.peek.html">peek</a></section>
 <section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="percentile" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>percentile</span><a href="#percentile" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>Re-exports <a href="../functions/operators.percentile.html">percentile</a></section>
+<section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="pipe" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>pipe</span><a href="#pipe" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>Re-exports <a href="../functions/util.pipe.html">pipe</a></section>
 <section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="prefetch" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>prefetch</span><a href="#prefetch" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>Re-exports <a href="../functions/operators.prefetch.html">prefetch</a></section>
 <section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="reduce" class="tsd-anchor"></a>
@@ -314,6 +320,7 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 <nav class="tsd-navigation secondary menu-sticky">
 <ul>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#average" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>average</a></li>
+<li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#compose" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>compose</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#debounce" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>debounce</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#dedup" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>dedup</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#delay" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>delay</a></li>
@@ -353,6 +360,7 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#parallel" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>parallel</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#peek" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>peek</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#percentile" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>percentile</a></li>
+<li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#pipe" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>pipe</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#prefetch" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>prefetch</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#reduce" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>reduce</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#repeatEach" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>repeat<wbr/>Each</a></li>

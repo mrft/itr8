@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import * as FakeTimers from '@sinonjs/fake-timers';
-import { itr8Pushable, itr8ToArray } from '../..';
+import { itr8Pushable, itr8ToArray, pipe } from '../..';
 import { sleep } from '../../testUtils';
 import { throttle } from './throttle';
 
@@ -27,10 +27,10 @@ describe('operators/timeBased/throttle.ts', () => {
         pushIt.done();
       });
 
-      const resultPromise = itr8ToArray(
-        pushIt.pipe(
-          throttle(3 * 5),
-        ),
+      const resultPromise = pipe(
+        pushIt,
+        throttle(3 * 5),
+        itr8ToArray,
       );
 
       // now run all the clock ticks

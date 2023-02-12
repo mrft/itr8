@@ -21,8 +21,8 @@ import { TNextFnResult, TPipeable, TTransIteratorSyncOrAsync } from '../types';
  *
  * @category util
  */
-const isPromise = function isPromise(p:unknown):p is Promise<unknown> {
-  return p !== undefined && p!== null && Object.prototype.toString.call(p) === "[object Promise]";
+const isPromise = function isPromise(p: unknown): p is Promise<unknown> {
+  return p !== undefined && p !== null && Object.prototype.toString.call(p) === "[object Promise]";
 }
 
 // import { isPromise } from 'util/types'
@@ -44,12 +44,21 @@ const isPromise = function isPromise(p:unknown):p is Promise<unknown> {
  * const fetchPage = new AsyncFunction("url", "return await fetch(url);");
  * ```
  */
-const AsyncFunction = Object.getPrototypeOf(async function(){/* empty */}).constructor;
+const AsyncFunction = Object.getPrototypeOf(async function () {/* empty */ }).constructor;
 
-
+/**
+ * Used by the thenable method, that turns any synchronous value into something with a
+ * 'then' method, so we can reuse the same code regardless whether the input is synchronous
+ * or asynchronous.
+ *
+ * It exposes 2 properties: then(), which works as you know from promises, and src, which is
+ * the actual input (which is either a simple value or a promise).
+ *
+ * @category util
+ */
 type TThenable<T = any> = {
   src: T | Promise<T>,
-  then: (okHandler:(value: any, isSync?: boolean) => any) => any,
+  then: (okHandler: (value: any, isSync?: boolean) => any) => any,
   value?: T,
 }
 
@@ -85,11 +94,11 @@ type TThenable<T = any> = {
  * ```
  *
  * ???
- * MAYBE a better solution would be to have a function called doAfter(value, (value) => { your code })
+ * MAYBE a better solution would be to have a function called ```doAfter(value, (value) => { your code })```
  * that checks whether it is a promise or not, and returns the result of the handler?
  * But without the pipe operator it would be a pain to chain them, unless it will return an object
- * with some properties like { result, doAfter:... }
- * or maybe thenable should always return a new object with poerties { src, then, finally, ... } so
+ * with some properties like ```{ result, doAfter:... }```
+ * or maybe thenable should always return a new object with poerties ```{ src, then, finally, ... }``` so
  * that the interface resembles a promise, but if we need the actual promise or value
  * we should simply call src?
  *
@@ -144,55 +153,55 @@ const thenable = <T>(x: T): TThenable<T> => {
  * @category util
  */
 const forLoop = <State>(
-  initialStateFactory:() => State | Promise<State>,
-  testBeforeEach: (a:State) => boolean | Promise<boolean>,
-  afterEach: (a:State) => State | Promise<State>,
-  codeToExecute: (a:State) => void | Promise<void>,
+  initialStateFactory: () => State | Promise<State>,
+  testBeforeEach: (a: State) => boolean | Promise<boolean>,
+  afterEach: (a: State) => State | Promise<State>,
+  codeToExecute: (a: State) => void | Promise<void>,
 ) => {
   // if we assume that thenable will return true as the second argument of the callbacks
   // when we are still synchronous, we can write this with thenable I think
   return thenable(initialStateFactory())
-  .then((initialState, isSyncInit) => {
-    return thenable(testBeforeEach(initialState))
-    .then((testResult, isSyncTest) => { // this should work, both for sync and async stuff, so that we don't get the indentation-of-hell issue?
-      if (testResult) {
-        return thenable(codeToExecute(initialState))
-        .then(
-          (_, isSyncBody) => {
-            return thenable(afterEach(initialState))
-            .then((firstStateAfterEach, isSyncAfterBody) => {
-              if (isSyncInit && isSyncTest && isSyncBody && isSyncAfterBody) {
-                // everything is synchronous so we can do a synchronous for loop
-                let state = firstStateAfterEach;
-                while (testBeforeEach(state)) {
-                  codeToExecute(state);
-                  state = afterEach(state);
-                }
-                return state;
-              } else {
-                // naive implementation: something is asynchronous so we can to do an asychronous for loop
-                // return (async () => {
-                //   let state = firstStateAfterEach;
-                //   while (await testBeforeEach(state)) {
-                //     await codeToExecute(state);
-                //     state = await afterEach(state);
-                //   }
-                //   return state;
-                // })();
+    .then((initialState, isSyncInit) => {
+      return thenable(testBeforeEach(initialState))
+        .then((testResult, isSyncTest) => { // this should work, both for sync and async stuff, so that we don't get the indentation-of-hell issue?
+          if (testResult) {
+            return thenable(codeToExecute(initialState))
+              .then(
+                (_, isSyncBody) => {
+                  return thenable(afterEach(initialState))
+                    .then((firstStateAfterEach, isSyncAfterBody) => {
+                      if (isSyncInit && isSyncTest && isSyncBody && isSyncAfterBody) {
+                        // everything is synchronous so we can do a synchronous for loop
+                        let state = firstStateAfterEach;
+                        while (testBeforeEach(state)) {
+                          codeToExecute(state);
+                          state = afterEach(state);
+                        }
+                        return state;
+                      } else {
+                        // naive implementation: something is asynchronous so we can to do an asychronous for loop
+                        // return (async () => {
+                        //   let state = firstStateAfterEach;
+                        //   while (await testBeforeEach(state)) {
+                        //     await codeToExecute(state);
+                        //     state = await afterEach(state);
+                        //   }
+                        //   return state;
+                        // })();
 
-                // await on a non-promise will still break execution and turns
-                // the value into Promise.resolve(...))
-                // SO can we only await if it's necessary?
-                // 2^3 = 8 possible (ignoring the generation of initial state) combinations
-                // with and without await
-                // Luckily new Function('a', 'b', 'return a + b;'); will produce a function
-                // from a string and some clever guy found a way to create an AsyncFunction
-                // equivalent of that!
-                // So using isSyncInit, isSyncTest, isSyncBody, isSyncAfterBody to decide
-                // whether a value shouldbe awaited, we can solve it like this
-                return (new AsyncFunction(
-                  'firstStateAfterEach', 'testBeforeEach', 'codeToExecute', 'afterEach',
-                  `
+                        // await on a non-promise will still break execution and turns
+                        // the value into Promise.resolve(...))
+                        // SO can we only await if it's necessary?
+                        // 2^3 = 8 possible (ignoring the generation of initial state) combinations
+                        // with and without await
+                        // Luckily new Function('a', 'b', 'return a + b;'); will produce a function
+                        // from a string and some clever guy found a way to create an AsyncFunction
+                        // equivalent of that!
+                        // So using isSyncInit, isSyncTest, isSyncBody, isSyncAfterBody to decide
+                        // whether a value shouldbe awaited, we can solve it like this
+                        return (new AsyncFunction(
+                          'firstStateAfterEach', 'testBeforeEach', 'codeToExecute', 'afterEach',
+                          `
                     let state = firstStateAfterEach;
                     while (${isSyncTest ? '' : 'await '}testBeforeEach(state)) {
                       ${isSyncBody ? '' : 'await '}codeToExecute(state);
@@ -200,14 +209,14 @@ const forLoop = <State>(
                     }
                     return state;
                   `))(firstStateAfterEach, testBeforeEach, codeToExecute, afterEach);
-              }
-            })
+                      }
+                    })
+                })
+          } else {
+            return initialState;
+          }
         })
-      } else {
-        return initialState;
-      }
-    })
-  });
+    });
 };
 
 
@@ -670,20 +679,20 @@ const forLoop = <State>(
  * @category util
  */
 const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown, TState = unknown, TParam1 = void, TParam2 = void, TParam3 = void, TParam4 = void>(
-  nextFn: (nextIn: IteratorResult<TIn>, state: TState, param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) =>
+  nextFn: (nextIn: IteratorResult<TIn>, state: TState, param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams: unknown[]) =>
     TNextFnResult<TOut, TState> | Promise<TNextFnResult<TOut, TState>>,
-  initialStateFactory: (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) => TState,
-): (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) => TTransIteratorSyncOrAsync<TIn, TOut> {
-  return function (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]): TTransIteratorSyncOrAsync<TIn, TOut> {
+  initialStateFactory: (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams: unknown[]) => TState,
+): (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams: unknown[]) => TTransIteratorSyncOrAsync<TIn, TOut> {
+  return function (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams: unknown[]): TTransIteratorSyncOrAsync<TIn, TOut> {
     const operatorFunction = (itIn: Iterator<TIn> | AsyncIterator<TIn>, pState: TState) => {
 
       type TOperatorState = {
-        state:TState,
-        currentOutputIterator:Iterator<TOut> | AsyncIterator<TOut> | undefined,
-        done:boolean,
+        state: TState,
+        currentOutputIterator: Iterator<TOut> | AsyncIterator<TOut> | undefined,
+        done: boolean,
       };
 
-      const operatorState:TOperatorState = {
+      const operatorState: TOperatorState = {
         state: pState,
         currentOutputIterator: undefined,
         done: false,
@@ -723,288 +732,288 @@ const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown,
         // nextFn: (nextIn: IteratorResult<TIn>, state: TState, param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) =>
         //         TNextFnResult<TOut, TState> | Promise<TNextFnResult<TOut, TState>>,
         // operatorState:TOperatorState
-      ):IteratorResult<TOut> | Promise<IteratorResult<TOut>> => {
+      ): IteratorResult<TOut> | Promise<IteratorResult<TOut>> => {
 
         const nextReturnVal = thenable(itIn.next())
-        .then((nextIn, isSyncInput) => {
-          return thenable(nextFn(nextIn as IteratorResult<TIn>, operatorState.state, param1, param2, param3, param4, ...otherParams))
-          .then((nextFnResult, isSyncNextFn) => {
-            // nextFnResult as TNextFnResult<TOut, TState>
-            if ('state' in nextFnResult) operatorState.state = nextFnResult.state as TState;
+          .then((nextIn, isSyncInput) => {
+            return thenable(nextFn(nextIn as IteratorResult<TIn>, operatorState.state, param1, param2, param3, param4, ...otherParams))
+              .then((nextFnResult, isSyncNextFn) => {
+                // nextFnResult as TNextFnResult<TOut, TState>
+                if ('state' in nextFnResult) operatorState.state = nextFnResult.state as TState;
 
-            let retVal;
-            if (nextFnResult.done) {
-              operatorState.done = true;
-              // return generateNextReturnVal();
-              retVal = { done: true };
-            } else if ('value' in nextFnResult) {
-              retVal = { done: false, value: nextFnResult.value };
-            } else if ('iterable' in nextFnResult) {
-              if (operatorState.currentOutputIterator !== undefined) throw new Error('currentOutputIterator should be undefined at this point');
-              operatorState.currentOutputIterator = itr8FromIterable(nextFnResult.iterable);
-              if (operatorState.currentOutputIterator?.next === undefined) {
-                throw new Error('Error while trying to get output iterator, did you specify something that is not an Iterable to the \'iterable\' property? (when using a generator function, don\'t forget to call it in order to return an IterableIterator!)');
-              }
-              // goto next round of while loop
-              // return generateNextReturnVal();
-            } else {
-              // we need to call nextIn again
-
-              // goto next round of while loop
-              // return generateNextReturnVal();
-            }
-
-            // now we can rewrite the current function in an optimized way because we know
-            // which parts are async (if any) and which not
-            // const newGenerateNextReturnVal = new (isSyncInput && isSyncNextFn ? Function : AsyncFunction)(
-            //   'itIn',
-            //   'nextFn',
-            //   'operatorState',
-            //   `
-            //     // while loop instead of calling this function recursively (call stack can become too large)
-            //     // console.log('operatorState', operatorState);
-            //     while (true) {
-            //       if (operatorState.done) {
-            //         return { value: undefined, done: true };
-            //       }
-            //       // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
-            //       if (operatorState.currentOutputIterator) {
-            //         const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
-            //         // if (isPromise(possibleNextValueOrPromise)) {
-            //         // if (typeof possibleNextValueOrPromise.then === 'Function') {
-            //         //     throw new Error('Async iterables inside nextFn response not supported at this time!!!');
-            //         //   // return { done: true };
-            //         // }
-            //         const possibleNext = possibleNextValueOrPromise;
-
-            //         if (possibleNext.done) {
-            //           operatorState.currentOutputIterator = undefined;
-            //         } else {
-            //           return possibleNext;
-            //         }
-            //       }
-
-            //       // no running iterator, so we need to call nextFn again
-            //       const nextIn = ${isSyncInput ? '' : 'await '}itIn.next();
-            //       const [_itIn, _nextFn, _operatorState, ...otherArgs] = [...arguments];
-            //       const curNextFnResult = ${isSyncNextFn ? '' : 'await '}nextFn(nextIn, operatorState.state, ...otherArgs);
-            //       if ('state' in curNextFnResult) operatorState.state = curNextFnResult.state as TState;
-
-            //       if (curNextFnResult.done) {
-            //         operatorState.done = true;
-            //       } else if ('value' in curNextFnResult) {
-            //         return { done: false, value: curNextFnResult.value };
-            //       } else if ('iterable' in curNextFnResult) {
-            //         if (operatorState.currentOutputIterator !== undefined) throw new Error('currentOutputIterator should be undefined at this point');
-            //         // operatorState.currentOutputIterator = (curNextFnResult.iterable[Symbol.iterator] || curNextFnResult.iterable[Symbol.asyncIterator])(); // itr8FromIterable(curNextFnResult.iterable);
-            //         if (curNextFnResult.iterable[Symbol.iterator]) {
-            //           operatorState.currentOutputIterator = curNextFnResult.iterable[Symbol.iterator]();
-            //         } else if (curNextFnResult.iterable[Symbol.asyncIterator]) {
-            //           operatorState.currentOutputIterator = curNextFnResult.iterable[Symbol.asyncIterator]();
-            //         }
-
-            //         if (!operatorState.currentOutputIterator || operatorState.currentOutputIterator.next === undefined) {
-            //           throw new Error('Error while trying to get output iterator, did you specify something that is not an Iterable to the \\'iterable\\' property? (when using a generator function, don\\'t forget to call it in order to return an IterableIterator!)');
-            //         }
-            //         // goto next round of while loop
-            //       } else {
-            //         // we need to call nextIn again
-            //         // goto next round of while loop
-            //       }
-            //     }
-            //   `,
-            // ) as () => IteratorResult<TOut> | Promise<IteratorResult<TOut>>;
-
-
-            /**
-             * Can return a value or undefined
-             * @param curNextFn
-             */
-            const handleCurNextFnResult = (curNextFnResult:TNextFnResult<TOut,TState>):IteratorResult<TOut> | undefined => {
-              if (curNextFnResult.done) {
-                operatorState.done = true;
-              } else if ('value' in curNextFnResult) {
-                return { done: false, value: curNextFnResult.value };
-              } else if ('iterable' in curNextFnResult) {
-                if (operatorState.currentOutputIterator !== undefined) throw new Error('currentOutputIterator should be undefined at this point');
-                // operatorState.currentOutputIterator = (curNextFnResult.iterable[Symbol.iterator] || curNextFnResult.iterable[Symbol.asyncIterator])(); // itr8FromIterable(curNextFnResult.iterable);
-                if (curNextFnResult.iterable[Symbol.iterator]) {
-                  operatorState.currentOutputIterator = curNextFnResult.iterable[Symbol.iterator]();
-                } else if (curNextFnResult.iterable[Symbol.asyncIterator]) {
-                  operatorState.currentOutputIterator = curNextFnResult.iterable[Symbol.asyncIterator]();
-                } else { // (!operatorState.currentOutputIterator || operatorState.currentOutputIterator.next === undefined) {
-                  throw new Error('Error while trying to get output iterator, did you specify something that is not an Iterable to the \'iterable\' property? (when using a generator function, don\'t forget to call it in order to return an IterableIterator!)');
-                }
-                // goto next round of while loop
-              } else {
-                // we need to call nextIn again
-                // goto next round of while loop
-              }
-              return undefined;
-            };
-
-            let newGenerateNextReturnVal;
-            if (isSyncInput && isSyncNextFn) { // sync version
-              newGenerateNextReturnVal = () => {
-                // while loop instead of calling this function recursively (call stack can become too large)
-                // console.log('operatorState', operatorState);
-                // eslint-disable-next-line no-constant-condition
-                while (true) {
-                  if (operatorState.done) {
-                    return { value: undefined, done: true };
+                let retVal;
+                if (nextFnResult.done) {
+                  operatorState.done = true;
+                  // return generateNextReturnVal();
+                  retVal = { done: true };
+                } else if ('value' in nextFnResult) {
+                  retVal = { done: false, value: nextFnResult.value };
+                } else if ('iterable' in nextFnResult) {
+                  if (operatorState.currentOutputIterator !== undefined) throw new Error('currentOutputIterator should be undefined at this point');
+                  operatorState.currentOutputIterator = itr8FromIterable(nextFnResult.iterable);
+                  if (operatorState.currentOutputIterator?.next === undefined) {
+                    throw new Error('Error while trying to get output iterator, did you specify something that is not an Iterable to the \'iterable\' property? (when using a generator function, don\'t forget to call it in order to return an IterableIterator!)');
                   }
-                  // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
-                  if (operatorState.currentOutputIterator) {
-                    const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
-                    // if (isPromise(possibleNextValueOrPromise)) {
-                    // if (typeof possibleNextValueOrPromise.then === 'Function') {
-                    //     throw new Error('Async iterables inside nextFn response not supported at this time!!!');
-                    //   // return { done: true };
-                    // }
-                    const possibleNext = possibleNextValueOrPromise as IteratorResult<TOut>;
+                  // goto next round of while loop
+                  // return generateNextReturnVal();
+                } else {
+                  // we need to call nextIn again
 
-                    if (possibleNext.done) {
-                      operatorState.currentOutputIterator = undefined;
-                    } else {
-                      return possibleNext;
+                  // goto next round of while loop
+                  // return generateNextReturnVal();
+                }
+
+                // now we can rewrite the current function in an optimized way because we know
+                // which parts are async (if any) and which not
+                // const newGenerateNextReturnVal = new (isSyncInput && isSyncNextFn ? Function : AsyncFunction)(
+                //   'itIn',
+                //   'nextFn',
+                //   'operatorState',
+                //   `
+                //     // while loop instead of calling this function recursively (call stack can become too large)
+                //     // console.log('operatorState', operatorState);
+                //     while (true) {
+                //       if (operatorState.done) {
+                //         return { value: undefined, done: true };
+                //       }
+                //       // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+                //       if (operatorState.currentOutputIterator) {
+                //         const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
+                //         // if (isPromise(possibleNextValueOrPromise)) {
+                //         // if (typeof possibleNextValueOrPromise.then === 'Function') {
+                //         //     throw new Error('Async iterables inside nextFn response not supported at this time!!!');
+                //         //   // return { done: true };
+                //         // }
+                //         const possibleNext = possibleNextValueOrPromise;
+
+                //         if (possibleNext.done) {
+                //           operatorState.currentOutputIterator = undefined;
+                //         } else {
+                //           return possibleNext;
+                //         }
+                //       }
+
+                //       // no running iterator, so we need to call nextFn again
+                //       const nextIn = ${isSyncInput ? '' : 'await '}itIn.next();
+                //       const [_itIn, _nextFn, _operatorState, ...otherArgs] = [...arguments];
+                //       const curNextFnResult = ${isSyncNextFn ? '' : 'await '}nextFn(nextIn, operatorState.state, ...otherArgs);
+                //       if ('state' in curNextFnResult) operatorState.state = curNextFnResult.state as TState;
+
+                //       if (curNextFnResult.done) {
+                //         operatorState.done = true;
+                //       } else if ('value' in curNextFnResult) {
+                //         return { done: false, value: curNextFnResult.value };
+                //       } else if ('iterable' in curNextFnResult) {
+                //         if (operatorState.currentOutputIterator !== undefined) throw new Error('currentOutputIterator should be undefined at this point');
+                //         // operatorState.currentOutputIterator = (curNextFnResult.iterable[Symbol.iterator] || curNextFnResult.iterable[Symbol.asyncIterator])(); // itr8FromIterable(curNextFnResult.iterable);
+                //         if (curNextFnResult.iterable[Symbol.iterator]) {
+                //           operatorState.currentOutputIterator = curNextFnResult.iterable[Symbol.iterator]();
+                //         } else if (curNextFnResult.iterable[Symbol.asyncIterator]) {
+                //           operatorState.currentOutputIterator = curNextFnResult.iterable[Symbol.asyncIterator]();
+                //         }
+
+                //         if (!operatorState.currentOutputIterator || operatorState.currentOutputIterator.next === undefined) {
+                //           throw new Error('Error while trying to get output iterator, did you specify something that is not an Iterable to the \\'iterable\\' property? (when using a generator function, don\\'t forget to call it in order to return an IterableIterator!)');
+                //         }
+                //         // goto next round of while loop
+                //       } else {
+                //         // we need to call nextIn again
+                //         // goto next round of while loop
+                //       }
+                //     }
+                //   `,
+                // ) as () => IteratorResult<TOut> | Promise<IteratorResult<TOut>>;
+
+
+                /**
+                 * Can return a value or undefined
+                 * @param curNextFn
+                 */
+                const handleCurNextFnResult = (curNextFnResult: TNextFnResult<TOut, TState>): IteratorResult<TOut> | undefined => {
+                  if (curNextFnResult.done) {
+                    operatorState.done = true;
+                  } else if ('value' in curNextFnResult) {
+                    return { done: false, value: curNextFnResult.value };
+                  } else if ('iterable' in curNextFnResult) {
+                    if (operatorState.currentOutputIterator !== undefined) throw new Error('currentOutputIterator should be undefined at this point');
+                    // operatorState.currentOutputIterator = (curNextFnResult.iterable[Symbol.iterator] || curNextFnResult.iterable[Symbol.asyncIterator])(); // itr8FromIterable(curNextFnResult.iterable);
+                    if (curNextFnResult.iterable[Symbol.iterator]) {
+                      operatorState.currentOutputIterator = curNextFnResult.iterable[Symbol.iterator]();
+                    } else if (curNextFnResult.iterable[Symbol.asyncIterator]) {
+                      operatorState.currentOutputIterator = curNextFnResult.iterable[Symbol.asyncIterator]();
+                    } else { // (!operatorState.currentOutputIterator || operatorState.currentOutputIterator.next === undefined) {
+                      throw new Error('Error while trying to get output iterator, did you specify something that is not an Iterable to the \'iterable\' property? (when using a generator function, don\'t forget to call it in order to return an IterableIterator!)');
+                    }
+                    // goto next round of while loop
+                  } else {
+                    // we need to call nextIn again
+                    // goto next round of while loop
+                  }
+                  return undefined;
+                };
+
+                let newGenerateNextReturnVal;
+                if (isSyncInput && isSyncNextFn) { // sync version
+                  newGenerateNextReturnVal = () => {
+                    // while loop instead of calling this function recursively (call stack can become too large)
+                    // console.log('operatorState', operatorState);
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                      if (operatorState.done) {
+                        return { value: undefined, done: true };
+                      }
+                      // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+                      if (operatorState.currentOutputIterator) {
+                        const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
+                        // if (isPromise(possibleNextValueOrPromise)) {
+                        // if (typeof possibleNextValueOrPromise.then === 'Function') {
+                        //     throw new Error('Async iterables inside nextFn response not supported at this time!!!');
+                        //   // return { done: true };
+                        // }
+                        const possibleNext = possibleNextValueOrPromise as IteratorResult<TOut>;
+
+                        if (possibleNext.done) {
+                          operatorState.currentOutputIterator = undefined;
+                        } else {
+                          return possibleNext;
+                        }
+                      }
+
+                      // no running iterator, so we need to call nextFn again
+                      const nextIn = itIn.next() as IteratorResult<TIn>;
+                      const curNextFnResult = nextFn(nextIn, operatorState.state, param1, param2, param3, param4, ...otherParams) as TNextFnResult<TOut, TState>;
+                      if ('state' in curNextFnResult) operatorState.state = curNextFnResult.state as TState;
+
+                      const r = handleCurNextFnResult(curNextFnResult);
+                      if (r !== undefined) {
+                        return r;
+                      }
+                      // if not returned, continue to the next round of the while loop
                     }
                   }
+                } else if (isSyncInput) {
+                  newGenerateNextReturnVal = async () => {
+                    // while loop instead of calling this function recursively (call stack can become too large)
+                    // console.log('operatorState', operatorState);
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                      if (operatorState.done) {
+                        return { value: undefined, done: true };
+                      }
+                      // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+                      if (operatorState.currentOutputIterator) {
+                        const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
+                        // if (isPromise(possibleNextValueOrPromise)) {
+                        // if (typeof possibleNextValueOrPromise.then === 'Function') {
+                        //     throw new Error('Async iterables inside nextFn response not supported at this time!!!');
+                        //   // return { done: true };
+                        // }
+                        const possibleNext = possibleNextValueOrPromise as IteratorResult<TOut>;
 
-                  // no running iterator, so we need to call nextFn again
-                  const nextIn = itIn.next() as IteratorResult<TIn>;
-                  const curNextFnResult = nextFn(nextIn, operatorState.state, param1, param2, param3, param4, ...otherParams) as TNextFnResult<TOut, TState>;
-                  if ('state' in curNextFnResult) operatorState.state = curNextFnResult.state as TState;
+                        if (possibleNext.done) {
+                          operatorState.currentOutputIterator = undefined;
+                        } else {
+                          return possibleNext;
+                        }
+                      }
 
-                  const r = handleCurNextFnResult(curNextFnResult);
-                  if (r !== undefined) {
-                    return r;
-                  }
-                  // if not returned, continue to the next round of the while loop
-                }
-              }
-            } else if (isSyncInput) {
-              newGenerateNextReturnVal = async () => {
-                // while loop instead of calling this function recursively (call stack can become too large)
-                // console.log('operatorState', operatorState);
-                // eslint-disable-next-line no-constant-condition
-                while (true) {
-                  if (operatorState.done) {
-                    return { value: undefined, done: true };
-                  }
-                  // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
-                  if (operatorState.currentOutputIterator) {
-                    const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
-                    // if (isPromise(possibleNextValueOrPromise)) {
-                    // if (typeof possibleNextValueOrPromise.then === 'Function') {
-                    //     throw new Error('Async iterables inside nextFn response not supported at this time!!!');
-                    //   // return { done: true };
-                    // }
-                    const possibleNext = possibleNextValueOrPromise as IteratorResult<TOut>;
+                      // no running iterator, so we need to call nextFn again
+                      const nextIn = itIn.next() as IteratorResult<TIn>;
+                      const curNextFnResult = await nextFn(nextIn, operatorState.state, param1, param2, param3, param4, ...otherParams) as TNextFnResult<TOut, TState>;
+                      if ('state' in curNextFnResult) operatorState.state = curNextFnResult.state as TState;
 
-                    if (possibleNext.done) {
-                      operatorState.currentOutputIterator = undefined;
-                    } else {
-                      return possibleNext;
+                      const r = handleCurNextFnResult(curNextFnResult);
+                      if (r !== undefined) {
+                        return r;
+                      }
+                      // if not returned, continue to the next round of the while loop
                     }
                   }
+                } else if (isSyncNextFn) {
+                  newGenerateNextReturnVal = async () => {
+                    // while loop instead of calling this function recursively (call stack can become too large)
+                    // console.log('operatorState', operatorState);
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                      if (operatorState.done) {
+                        return { value: undefined, done: true };
+                      }
+                      // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+                      if (operatorState.currentOutputIterator) {
+                        const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
+                        // if (isPromise(possibleNextValueOrPromise)) {
+                        // if (typeof possibleNextValueOrPromise.then === 'Function') {
+                        //     throw new Error('Async iterables inside nextFn response not supported at this time!!!');
+                        //   // return { done: true };
+                        // }
+                        const possibleNext = possibleNextValueOrPromise as IteratorResult<TOut>;
 
-                  // no running iterator, so we need to call nextFn again
-                  const nextIn = itIn.next() as IteratorResult<TIn>;
-                  const curNextFnResult = await nextFn(nextIn, operatorState.state, param1, param2, param3, param4, ...otherParams) as TNextFnResult<TOut, TState>;
-                  if ('state' in curNextFnResult) operatorState.state = curNextFnResult.state as TState;
+                        if (possibleNext.done) {
+                          operatorState.currentOutputIterator = undefined;
+                        } else {
+                          return possibleNext;
+                        }
+                      }
 
-                  const r = handleCurNextFnResult(curNextFnResult);
-                  if (r !== undefined) {
-                    return r;
-                  }
-                  // if not returned, continue to the next round of the while loop
-                }
-              }
-            } else if (isSyncNextFn) {
-              newGenerateNextReturnVal = async () => {
-                // while loop instead of calling this function recursively (call stack can become too large)
-                // console.log('operatorState', operatorState);
-                // eslint-disable-next-line no-constant-condition
-                while (true) {
-                  if (operatorState.done) {
-                    return { value: undefined, done: true };
-                  }
-                  // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
-                  if (operatorState.currentOutputIterator) {
-                    const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
-                    // if (isPromise(possibleNextValueOrPromise)) {
-                    // if (typeof possibleNextValueOrPromise.then === 'Function') {
-                    //     throw new Error('Async iterables inside nextFn response not supported at this time!!!');
-                    //   // return { done: true };
-                    // }
-                    const possibleNext = possibleNextValueOrPromise as IteratorResult<TOut>;
+                      // no running iterator, so we need to call nextFn again
+                      const nextIn = await itIn.next() as IteratorResult<TIn>;
+                      const curNextFnResult = nextFn(nextIn, operatorState.state, param1, param2, param3, param4, ...otherParams) as TNextFnResult<TOut, TState>;
+                      if ('state' in curNextFnResult) operatorState.state = curNextFnResult.state as TState;
 
-                    if (possibleNext.done) {
-                      operatorState.currentOutputIterator = undefined;
-                    } else {
-                      return possibleNext;
+                      const r = handleCurNextFnResult(curNextFnResult);
+                      if (r !== undefined) {
+                        return r;
+                      }
+                      // if not returned, continue to the next round of the while loop
                     }
                   }
+                } else {
+                  newGenerateNextReturnVal = async () => {
+                    // while loop instead of calling this function recursively (call stack can become too large)
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                      if (operatorState.done) {
+                        return { value: undefined, done: true };
+                      }
+                      // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+                      if (operatorState.currentOutputIterator) {
+                        const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
+                        // if (isPromise(possibleNextValueOrPromise)) {
+                        // if (typeof possibleNextValueOrPromise.then === 'Function') {
+                        //     throw new Error('Async iterables inside nextFn response not supported at this time!!!');
+                        //   // return { done: true };
+                        // }
+                        const possibleNext = possibleNextValueOrPromise as IteratorResult<TOut>;
 
-                  // no running iterator, so we need to call nextFn again
-                  const nextIn = await itIn.next() as IteratorResult<TIn>;
-                  const curNextFnResult = nextFn(nextIn, operatorState.state, param1, param2, param3, param4, ...otherParams) as TNextFnResult<TOut, TState>;
-                  if ('state' in curNextFnResult) operatorState.state = curNextFnResult.state as TState;
+                        if (possibleNext.done) {
+                          operatorState.currentOutputIterator = undefined;
+                        } else {
+                          return possibleNext;
+                        }
+                      }
 
-                  const r = handleCurNextFnResult(curNextFnResult);
-                  if (r !== undefined) {
-                    return r;
-                  }
-                  // if not returned, continue to the next round of the while loop
-                }
-              }
-            } else {
-              newGenerateNextReturnVal = async () => {
-                // while loop instead of calling this function recursively (call stack can become too large)
-                // eslint-disable-next-line no-constant-condition
-                while (true) {
-                  if (operatorState.done) {
-                    return { value: undefined, done: true };
-                  }
-                  // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
-                  if (operatorState.currentOutputIterator) {
-                    const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
-                    // if (isPromise(possibleNextValueOrPromise)) {
-                    // if (typeof possibleNextValueOrPromise.then === 'Function') {
-                    //     throw new Error('Async iterables inside nextFn response not supported at this time!!!');
-                    //   // return { done: true };
-                    // }
-                    const possibleNext = possibleNextValueOrPromise as IteratorResult<TOut>;
+                      // no running iterator, so we need to call nextFn again
+                      const nextIn = await itIn.next() as IteratorResult<TIn>;
+                      const curNextFnResult = await nextFn(nextIn, operatorState.state, param1, param2, param3, param4, ...otherParams) as TNextFnResult<TOut, TState>;
+                      if ('state' in curNextFnResult) operatorState.state = curNextFnResult.state as TState;
 
-                    if (possibleNext.done) {
-                      operatorState.currentOutputIterator = undefined;
-                    } else {
-                      return possibleNext;
+                      const r = handleCurNextFnResult(curNextFnResult);
+                      if (r !== undefined) {
+                        return r;
+                      }
+                      // if not returned, continue to the next round of the while loop
                     }
                   }
-
-                  // no running iterator, so we need to call nextFn again
-                  const nextIn = await itIn.next() as IteratorResult<TIn>;
-                  const curNextFnResult = await nextFn(nextIn, operatorState.state, param1, param2, param3, param4, ...otherParams) as TNextFnResult<TOut, TState>;
-                  if ('state' in curNextFnResult) operatorState.state = curNextFnResult.state as TState;
-
-                  const r = handleCurNextFnResult(curNextFnResult);
-                  if (r !== undefined) {
-                    return r;
-                  }
-                  // if not returned, continue to the next round of the while loop
                 }
-              }
-            }
 
-            // now overwrite the function within the same context as the original function
-            generateNextReturnVal = newGenerateNextReturnVal;
+                // now overwrite the function within the same context as the original function
+                generateNextReturnVal = newGenerateNextReturnVal;
 
-            // console.log('           ----> next return val will be', retVal);
-            return retVal || generateNextReturnVal(); // generateNextReturnVal(itIn, nextFn, operatorState, param1, param2, param3, param4, ...otherParams);
-          });
-        })
-        .src;
+                // console.log('           ----> next return val will be', retVal);
+                return retVal || generateNextReturnVal(); // generateNextReturnVal(itIn, nextFn, operatorState, param1, param2, param3, param4, ...otherParams);
+              });
+          })
+          .src;
 
         // console.log('         ----> next return val will be', nextReturnVal);
         return nextReturnVal;
@@ -1016,7 +1025,7 @@ const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown,
        *
        * @returns a new array to return as the batch element
        */
-      const generateNextBatchReturnVal = ():IteratorResult<TOut[]> | Promise<IteratorResult<TOut[]>> => {
+      const generateNextBatchReturnVal = (): IteratorResult<TOut[]> | Promise<IteratorResult<TOut[]>> => {
         // eslint-disable-next-line no-constant-condition
         while (true) {
           if (operatorState.done) {
@@ -1037,16 +1046,16 @@ const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown,
             // if (isPromise(possibleNext)) {
             //   return generateNextBatchReturnValAsync(false, resultIterator, possibleNext);
             // } else {
-              let n = possibleNext;
-              const resultArray: TOut[] = [];
-              while (!n.done) {
-                resultArray.push(n.value);
-                n = resultIterator.next();
-              }
-              operatorState.state = (resultIterator as any).getState();
-              if (resultArray.length > 0) {
-                return { done: false, value: resultArray };
-              }
+            let n = possibleNext;
+            const resultArray: TOut[] = [];
+            while (!n.done) {
+              resultArray.push(n.value);
+              n = resultIterator.next();
+            }
+            operatorState.state = (resultIterator as any).getState();
+            if (resultArray.length > 0) {
+              return { done: false, value: resultArray };
+            }
             // }
           }
         }
@@ -1062,7 +1071,7 @@ const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown,
        */
       const generateNextBatchReturnValAsync = async (
         callUpdateNextInPromiseOrValue = true, innerIterator?: AsyncIterator<TOut>, innerIteratorFirstPromise?: Promise<any>
-      ):Promise<IteratorResult<TOut[]>> => {
+      ): Promise<IteratorResult<TOut[]>> => {
         const doUpdateNextInPromiseOrValue = callUpdateNextInPromiseOrValue;
         let inputInnerIterator = innerIterator;
         let inputInnerPossibleNext = innerIteratorFirstPromise;
@@ -1123,8 +1132,8 @@ const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown,
         [Symbol.iterator]: () => retVal,
         [Symbol.asyncIterator]: () => retVal,
         // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
-        next: ():IteratorResult<TOut> | Promise<IteratorResult<TOut>>
-                  | IteratorResult<TOut[]> | Promise<IteratorResult<TOut[]>> => {
+        next: (): IteratorResult<TOut> | Promise<IteratorResult<TOut>>
+          | IteratorResult<TOut[]> | Promise<IteratorResult<TOut[]>> => {
           ////////////////////////////////////////////////////////////////////////////////
           // special case for 'batch' iterator !!!
           ////////////////////////////////////////////////////////////////////////////////
@@ -1157,8 +1166,8 @@ const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown,
     };
 
     return (itIn: Iterator<TIn> | AsyncIterator<TIn>)
-          :TPipeable<any, any> & (IterableIterator<TOut> | AsyncIterableIterator<TOut>) =>
-        operatorFunction(itIn, initialStateFactory(param1, param2, param3, param4, ...otherParams));
+      : TPipeable<any, any> & (IterableIterator<TOut> | AsyncIterableIterator<TOut>) =>
+      operatorFunction(itIn, initialStateFactory(param1, param2, param3, param4, ...otherParams));
   }
 };
 
@@ -1181,7 +1190,7 @@ const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown,
  * and an initial state
  *
  * * nextOfPreviousIteratorInTheChain is the (resolved if async) result of a next call of the input
- *   iterator. This means it will be of the form { done: true } or { done: false, value: <...> }.
+ *   iterator. This means it will be of the form ```{ done: true }``` or ```{ done: false, value: <...> }```.
  * * The state parameter is used to allow operators to have state, but not all operators need this.
  *   For example: a 'map' operator doesn't need state, but the 'skip' operator would need to keep
  * track of how many records have passed.
@@ -1213,19 +1222,19 @@ const itr8OperatorFactoryExperimental = function <TIn = unknown, TOut = unknown,
  * @category util
  */
 const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = unknown, TParam1 = void, TParam2 = void, TParam3 = void, TParam4 = void>(
-  nextFn: (nextIn: IteratorResult<TIn>, state: TState, param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) =>
+  nextFn: (nextIn: IteratorResult<TIn>, state: TState, param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams: unknown[]) =>
     TNextFnResult<TOut, TState> | Promise<TNextFnResult<TOut, TState>>,
-  initialStateFactory: (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) => TState,
-): (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]) => TTransIteratorSyncOrAsync<TIn, TOut> {
+  initialStateFactory: (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams: unknown[]) => TState,
+): (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams: unknown[]) => TTransIteratorSyncOrAsync<TIn, TOut> {
   type TOperatorState = {
-    state:TState,
-    currentOutputIterator:Iterator<TOut> | AsyncIterator<TOut> | undefined,
-    done:boolean,
+    state: TState,
+    currentOutputIterator: Iterator<TOut> | AsyncIterator<TOut> | undefined,
+    done: boolean,
   };
 
-  return function (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams:unknown[]): TTransIteratorSyncOrAsync<TIn, TOut> {
+  return function (param1: TParam1, param2: TParam2, param3: TParam3, param4: TParam4, ...otherParams: unknown[]): TTransIteratorSyncOrAsync<TIn, TOut> {
     const operatorFunction = (itIn: Iterator<TIn> | AsyncIterator<TIn>, pState: TState) => {
-      const operatorState:TOperatorState = {
+      const operatorState: TOperatorState = {
         state: pState,
         currentOutputIterator: undefined,
         done: false,
@@ -1242,7 +1251,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
       // let state = pState;
 
       // let currentOutputIterator: Iterator<TOut> | AsyncIterator<TOut> | undefined = undefined;
-      let isAsyncCurrentOutputIterator:boolean | undefined = undefined;
+      let isAsyncCurrentOutputIterator: boolean | undefined = undefined;
       // let done = false;
 
       /**
@@ -1258,7 +1267,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
        *    * set current iterator if it returns an iterable and call generateNextReturnVal
        * @returns
        */
-      const generateNextReturnValSync = ():IteratorResult<TOut> | Promise<IteratorResult<TOut>> => {
+      const generateNextReturnValSync = (): IteratorResult<TOut> | Promise<IteratorResult<TOut>> => {
         // while loop instead of calling this function recursively (call stack can become too large)
         // eslint-disable-next-line no-constant-condition
         while (true) {
@@ -1322,7 +1331,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
        */
       const generateNextReturnValAsync = async (
         callUpdateNextInPromiseOrValue = true, nextFnResponse?, currentOutputIteratorNext?
-      ):Promise<IteratorResult<TOut>> => {
+      ): Promise<IteratorResult<TOut>> => {
         let doUpdateNextInPromiseOrValue = callUpdateNextInPromiseOrValue;
         let alreadyKnownNextFnResponse = nextFnResponse;
         let alreadyKnownCurrentOutputIteratorNext = currentOutputIteratorNext;
@@ -1400,7 +1409,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
        *
        * @returns
        */
-       let generateNextReturnVal = () => {
+      let generateNextReturnVal = () => {
         if (isAsyncInput || isAsyncNextFn) {
           generateNextReturnVal = generateNextReturnValAsync;
         } else {
@@ -1420,8 +1429,8 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
         [Symbol.iterator]: () => retVal,
         [Symbol.asyncIterator]: () => retVal,
         // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
-        next: ():IteratorResult<TOut> | Promise<IteratorResult<TOut>>
-                  | IteratorResult<TOut[]> | Promise<IteratorResult<TOut[]>> => {
+        next: (): IteratorResult<TOut> | Promise<IteratorResult<TOut>>
+          | IteratorResult<TOut[]> | Promise<IteratorResult<TOut[]>> => {
           return generateNextReturnVal();
         },
       };
@@ -1430,8 +1439,8 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
     };
 
     const transIt = (itIn: Iterator<TIn> | AsyncIterator<TIn>)
-          :TPipeable<any, any> & (IterableIterator<TOut> | AsyncIterableIterator<TOut>) =>
-        operatorFunction(itIn, initialStateFactory(param1, param2, param3, param4, ...otherParams));
+      : TPipeable<any, any> & (IterableIterator<TOut> | AsyncIterableIterator<TOut>) =>
+      operatorFunction(itIn, initialStateFactory(param1, param2, param3, param4, ...otherParams));
 
     /**
      * Experiment: we could expose the "transNextFn" which is similar to a transducer:
@@ -1447,8 +1456,8 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
      * By subset I mean: maybe only when they have a value or an iterable, and not when they
      * have no value (meaning the element is skipped).
      */
-    transIt.transNextFn = (input:TNextFnResult<TIn,undefined>):TNextFnResult<TOut,undefined> => {
-      const operatorState:TOperatorState = {
+    transIt.transNextFn = (input: TNextFnResult<TIn, undefined>): TNextFnResult<TOut, undefined> => {
+      const operatorState: TOperatorState = {
         state: initialStateFactory(param1, param2, param3, param4, ...otherParams),
         currentOutputIterator: undefined,
         done: false,
@@ -1458,7 +1467,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
         return input;
       } else if (/* input.done === false && */ 'iterable' in input) {
         const iterator = input.iterable[Symbol.iterator] || input.iterable[Symbol.asyncIterator];
-        const iterable:TOut[] = [];
+        const iterable: TOut[] = [];
         const f = forLoop(() => iterator.next(), (n) => n.done !== true, (n) => iterator.next(), (nextIn) => {
           thenable(
             nextFn(nextIn as IteratorResult<TIn>, operatorState.state, param1, param2, param3, param4, ...otherParams)
@@ -1474,7 +1483,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
               iterable.push(curNextFnResult.value);
             }
           })
-          .src
+            .src
         });
         return thenable(f).then((_forLoopResult) => {
           return { done: false, iterable };
@@ -1498,7 +1507,7 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
           //   return { done: false, value: curNextFnResult.value };
           // }
         })
-        .src;
+          .src;
       } else {
         // no value nor iterable in input, meaning this element should be skipped
         // so don't call any other transformers on this element
@@ -1745,13 +1754,13 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
  *
  * @category util
  */
-// function itr8Pipe<TIn=any,TOut=any>(
+// function compose<TIn=any,TOut=any>(
 //   first:TTransIteratorSyncOrAsync,
 //   ...params:Array<TTransIteratorSyncOrAsync>
 // ):TTransIteratorSyncOrAsync<TIn, TOut> {
 //   const [second, ...rest] = params;
 //   return second
-//     ? itr8Pipe((it:Iterator<any>) => itr8FromIterator(second(first(it))), ...rest)
+//     ? compose((it:Iterator<any>) => itr8FromIterator(second(first(it))), ...rest)
 //     : (it:Iterator<any>) => itr8FromIterator(first(it));
 //   ;
 // }
@@ -1761,32 +1770,22 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
  * and outputs a single function where input = input of the first function
  * and output = output where every funtion has been applied to the output of the previous on.
  *
- * So itr8Pipe(f1:(A)=>B, f2:(B)=>C, f3:(C)=>D) returns (a:A):D => f3(f2(f1(a)))
+ * So itr8Pipe(f1:(x:A)=>B, f2:(x:B)=>C, f3:(x:C)=>D) returns (a:A):D => f3(f2(f1(a)))
  *
  * @param first
  * @param params
  * @returns
+ *
+ * @deprecated see compose (and pipe)
  */
-// COPY-PASTED FROM RxJS source code
-// export function pipe<T, A>(fn1: UnaryFunction<T, A>): UnaryFunction<T, A>;
-// export function pipe<T, A, B>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>): UnaryFunction<T, B>;
-// export function pipe<T, A, B, C>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>): UnaryFunction<T, C>;
-// export function pipe<T, A, B, C, D>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>): UnaryFunction<T, D>;
-// export function pipe<T, A, B, C, D, E>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>): UnaryFunction<T, E>;
-// export function pipe<T, A, B, C, D, E, F>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>): UnaryFunction<T, F>;
-// export function pipe<T, A, B, C, D, E, F, G>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>): UnaryFunction<T, G>;
-// export function pipe<T, A, B, C, D, E, F, G, H>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>, fn8: UnaryFunction<G, H>): UnaryFunction<T, H>;
-// export function pipe<T, A, B, C, D, E, F, G, H, I>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>, fn8: UnaryFunction<G, H>, fn9: UnaryFunction<H, I>): UnaryFunction<T, I>;
-// export function pipe<T, A, B, C, D, E, F, G, H, I>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>, fn8: UnaryFunction<G, H>, fn9: UnaryFunction<H, I>, ...fns: UnaryFunction<any, any>[]): UnaryFunction<T, {}>;
-//
-// export function itr8Pipe2<A,B>(fn1:(A) => B):(A) => B;
-// export function itr8Pipe2<A,B,C>(fn1:(A) => B, fn2:(B) => C):(A) => C;
-// export function itr8Pipe2<A,B,C,D>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D):(A) => D;
-// export function itr8Pipe2<A,B,C,D,E>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D, fn4:(D) => E):(A) => E;
-/*export*/ function itr8Pipe<A=any,B=any>(
-  first:(A) => B,
-  ...params:Array<(any) => any>
-):any {
+function itr8Pipe<A,B>(fn1:(x:A) => B):(x:A) => B;
+function itr8Pipe<A,B,C>(fn1:(x:A) => B, fn2:(x:B) => C):(x:A) => C;
+function itr8Pipe<A,B,C,D>(fn1:(x:A) => B, fn2:(x:B) => C, fn3:(x:C) => D):(x:A) => D;
+function itr8Pipe<A,B,C,D,E>(fn1:(x:A) => B, fn2:(x:B) => C, fn3:(x:C) => D, fn4:(x:D) => E):(x:A) => E;
+/*export*/ function itr8Pipe<A = any, B = any>(
+  first: (x: A) => B,
+  ...params: Array<(any) => any>
+): any {
   if (params.length === 0) {
     return first;
   } else {
@@ -1803,11 +1802,11 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
 /**
  * A generic compose function that takes multiple functions as input
  * and outputs a single function where input = input of the first function
- * and output = output where every funtion has been applied to the output of the previous on.
+ * and output = output where every funtion has been applied to the output of the previous one.
  *
  * So
  * ```typescript
- * compose(f1:(A)=>B, f2:(B)=>C, f3:(C)=>D)
+ * compose(f1:(x:A)=>B, f2:(x:B)=>C, f3:(x:C)=>D)
  * ```
  * will return a single unary function
  * ```typescript
@@ -1830,20 +1829,27 @@ const itr8OperatorFactory = function <TIn = unknown, TOut = unknown, TState = un
 // export function compose<T, A, B, C, D, E, F, G, H, I>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>, fn8: UnaryFunction<G, H>, fn9: UnaryFunction<H, I>): UnaryFunction<T, I>;
 // export function compose<T, A, B, C, D, E, F, G, H, I>(fn1: UnaryFunction<T, A>, fn2: UnaryFunction<A, B>, fn3: UnaryFunction<B, C>, fn4: UnaryFunction<C, D>, fn5: UnaryFunction<D, E>, fn6: UnaryFunction<E, F>, fn7: UnaryFunction<F, G>, fn8: UnaryFunction<G, H>, fn9: UnaryFunction<H, I>, ...fns: UnaryFunction<any, any>[]): UnaryFunction<T, {}>;
 //
-function compose<A,B>(fn1:(A) => B):(A) => B;
-function compose<A,B,C>(fn1:(A) => B, fn2:(B) => C):(A) => C;
-function compose<A,B,C,D>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D):(A) => D;
-function compose<A,B,C,D,E>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D, fn4:(D) => E):(A) => E;
-function compose<A,B>(
-  first:(A) => B,
-  ...params:Array<(any) => any>
-):any {
+function compose<A, B>(fn1: (x: A) => B): ((x: A) => B);
+function compose<A, B, C>(fn1: (x: A) => B, fn2: (x: B) => C): ((x: A) => C);
+function compose<A, B, C, D>(fn1: (x: A) => B, fn2: (x: B) => C, fn3: (x: C) => D): ((x: A) => D);
+function compose<A, B, C, D, E>(fn1: (x: A) => B, fn2: (x: B) => C, fn3: (x: C) => D, fn4: (x: D) => E): ((x: A) => E);
+function compose<A, B, C, D, E, F>(fn1: (x: A) => B, fn2: (x: B) => C, fn3: (x: C) => D, fn4: (x: D) => E, fn5: (x: E) => F): ((x: A) => F);
+function compose<A, B, C, D, E, F, G>(fn1: (x: A) => B, fn2: (x: B) => C, fn3: (x: C) => D, fn4: (x: D) => E, fn5: (x: E) => F, fn6: (x: F) => G): ((x: A) => G);
+function compose<A, B, C, D, E, F, G, H>(fn1: (x: A) => B, fn2: (x: B) => C, fn3: (x: C) => D, fn4: (x: D) => E, fn5: (x: E) => F, fn6: (x: F) => G, fn7: (x: G) => H): ((x: A) => H);
+function compose<A, B, C, D, E, F, G, H, I>(fn1: (x: A) => B, fn2: (x: B) => C, fn3: (x: C) => D, fn4: (x: D) => E, fn5: (x: E) => F, fn6: (x: F) => G, fn8: (x: G) => H, fn7: (x: H) => I): ((x: A) => I);
+function compose<A, B, C, D, E, F, G, H, I, J>(fn1: (x: A) => B, fn2: (x: B) => C, fn3: (x: C) => D, fn4: (x: D) => E, fn5: (x: E) => F, fn6: (x: F) => G, fn7: (x: G) => H, fn8: (x: H) => I, fn9: (x: I) => J): ((x: A) => J);
+function compose<A, B, C, D, E, F, G, H, I, J, K>(fn1: (x: A) => B, fn2: (x: B) => C, fn3: (x: C) => D, fn4: (x: D) => E, fn5: (x: E) => F, fn6: (x: F) => G, fn7: (x: G) => H, fn8: (x: H) => I, fn9: (x: I) => J, fn10: (x: J) => K): ((x: A) => K);
+function compose<A, B, C, D, E, F, G, H, I, J, K>(fn1: (x: A) => B, fn2: (x: B) => C, fn3: (x: C) => D, fn4: (x: D) => E, fn5: (x: E) => F, fn6: (x: F) => G, fn7: (x: G) => H, fn8: (x: H) => I, fn9: (x: I) => J, fn10: (x: J) => K, ...moreFns: Array<(x: unknown) => unknown>): ((x: A) => unknown);
+function compose<A, B>(
+  first: (x: A) => B,
+  ...params: Array<(unknown) => unknown>
+): unknown {
   if (params.length === 0) {
     return first;
   } else {
-    return params.reduce<(any) => any>(
+    return params.reduce<(unknown) => unknown>(
       (acc, cur) => {
-        return (arg) => cur(acc(arg))
+        return (arg) => cur(acc(arg));
       },
       first,
     );
@@ -1855,7 +1861,7 @@ function compose<A,B>(
  *
  * So
  * ```typescript
- * pipe(x: A, f1:(A)=>B, f2:(B)=>C, f3:(C)=>D)
+ * pipe(x: A, f1:(x:A)=>B, f2:(x:B)=>C, f3:(x:C)=>D)
  * ```
  * returns the result of (a:A):D => f3(f2(f1(a)))
  *
@@ -1863,30 +1869,44 @@ function compose<A,B>(
  * @param params
  * @returns
  */
-// function pipe<IN,A>(input:IN, fn1:(IN) => A): A;
-// function pipe<IN,A,B>(input:IN, fn1:(IN) => A, fn2:(A) => B): B;
-// function pipe<IN,A,B,C>(input:IN, fn1:(IN) => A, fn2:(A) => B, fn3:(B) => C): C;
-// function pipe<IN,A,B,C,D>(input:IN, fn1:(IN) => A, fn2:(A) => B, fn3:(B) => C, fn4:(C) => D): D;
-// function pipe<IN,A,B,C,D,E>(input:IN, fn1:(IN) => A, fn2:(A) => B, fn3:(B) => C, fn4:(C) => D, fn5:(D) => E): E;
-// function pipe<IN,A>(
-//   input: IN,
-//   fn1:(IN) => A,
-//   ...functionsToApply:Array<(unknown) => unknown>
-// ):unknown {
-//   return compose(fn1, ...functionsToApply)(input);
-// }
+function pipe<IN, A>(input: IN, fn1: (x: IN) => A): A;
+function pipe<IN, A, B>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B): B;
+function pipe<IN, A, B, C>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C): C;
+function pipe<IN, A, B, C, D>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D): D;
+function pipe<IN, A, B, C, D, E>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E): E;
+function pipe<IN, A, B, C, D, E, F>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F): F;
+function pipe<IN, A, B, C, D, E, F, G>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G): G;
+function pipe<IN, A, B, C, D, E, F, G, H>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G, fn8: (x: G) => H): H;
+function pipe<IN, A, B, C, D, E, F, G, H, I>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G, fn8: (x: G) => H, fn9: (x: H) => I): I;
+function pipe<IN, A, B, C, D, E, F, G, H, I, J>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G, fn8: (x: G) => H, fn9: (x: H) => I, fn10: (x: I) => J): J;
+function pipe<IN, A, B, C, D, E, F, G, H, I, J>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G, fn8: (x: G) => H, fn9: (x: H) => I, fn10: (x: I) => J, ...moreFns: Array<(x:unknown) => unknown>): unknown;
+function pipe<IN, A>(
+  input: IN,
+  fn1: (x: IN) => A,
+  ...functionsToApply: Array<(unknown) => unknown>
+): unknown {
+  if (functionsToApply.length === 0) {
+    return fn1(input);
+  } else {
+    const composedFn = functionsToApply.reduce<(unknown) => unknown>(
+      (acc, cur) => {
+        return (arg) => cur(acc(arg));
+      },
+      fn1,
+    );
+    return composedFn(input);
+  }
+}
 
 
 export {
-  itr8Pipe,
+  /**
+   * @deprecated Use compose(...) instead!
+   */
+  compose as itr8Pipe,
 
   compose,
-  // pipe,
-  // compose<A,B>(fn1:(A) => B):(A) => B,
-//   function compose<A,B,C>(fn1:(A) => B, fn2:(B) => C):(A) => C;
-// export function compose<A,B,C,D>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D):(A) => D;
-// export function compose<A,B,C,D,E>(fn1:(A) => B, fn2:(B) => C, fn3:(C) => D, fn4:(D) => E):(A) => E;
-
+  pipe,
 
   isPromise,
   thenable,

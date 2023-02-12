@@ -10,15 +10,17 @@ import { forEach } from "./forEach";
  *
  * @example
  * ```typescript
- * itr8FromArray(['Hello', 'Goodbye']).pipe(
- *   intersperse(' / '), // adds | between every 2 elements
- *   itr8ToString,
- * ) // => 'Hello / Goodbye'
+ *  pipe(
+ *    itr8FromArray(['Hello', 'Goodbye']),
+ *    intersperse(' / '), // adds | between every 2 elements
+ *    itr8ToString,
+ *  ) // => 'Hello / Goodbye'
  * 
- * const alphabet = itr8Range(0, 25).pipe(
- *   map((i: number) => String.fromCharCode("A".charCodeAt(0) + i)),
- *   itr8ToString
- * ); // => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+ *  const alphabet = pipe(
+ *    itr8Range(0, 25),
+ *    map((i: number) => String.fromCharCode("A".charCodeAt(0) + i)),
+ *    itr8ToString
+ *  ); // => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
  * ```
  *
  * @param iterator

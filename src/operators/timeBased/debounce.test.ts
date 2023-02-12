@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import * as FakeTimers from '@sinonjs/fake-timers';
-import { itr8Pushable, itr8ToArray } from '../..';
+import { itr8Pushable, itr8ToArray, pipe } from '../..';
 import { sleep } from '../../testUtils';
 import { debounce } from './debounce';
 
@@ -33,10 +33,10 @@ describe('operators/timeBased/debounce.ts', () => {
         pushIt.done();
       });
 
-      const resultPromise = itr8ToArray(
-        pushIt.pipe(
-          debounce(20),
-        ),
+      const resultPromise = pipe(
+        pushIt,
+        debounce(20),
+        itr8ToArray,
       );
 
       // now run all the clock ticks

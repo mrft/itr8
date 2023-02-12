@@ -11,18 +11,18 @@ import { itr8FromIterator } from "./itr8FromIterator";
  *
  * @example
  * ```typescript
- *  itr8Range(0, 3)
- *    .pipe(
+ *    pipe(
+ *      itr8Range(0, 3)
  *      itr8ToArray,
  *    ) // => [0, 1, 2, 3]
  *
- *  itr8Range(0, 10, 3)
- *    .pipe(
+ *    pipe(
+ *      itr8Range(0, 10, 3)
  *      itr8ToArray,
  *    ) // => [0, 3, 6, 9]
  *
- *  itr8Range(5, 1, 2)
- *    .pipe(
+ *    pipe(
+ *      itr8Range(5, 1, 2)
  *      itr8ToArray,
  *    ) // => [5, 3, 1]
  * ```

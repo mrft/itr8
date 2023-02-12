@@ -6,8 +6,8 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @example
  * ```typescript
- * itr8FromArray([ 'hello', 'world' ])
- *   .pipe(
+ * pipe(
+ *     itr8FromArray([ 'hello', 'world' ]),
  *     repeatEach(2)
  *   ) // => [ 'hello', 'hello', 'world', 'world' ]
  * ```
@@ -15,20 +15,23 @@ import { itr8OperatorFactory } from "../../util/index";
  * ```typescript
  * // creating an indentation function is easy (even if it's 0)
  * function getIndentation(indentationLevel, tabSize = 2) {
- *   const singleTab = itr8FromSingleValue(' ')
- *     .pipe(repeatEach(tabSize), itr8ToSTring);
- *   return itr8FromSingleValue(singleTab)
- *     .pipe(
- *       repeatEach(indentationLevel),
- *       itr8ToSTring,
- *     )
- * };
- * getIndetation(3); // => '      ' (6 spaces)
+ *   const singleTab = pipe(
+ *      itr8FromSingleValue(' '),
+ *      repeatEach(tabSize),
+ *      itr8ToSTring,
+ *   );
+ *   return pipe(
+ *     itr8FromSingleValue(singleTab)
+ *     repeatEach(indentationLevel),
+ *     itr8ToSTring,
+ *   );
+ * }
+ * getIndentation(3); // => '      ' (6 spaces)
  * ```
  *
  * @category operators/general
  */
-const repeatEach = itr8OperatorFactory<number, unknown, void, number>(
+const repeatEach = itr8OperatorFactory<unknown, unknown, void, number>(
   (nextIn, _state, count) => {
     if (nextIn.done) {
       return { done: true };

@@ -4,13 +4,17 @@ import { itr8OperatorFactory } from "../../util/index";
  * Intersperse the the argument bewteen each element of the iterator.
  * @example
  * ```typescript
- *    itr8FromArray([ 'hello', 'world', 'and', 'goodbye' ])
- *      .pipe(intersperse('|')) // => [ [ 'hello', '|', 'world', '|', 'and', '|', 'goodbye' ] ]
+ *    pipe(
+ *      itr8FromArray([ 'hello', 'world', 'and', 'goodbye' ]),
+ *      intersperse('|'), // => [ [ 'hello', '|', 'world', '|', 'and', '|', 'goodbye' ] ]
+ *    );
  * ```
  * @example
  * ```typescript
- *    itr8FromArray([ 1, 2, 3, 4 ])
- *      .pipe(intersperse(true)) // => [ 1, true, 2, true, 3, true, 4 ]
+ *    pipe(
+ *      itr8FromArray([ 1, 2, 3, 4 ]),
+ *      intersperse(true), // => [ 1, true, 2, true, 3, true, 4 ]
+ *    );
  * ```
  *
  * @category operators/general

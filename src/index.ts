@@ -14,8 +14,8 @@
  *  * **utility** functions: functions used to implement the rest of the library that culd be used by others to help them write their own 'operators'
  *    * `isPromise`
  *    * `itr8OperatorFactory`: build your own operators easily
- *    * `forLoop`: do a for (init; check; after) {} loop, regardless whether init and/or check and/or after is asynchronous or not
- *    * `itr8Pipe`: chain functions together, passing the output of the first as input of the next (so you can read from left to right)
+ *    * `forLoop`: do a ```for (init; check; after) {}``` loop, regardless whether init and/or check and/or after is asynchronous or not
+ *    * `compose`: chain functions together, passing the output of the first as input of the next (so you can read from left to right)
  *    * `thenable`: write the same code, regardless whether the input is a promise or a regular value
  *
  * itr8 is all about using iterators as a simple abstraction that can be used for things like:
@@ -25,7 +25,7 @@
  * * data that changes over time (every element in the stream is the new current value)
  *
  * An iterator has an extremely simple interface that exposes a parameter-less next() function
- * that will return { done: boolean, value: any } (or Promise<{ done: boolean, value: any }>
+ * that will return ```{ done: boolean, value: any }``` (or ```Promise<{ done: boolean, value: any }>```
  * for async iterators). Checkout the MDN page about
  * [the iterator protocol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol)
  * for more details.

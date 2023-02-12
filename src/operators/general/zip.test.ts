@@ -1,37 +1,41 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8FromArray, itr8FromArrayAsync } from "../..";
+import { itr8ToArray, itr8FromArray, itr8FromArrayAsync, pipe } from "../..";
 import { zip } from "./zip";
 
 describe('operators/general/zip.ts', () => {
   it('zip(...) operator works properly', async () => {
     // sync source iterator, sync param iterator
     assert.deepEqual(
-      itr8FromArray([1, 2, 3, 4]).pipe(
+      pipe(
+        itr8FromArray([1, 2, 3, 4]),
         zip(itr8FromArray(['a', 'b', 'c', 'd'])),
-        itr8ToArray
+        itr8ToArray,
       ),
       [[1, 'a'], [2, 'b'], [3, 'c'], [4, 'd']],
     );
 
     assert.deepEqual(
-      itr8FromArray([1, 2, 3]).pipe(
+      pipe(
+        itr8FromArray([1, 2, 3]),
         zip(itr8FromArray(['a', 'b', 'c', 'd'])),
-        itr8ToArray
+        itr8ToArray,
       ),
       [[1, 'a'], [2, 'b'], [3, 'c']],
     );
 
     assert.deepEqual(
-      itr8FromArray([1, 2, 3, 4]).pipe(
+      pipe(
+        itr8FromArray([1, 2, 3, 4]),
         zip(itr8FromArray(['a', 'b', 'c'])),
-        itr8ToArray
+        itr8ToArray,
       ),
       [[1, 'a'], [2, 'b'], [3, 'c'], [4, undefined]],
     );
 
     // async source iterator, sync param iterator
     assert.deepEqual(
-      await itr8FromArrayAsync([1, 2, 3, 4]).pipe(
+      await pipe(
+        itr8FromArrayAsync([1, 2, 3, 4]),
         zip(itr8FromArray(['a', 'b', 'c', 'd'])),
         itr8ToArray
       ),
@@ -39,7 +43,8 @@ describe('operators/general/zip.ts', () => {
     );
 
     assert.deepEqual(
-      await itr8FromArrayAsync([1, 2, 3]).pipe(
+      await pipe(
+        itr8FromArrayAsync([1, 2, 3]),
         zip(itr8FromArray(['a', 'b', 'c', 'd'])),
         itr8ToArray
       ),
@@ -47,7 +52,8 @@ describe('operators/general/zip.ts', () => {
     );
 
     assert.deepEqual(
-      await itr8FromArrayAsync([1, 2, 3, 4]).pipe(
+      await pipe(
+        itr8FromArrayAsync([1, 2, 3, 4]),
         zip(itr8FromArray(['a', 'b', 'c'])),
         itr8ToArray
       ),
@@ -56,7 +62,8 @@ describe('operators/general/zip.ts', () => {
 
     // sync source iterator, async param iterator
     assert.deepEqual(
-      await itr8FromArray([1, 2, 3, 4]).pipe(
+      await pipe(
+        itr8FromArray([1, 2, 3, 4]),
         zip(itr8FromArrayAsync(['a', 'b', 'c', 'd'])),
         itr8ToArray
       ),
@@ -64,7 +71,8 @@ describe('operators/general/zip.ts', () => {
     );
 
     assert.deepEqual(
-      await itr8FromArray([1, 2, 3]).pipe(
+      await pipe(
+        itr8FromArray([1, 2, 3]),
         zip(itr8FromArrayAsync(['a', 'b', 'c', 'd'])),
         itr8ToArray
       ),
@@ -72,7 +80,8 @@ describe('operators/general/zip.ts', () => {
     );
 
     assert.deepEqual(
-      await itr8FromArray([1, 2, 3, 4]).pipe(
+      await pipe(
+        itr8FromArray([1, 2, 3, 4]),
         zip(itr8FromArrayAsync(['a', 'b', 'c'])),
         itr8ToArray
       ),
@@ -81,7 +90,8 @@ describe('operators/general/zip.ts', () => {
 
     // async source iterator, async param iterator
     assert.deepEqual(
-      await itr8FromArrayAsync([1, 2, 3, 4]).pipe(
+      await pipe(
+        itr8FromArrayAsync([1, 2, 3, 4]),
         zip(itr8FromArrayAsync(['a', 'b', 'c', 'd'])),
         itr8ToArray
       ),
@@ -89,7 +99,8 @@ describe('operators/general/zip.ts', () => {
     );
 
     assert.deepEqual(
-      await itr8FromArrayAsync([1, 2, 3]).pipe(
+      await pipe(
+        itr8FromArrayAsync([1, 2, 3]),
         zip(itr8FromArrayAsync(['a', 'b', 'c', 'd'])),
         itr8ToArray
       ),
@@ -97,7 +108,8 @@ describe('operators/general/zip.ts', () => {
     );
 
     assert.deepEqual(
-      await itr8FromArrayAsync([1, 2, 3, 4]).pipe(
+      await pipe(
+        itr8FromArrayAsync([1, 2, 3, 4]),
         zip(itr8FromArrayAsync(['a', 'b', 'c'])),
         itr8ToArray
       ),

@@ -13,9 +13,9 @@ import { itr8FromIterator } from "../../index";
  * @example
  * ```typescript
  * // input iterator
- * const it = itr8.itr8Pushable();
+ * const it = itr8.itr8Pushable<string>();
  * // output iterator that will always return the mostRecent value of the input iterator
- * const itOut = it.pipe(mostRecent('My initial value'));
+ * const itOut = pipe(it, mostRecent('My initial value'));
  *
  * await sleep(1);
  * await itOut.next(); // => { value: 'My initial value' }

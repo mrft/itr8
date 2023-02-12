@@ -19,13 +19,13 @@ import { itr8OperatorFactory } from "../util/index";
  *
  * @example
  * ```typescript
- *  itr8FromIterable('{ someprop: { id: '123' }, results: [ 'a', 'b', 'c' ] }')
- *    .pipe(
- *      parseJson(['$.results.*']),
- *        // => [ ['a', '$.results.0'], ['b', '$.results.1'], ['c', '$.results.2'] ]
- *      map(([j]) => j),
- *        // => [ 'a', 'b', 'c' ] (useful if you don't care about the path)
- *    )
+ *  pipe(
+ *    itr8FromIterable('{ someprop: { id: '123' }, results: [ 'a', 'b', 'c' ] }'),
+ *    parseJson(['$.results.*']),
+ *      // => [ ['a', '$.results.0'], ['b', '$.results.1'], ['c', '$.results.2'] ]
+ *    map(([j]) => j),
+ *      // => [ 'a', 'b', 'c' ] (useful if you don't care about the path)
+ *  );
  * ```
  *
  * It is built using the [@streamparser/json](https://github.com/juanjoDiaz/streamparser-json)

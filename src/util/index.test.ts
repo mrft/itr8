@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import { hrtime } from 'process';
-import { forLoop, itr8Pipe, thenable, itr8OperatorFactory, isPromise } from '.';
+import { forLoop, thenable, itr8OperatorFactory, isPromise, compose, pipe } from '.';
 import { forEach } from '../interface/forEach';
 import { itr8FromArray, itr8FromArrayAsync, itr8Range, itr8RangeAsync, itr8ToArray } from "../interface/index";
 import { flatten, groupPer, map, skip, take } from '../operators';
@@ -95,7 +95,7 @@ import { TNextFnResult } from '../types';
    * @param rowSize the new size of each 'row'
    * @returns
    */
-  redim: (rowSize: number) => itr8Pipe(
+  redim: (rowSize: number) => compose(
     flatten(),
     groupPer(rowSize),
   ),
@@ -508,8 +508,8 @@ describe('./util/index.ts', () => {
 
   });
 
-  it('itr8Pipe(...) works properly', () => {
-    const transIt = itr8Pipe(
+  it('compose(...) works properly', () => {
+    const transIt = compose(
       skip(5),
       take(10),
       map((x) => x * 2),
@@ -526,7 +526,7 @@ describe('./util/index.ts', () => {
       10,
     );
 
-    const transIt2 = itr8Pipe(
+    const transIt2 = compose(
       skip(5),
       take(10),
       map((x) => x * 2),
@@ -545,7 +545,8 @@ describe('./util/index.ts', () => {
 
 
     assert.deepEqual(
-      itr8Range(1, 1000).pipe(
+      pipe(
+        itr8Range(1, 1000),
         take(3),
         map((x) => x * 2),
         itr8ToArray,
@@ -554,7 +555,8 @@ describe('./util/index.ts', () => {
     );
 
     const r: any[] = [];
-    itr8Range(1, 1000).pipe(
+    pipe(
+      itr8Range(1, 1000),
       take(3),
       map((x) => x * 2),
       forEach((x) => { r.push(x) }),
@@ -565,6 +567,42 @@ describe('./util/index.ts', () => {
         [2, 4, 6],
       );
 
+  });
+
+  it('compose(...) works properly', () => {
+    const plusOne = (x:number) => x + 1;
+    const timesTwo = (x:number) => x * 2;
+
+    const plusOneTimesTwo = compose(plusOne, timesTwo);
+
+    assert.equal(
+      plusOneTimesTwo(3),
+      8,
+    );
+
+    assert.equal(
+      timesTwo(plusOne(3)),
+      8,
+    );
+  });
+
+  it('pipe(...) works properly', () => {
+    const plusOne = (x:number) => x + 1;
+    const timesTwo = (x:number) => x * 2;
+    const square = (x:number) => x * x;
+
+    // the next line should not compile due to proper type checking if the functions are chainable
+    // pipe("hello", plusOne);
+    // pipe( 3, plusOne, Number.parseFloat);
+
+    assert.equal(
+      pipe(3, plusOne, timesTwo),
+      timesTwo(plusOne(3)),
+    );
+    assert.equal(
+      pipe(3, plusOne, timesTwo, square, Number.isInteger),
+      Number.isInteger(square(timesTwo(plusOne(3)))),
+    );
   });
 
   describe('itr8OperatorFactory(...) works properly', () => {
@@ -627,7 +665,7 @@ describe('./util/index.ts', () => {
 
       // console.log(`        TESTING ${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with plusOne`);
       assert.deepEqual(
-        await itr8ToArray((generateItr().pipe(mapFn(plusOne), mapFn(timesTwo)))),
+        await pipe(generateItr(), mapFn(plusOne), mapFn(timesTwo), itr8ToArray),
         [10, 12, 14, 16],
         `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with plus one fails`,
       );
@@ -729,7 +767,7 @@ describe('./util/index.ts', () => {
       );
     });
 
-    it('redim(...) operator works properly (sync operator created by combining existing operators with the itr8Pipe function)', async () => {
+    it('redim(...) operator works properly (sync operator created by combining existing operators with the compose function)', async () => {
       const startArray = [[1, 2], [3, 4], [5, 6]];
       const expected = [[1, 2, 3], [4, 5, 6]];
 
@@ -747,10 +785,11 @@ describe('./util/index.ts', () => {
       );
     });
 
-    it('opr8TakeUseStateFactoryParams(...) operator works properly (sync operator created by combining existing operators with the itr8Pipe function)', async () => {
+    it('opr8TakeUseStateFactoryParams(...) operator works properly (sync operator created by combining existing operators with the compose function)', async () => {
       // synchronous
       assert.deepEqual(
-        itr8Range(1,100).pipe(
+        pipe(
+          itr8Range(1,100),
           transIts.opr8TakeUseStateFactoryParams(5),
           itr8ToArray,
         ),
@@ -759,7 +798,8 @@ describe('./util/index.ts', () => {
       );
       // asynchronous
       assert.deepEqual(
-        await itr8RangeAsync(1,100).pipe(
+        await pipe(
+          itr8RangeAsync(1,100),
           transIts.opr8TakeUseStateFactoryParams(5),
           itr8ToArray,
         ),
@@ -768,10 +808,11 @@ describe('./util/index.ts', () => {
       );
     });
 
-    it('opr8UseMultipleParams(...) operator works properly (sync operator created by combining existing operators with the itr8Pipe function)', async () => {
+    it('opr8UseMultipleParams(...) operator works properly (sync operator created by combining existing operators with the compose function)', async () => {
       // synchronous
       assert.deepEqual(
-        itr8Range(1,3).pipe(
+        pipe(
+          itr8Range(1,3),
           transIts.opr8UseMultipleParams(234, 'onetwothree', true),
           itr8ToArray,
         ),
@@ -784,7 +825,8 @@ describe('./util/index.ts', () => {
       );
       // asynchronous
       assert.deepEqual(
-        await itr8RangeAsync(1,3).pipe(
+        await pipe(
+          itr8RangeAsync(1,3),
           transIts.opr8UseMultipleParams(234, 'onetwothree', true),
           itr8ToArray,
         ),
@@ -825,12 +867,6 @@ describe('./util/index.ts', () => {
           { done: false, value: 4 },
         );
 
-        // without any helper function to apply these 'transNextFn' to an actual iterator,
-        // we cannot do anything useful with them
-        // assert.deepEqual(
-        //   itr8Range(1,10).pipe()
-
-        // );
       });
 
       it('an operator exists that can apply a transNextFn to an iterator', () => {
@@ -842,7 +878,8 @@ describe('./util/index.ts', () => {
         assert.isDefined(transFilterOver6);
 
         assert.deepEqual(
-          itr8Range(1, 5).pipe(
+          pipe(
+            itr8Range(1, 5),
             transIts.opr8TransNextFn((x) => transFilterOver6(transMapTimes2(x))),
             itr8ToArray,
           ),
@@ -851,7 +888,8 @@ describe('./util/index.ts', () => {
 
         const startTransIt = hrtime();
         const maxAndCountTransIt = { max: 0, count: 0 };
-        itr8Range(1, 100_000).pipe(
+        pipe(
+          itr8Range(1, 100_000),
           transItMapTimes2,
           transItFilterOver6,
           forEach((v) => {
@@ -863,7 +901,8 @@ describe('./util/index.ts', () => {
 
         const startTransNext = hrtime();
         const maxAndCountTransNext = { max: 0, count: 0 };
-        itr8Range(1, 100_000).pipe(
+        pipe(
+          itr8Range(1, 100_000),
           transIts.opr8TransNextFn((x) => transFilterOver6(transMapTimes2(x))),
           forEach((v) => {
             maxAndCountTransNext.max = Math.max(maxAndCountTransNext.max, v);

@@ -4,8 +4,10 @@ import { itr8OperatorFactory } from "../../util/index";
  * Group the incoming elements so the output iterator will return arrays/tuples of a certain size.
  * @example
  * ```typescript
- *    itr8FromArray([ 1, 2, 3, 4, 5, 6 ])
- *      .pipe(groupPer(2)) // => [ [1, 2], [3, 4], [5, 6] ]
+ *    pipe(
+ *      itr8FromArray([ 1, 2, 3, 4, 5, 6 ]),
+ *      groupPer(2), // => [ [1, 2], [3, 4], [5, 6] ]
+ *    );
  * ```
  *
  * @category operators/general

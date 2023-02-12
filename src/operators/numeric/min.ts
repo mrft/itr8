@@ -4,8 +4,10 @@ import { itr8OperatorFactory } from "../../util/index";
  * Output a single thing which is the lowest of all values.
  * @example
  * ```typescript
- *    itr8FromArray([ 1, -2, 7, 4 ])
- *      .pipe(total()) // => [ -2 ]
+ *    pipe(
+ *      itr8FromArray([ 1, -2, 7, 4 ]),
+ *      total(), // => [ -2 ]
+ *    );
  * ```
  * @param amount
  *

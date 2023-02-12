@@ -4,8 +4,10 @@ import { itr8OperatorFactory } from "../../util/index";
  * Output the average.
  * @example
  * ```typescript
- *    itr8Range(1,100)
- *      .pipe(average())  // => [ 50 ]
+ *    pipe(
+ *      itr8Range(1,100),
+ *      average(),  // => [ 50 ]
+ *    );
  * ```
  *
  * @param it

@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import * as Stream from 'stream';
 
-import { itr8ToArray, itr8Range, itr8RangeAsync, itr8FromArray, lineByLine } from '../';
+import { itr8ToArray, itr8Range, itr8RangeAsync, itr8FromArray, lineByLine, pipe } from '../';
 import { count } from '../operators/numeric/count';
 import { itr8ToReadableStream, itr8FromStdin } from './stream';
 
@@ -55,11 +55,11 @@ describe('peer/stream.ts', () => {
 
   // THIS TEST ASSUMES THAT SOME INPUT IS PIPED INTO THE TEST SUITE (cfr. package.json/scripts/test)
   it('itr8FromStdIn works properly', async () => {
-    const stdinLinesArray = await itr8FromStdin()
-      .pipe(
-        lineByLine(),
-        itr8ToArray,
-      );
+    const stdinLinesArray = await pipe(
+      itr8FromStdin(),
+      lineByLine(),
+      itr8ToArray,
+    );
     // assert.equal(stdinLinesArray.length, 4);
     assert.deepEqual(
       stdinLinesArray,

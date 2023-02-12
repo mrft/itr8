@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { itr8Range, itr8RangeAsync, itr8ToArray } from '../..';
+import { itr8Range, itr8RangeAsync, itr8ToArray, pipe } from '../..';
 import { percentile } from './percentile';
 
 describe('operators/numeric/percentile.ts', () => {
@@ -20,7 +20,8 @@ describe('operators/numeric/percentile.ts', () => {
 
     // sync
     assert.deepEqual(
-      itr8Range(1, 100).pipe(
+      pipe(
+        itr8Range(1, 100),
         percentile(50),
         itr8ToArray
       ),
@@ -28,9 +29,10 @@ describe('operators/numeric/percentile.ts', () => {
     );
 
     assert.deepEqual(
-      itr8Range(1, 100).pipe(
+      pipe(
+        itr8Range(1, 100),
         percentile(90),
-        itr8ToArray
+        itr8ToArray,
       ),
       // [90],
       [arrayPercentile(90, itr8ToArray(itr8Range(1, 100)) as number[])],
@@ -38,9 +40,10 @@ describe('operators/numeric/percentile.ts', () => {
 
 
     assert.deepEqual(
-      itr8Range(1, 100).pipe(
+      pipe(
+        itr8Range(1, 100),
         percentile(95),
-        itr8ToArray
+        itr8ToArray,
       ),
       // [95],
       [arrayPercentile(95, itr8ToArray(itr8Range(1, 100)) as number[])],
@@ -48,7 +51,8 @@ describe('operators/numeric/percentile.ts', () => {
 
     // async
     assert.deepEqual(
-      await itr8RangeAsync(1, 100).pipe(
+      await pipe(
+        itr8RangeAsync(1, 100),
         percentile(95),
         itr8ToArray
       ),

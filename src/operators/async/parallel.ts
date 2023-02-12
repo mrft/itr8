@@ -1,4 +1,4 @@
-import { itr8Pipe } from "../..";
+import { pipe } from "../..";
 import { forEach, itr8FromIterator, itr8FromSingleValue, itr8Pushable, itr8ToArray } from "../../interface";
 import { TPipeable, TPushable, TTransIteratorSyncOrAsync } from "../../types";
 
@@ -46,8 +46,8 @@ import { TPipeable, TPushable, TTransIteratorSyncOrAsync } from "../../types";
  * ```typescript
  * // run google searches and transform the result with an online api to produce a map of results
  * // but run maximum 4 api requests in parallel to speed things up
- * await itr8FromArray([ 'Garfield', 'Hägar the Horrible', 'Droopy', 'Calvin and Hobbes', 'Fritz the Cat', 'Popeye' ])
- *      .pipe(
+ * await pipe(
+ *        itr8FromArray([ 'Garfield', 'Hägar the Horrible', 'Droopy', 'Calvin and Hobbes', 'Fritz the Cat', 'Popeye' ])
  *        parallel(
  *          { concurrency: 4 },
  *          map(async (term) => ...), // a call to google search to get the search results in html
@@ -79,7 +79,11 @@ const parallel = (
   ...moreTransIts:Array<(it:Iterator<unknown> | AsyncIterator<unknown>)=>Iterator<unknown> | AsyncIterator<unknown>>
 ):TTransIteratorSyncOrAsync => {
   // combine all parameters into a single transIterator in order to apply it
-  const transItsCombined = itr8Pipe(transIt, ...moreTransIts);
+  const transItsCombined = moreTransIts.reduce(
+    (acc, cur) => ((input) => cur(acc(input))),
+    transIt,
+  );
+  // = compose(transIt, ...moreTransIts)
 
   if (options.keepOrder === undefined || options.keepOrder) {
     return <T,U>(inIt: Iterator<T> | AsyncIterator<T>):TPipeable & AsyncIterableIterator<U> => {
@@ -93,7 +97,8 @@ const parallel = (
         (async () => {
           // const start = Date.now();
           // const timePassed = () => Date.now() - start;
-          await itr8FromIterator(inIt).pipe(
+          await pipe(
+            itr8FromIterator(inIt),
             forEach(
               async (inElement) => {
                 // console.log(`${JSON.stringify(inElement)}: taking lane (${timePassed()} ms)`);
@@ -141,7 +146,8 @@ const parallel = (
 
         // first setup the (concurrent) forEach on the incoming iterator, so that things will be pushed to the pushable iterator
         (async () => {
-          await itr8FromIterator(inIt).pipe(
+          await pipe(
+            itr8FromIterator(inIt),
             forEach(
               async (inElement) => {
                 // actively drain the subIterator to force parallel processing

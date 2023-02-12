@@ -2,6 +2,53 @@
 
 This is a bunch of ideas of things to add or change.
 
+## Entirely remove all OO-style stuff (especially .pipe)
+
+I first implemented a .pipe function on every iterator that the library would return,
+but that makes the iterators returned by the lib 'special' instead of being simple and plain
+(sync or async) iterators.
+This does not make sense if we state that we want to embrace this standard.
+It is also not necessary, because we only need a generic pipe(...) function instead of an object
+method. That way, we can pipe everything (not just things related to this library), and it will
+be easy to replace once the pipe syntax is fanally added to javascript (possibly '|>').
+
+So instead of writing.
+```typescript
+itr8FromIterator(standardIterator).pipe(...)
+```
+
+it will simply become:
+```typescript
+pipe(standardIterator, ...);
+// This is fully generic
+const plusOne = (x) => x + 1;
+const timesThree = (x) => x * 3;
+pipe(4, plusOne, timesThree) === timesThree(plusOne(4)); // returns the actual result (15)
+```
+and and a compose function wil also be added to easily create (without executing it) a new function
+that is the result of applying the second one to the output of the first one.
+```typescript
+const plusOneTimesThree = compose(plusOne, timesThree); // returns a function!
+plusOneTimesThree(4) === 15;
+```
+
+
+## Provide a cli-tool?
+
+Just an idea: when a user does ```npm i -g mrft/itr8``` he should be able to run itr8 on the command-line.
+Then all operators should be available to him, so it can be used as a CLI tool to manipulate data.
+By default stdin could be used for input (maybe parsed lineByLine by default?)
+
+Think something like:
+```bash
+FILE="myLargeFile.jsonl.gz"
+zcat "$FILE" | itr8 "[ filter(l => l.length), map(l => JSON.parse(l)), map(o => o.key)]"
+# or we could make it more 'CLI-like' and allow parameters to be used with the names of the operators
+zcat "$FILE" | itr8 --filter "l => l.length" --map "JSON.parse" --map "o => o.key"
+# or maybe use a, b, c as default param names and only write the function body for function arguments?
+zcat "$FILE" | itr8 --filter "a.length" --map "JSON.parse(a)" --map "a.key"
+```
+
 ## Maybe we can use asciiflow to add some schema's to the documentation?
 
 https://asciiflow.com
@@ -28,12 +75,13 @@ Something he also mentions in the final notes of the post that is [introducing h
 I think that itr8 also decouples this, but in a different way: with transducers you'd need to implement another protocol (the most important method being 'step')
 
 The [transformer protocol](https://github.com/cognitect-labs/transducers-js#transformer-protocol) requires you to add these methods on any data structure that wants to play along, or to define a transformation:
+```
 {
   '@@transducer/init': () => 'some inital value';
   '@@transducer/result': (r) => r;
   '@@transducer/step': (acc, cur) => ...;
 }
-
+```
 In itr8, we assume that anything can be made iterable (even push-streams, by buffering). The thing about push-streams is: if a stream is push-based and the receiving end can't handle the speed, you'd get in trouble eventually, so we can safely assume that any push-based stream, can be buffered and pulled from, because the puller will be fast enough, and the buffer will always be near-empty anyway.
 
 With this assumption in mind, we actually don't decouple iteration from transformation, but we do decouple iteration from 'build'.
@@ -306,7 +354,7 @@ forLoop is like a for loop that will be synchronous if the input is synchronous 
 Currently I don't see a lot of performance benefits of the batch support, so it could be that we might as well remove the support for that, because it complicates building new operators.
 
 1 thing is important: **'itr8batch' should not be a property (literally a JS property now) of the iterator, nor should it make the itr8OperatorFactory more complex (as it currently does). That code should be removed ASAP**.
-If we would still want to support it, it should be done as an operator that has a transIterator as its argument (or maybe support multiple arguments in order to avoid needing another itr8Pipe)
+If we would still want to support it, it should be done as an operator that has a transIterator as its argument (or maybe support multiple arguments in order to avoid needing another compose)
 
 Example:
 ```typescript

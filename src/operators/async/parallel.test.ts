@@ -4,7 +4,7 @@ import { hrtime } from 'process';
 import { awaitPromiseWithFakeTimers, hrtimeToMilliseconds, sleep } from '../../testUtils';
 import { itr8FromIterator } from '../../interface/itr8FromIterator';
 import { parallel } from './parallel';
-import { itr8OperatorFactory } from '../../util';
+import { itr8OperatorFactory, pipe } from '../../util';
 import { map } from '../general/map';
 import { tap } from '../general/tap';
 import { itr8FromArray, itr8FromIterable, itr8Range, itr8ToArray } from '../../interface';
@@ -91,7 +91,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 4 & processing time = 10';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = iteratorFactory().pipe(
+      iterator = pipe(
+        iteratorFactory(),
         parallel(
           { concurrency: 4, keepOrder: true },
           map((x) => x * 2),
@@ -116,7 +117,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 3 & processing time = 10';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = iteratorFactory().pipe(
+      iterator = pipe(
+        iteratorFactory(),
         parallel(
           { concurrency: 3 },
           map((x) => x * 2),
@@ -139,7 +141,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 4 & processing times = 10, 30, 50';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = itr8Range(50, 10, 20).pipe(
+      iterator = pipe(
+        itr8Range(50, 10, 20),
         parallel(
           { concurrency: 4 },
           map(async (x) => {
@@ -163,7 +166,7 @@ describe('operators/async/parallel.ts', () => {
       // descr = 'parallel 1 & processing time = 10';
       // // console.log(descr);
       // f = fnThatStoresResultsFactory(descr, 10);
-      // for await (const v of iteratorFactory().pipe(parallel(1, x => x))) {
+      // for await (const v of pipe(iteratorFactory(), parallel(1, x => x))) {
       //   // console.log('start processing', v);
       //   await f(v);
       // }
@@ -175,7 +178,7 @@ describe('operators/async/parallel.ts', () => {
       // descr = 'parallel 3 & processing time = 5';
       // // console.log(descr);
       // f = fnThatStoresResultsFactory(descr, 5);
-      // for await (const v of iteratorFactory().pipe(parallel(3, x => x))) {
+      // for await (const v of pipe(iteratorFactory(), parallel(3, x => x))) {
       //   // console.log('start processing', v);
       //   await f(v);
       // }
@@ -190,7 +193,7 @@ describe('operators/async/parallel.ts', () => {
       // let index = 0;
       // const processingTimes = [30, 0, 0];
       // f = fnThatStoresResultsFactory(descr, 30);
-      // for await (const v of iteratorFactory().pipe(parallel(3, x => x))) {
+      // for await (const v of pipe(iteratorFactory(), parallel(3, x => x))) {
       //   // console.log('start processing', v);
       //   await f(v, processingTimes[index]);
       //   index++;
@@ -204,7 +207,7 @@ describe('operators/async/parallel.ts', () => {
       // // console.log(descr);
       // f = fnThatStoresResultsFactory(descr, 30);
       // index = 0;
-      // for await (const v of iteratorFactory().pipe(parallel(1, x => x))) {
+      // for await (const v of pipe(iteratorFactory(), parallel(1, x => x))) {
       //   // console.log('start processing', v);
       //   await f(v, processingTimes[index]);
       //   index++;
@@ -231,7 +234,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 4 & processing time = 10 & repeatEach = 2';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = iteratorFactory().pipe(
+      iterator = pipe(
+        iteratorFactory(),
         parallel(
           { concurrency: 4 },
           map((x) => x * 2),
@@ -256,7 +260,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 3 & processing time = 10';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = iteratorFactory().pipe(
+      iterator = pipe(
+        iteratorFactory(),
         parallel(
           { concurrency: 3 },
           map((x) => x * 2),
@@ -278,7 +283,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 4 & processing times = 10, 30, 50';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = itr8Range(50, 10, 20).pipe(
+      iterator = pipe(
+        itr8Range(50, 10, 20),
         parallel(
           { concurrency: 4 },
           map(async (x) => {
@@ -314,7 +320,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 4 & processing time = a multiple of 10';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = itr8FromArray([35, 30, 25, 20, 15, 10, 5, 0]).pipe(
+      iterator = pipe(
+        itr8FromArray([35, 30, 25, 20, 15, 10, 5, 0]),
         parallel(
           { concurrency: 4 },
           filter((x) => x % 2 === 0), // is even
@@ -338,7 +345,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 3 & processing time = 10';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = iteratorFactory().pipe(
+      iterator = pipe(
+        iteratorFactory(),
         parallel(
           { concurrency: 3 },
           map((x) => x * 2),
@@ -360,7 +368,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 4 & processing times = 10, 30, 50';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = itr8Range(50, 10, 20).pipe(
+      iterator = pipe(
+        itr8Range(50, 10, 20),
         parallel(
           { concurrency: 4 },
           map(async (x) => {
@@ -401,7 +410,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 4 & processing times = 10, 30, 50';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = itr8FromIterable([50, 30, 10]).pipe(
+      iterator = pipe(
+        itr8FromIterable([50, 30, 10]),
         parallel(
           { concurrency: 4, keepOrder: false },
           map(async (x) => {
@@ -424,7 +434,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 2 & processing times = 50, 30, 30 & keepOrder = false';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = itr8FromIterable([50, 30, 30]).pipe(
+      iterator = pipe(
+        itr8FromIterable([50, 30, 30]),
         parallel(
           { concurrency: 2, keepOrder: false },
           map(async (x) => {
@@ -460,7 +471,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 4 & processing time = a multiple of 10';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = itr8FromArray([35, 30, 25, 20, 15, 10, 5, 0]).pipe(
+      iterator = pipe(
+        itr8FromArray([35, 30, 25, 20, 15, 10, 5, 0]),
         parallel(
           { concurrency: 4, keepOrder: false },
           filter((x) => x % 2 === 0), // is even
@@ -482,7 +494,8 @@ describe('operators/async/parallel.ts', () => {
       descr = 'parallel 2 & A,B,C,.. with specified processing times';
       // console.log(descr);
       f = fnThatStoresResultsFactory(descr, 10, results);
-      iterator = itr8FromArray([['A', 30], ['B', 10], ['C', 10], ['D', 20], ['E', 20] ]).pipe(
+      iterator = pipe(
+        itr8FromArray([['A', 30], ['B', 10], ['C', 10], ['D', 20], ['E', 20] ]),
         parallel(
           { concurrency: 2, keepOrder: false },
           filter(([code, _time]) => code !== 'E'), // skip E

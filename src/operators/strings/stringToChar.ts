@@ -5,8 +5,10 @@ import { itr8OperatorFactory } from "../../util/index";
  * Takes all strings from the input and outputs them as single characters
  * @example
  * ```typescript
- *    itr8FromArray([ 'hello', 'world' ])
- *      .pipe(sctringToChar()) // => [ 'h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd' ]
+ *    pipe(
+ *      itr8FromArray([ 'hello', 'world' ]),
+ *      stringToChar(), // => [ 'h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd' ]
+ *    );
  * ```
  *
  * @category operators/strings

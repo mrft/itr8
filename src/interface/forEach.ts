@@ -23,7 +23,7 @@ import { itr8FromIterable } from './itr8FromIterable';
  * processing things in the expected order!
  *
  * @param handler
- * @param options: { concurrency: number } will control how many async handler are alowed to run in parallel. Default: 1
+ * @param options: ```{ concurrency: number }``` will control how many async handler are alowed to run in parallel. Default: 1
  * @returns
  *
  * @category interface/standard

@@ -72,7 +72,8 @@ import { itr8Pushable } from "../../interface";
 //     //     console.log(`Worker stopped with exit code ${code}`);
 //     // });
 
-//     await itr8Range(0, 5).pipe(
+//     await pipe(
+//       itr8Range(0, 5),
 //       // workerTransIt,
 //       runInWorker(`${__dirname}/workerTransIt.ts`, 'workerTransIt'),
 //       map((x) => x * x),
@@ -81,7 +82,7 @@ import { itr8Pushable } from "../../interface";
 //   }).timeout(10_000);
 
 //   it('functionBody of a transiterator that is piped', async () => {
-//     const transIt = itr8Pipe(
+//     const transIt = compose(
 //       filter((a) => a > 10),
 //       map((a) => a),
 //       skip(5),

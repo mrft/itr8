@@ -7,8 +7,8 @@ import { itr8FromIterator } from "./itr8FromIterator";
  *
  * @example
  * ```typescript
- * itr8FromIterable([1,2,3])
- *  .pipe(
+ * pipe(
+ *    itr8FromIterable([1,2,3]),
  *    map((x) => x + 100),
  *  )
  * ```

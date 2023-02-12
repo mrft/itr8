@@ -52,7 +52,8 @@ function itr8ToMultiIterable<T>(/* abandonedTimeoutMilliseconds = Infinity */)
               }
             }
             // -> the version below didn't work because it would complain in takeWhile about "(0 , util_1.itr8OperatorFactory) is not a function"
-            // itr8FromIterable(buffer.keys()).pipe(
+            // pipe(
+            //   itr8FromIterable(buffer.keys()),
             //   takeWhile((i) => i < minIndex),
             //   forEach((i) => {
             //     buffer.delete(i);

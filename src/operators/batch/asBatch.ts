@@ -13,9 +13,11 @@ import { itr8FromIterator } from "../../interface/itr8FromIterator";
  *
  * @example
  * ```typescript
- *    itr8FromArray([ [1, 2], [3, 4], [5, 6] ])
- *      .pipe(asBatch()) // same as input but flagged as batch
- *      .pipe(map(x => x + 1)) // will work on the numbers and not on the arrays
+ *    pipe(
+ *      itr8FromArray([ [1, 2], [3, 4], [5, 6] ]),
+ *      asBatch(), // same as input but flagged as batch
+ *      map(x => x + 1), // will work on the numbers and not on the arrays
+ *    );
  *```
  *
  * When can this be useful?

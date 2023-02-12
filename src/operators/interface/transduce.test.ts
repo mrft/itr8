@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { filter, itr8OperatorFactory, itr8Pipe, itr8Range, itr8RangeAsync, itr8ToArray, map, skip, take, total } from "../..";
+import { filter, itr8OperatorFactory, compose, itr8Range, itr8RangeAsync, itr8ToArray, map, pipe, skip, take, total } from "../..";
 import { transduce } from "./transduce";
 
 import * as transducersJs from 'transducers-js';
@@ -48,7 +48,8 @@ describe('operators/interface/transduce.ts', () => {
     const { comp } = transducersJs;
 
     assert.deepEqual(
-      itr8Range(0, 2).pipe(
+      pipe(
+        itr8Range(0, 2),
         transduce(transducerRepeat(2)),
         itr8ToArray
       ),
@@ -56,9 +57,10 @@ describe('operators/interface/transduce.ts', () => {
     );
 
     assert.deepEqual(
-      itr8Range(0, 7).pipe(
+      pipe(
+        itr8Range(0, 7),
         transduce(transducersJs.filter(isEven)),
-        itr8ToArray
+        itr8ToArray,
       ),
       [0, 2, 4, 6],
     );
@@ -67,7 +69,8 @@ describe('operators/interface/transduce.ts', () => {
 
 
     const startItr8 = hrtime();
-    const [totalItr8] = itr8Range(-50_000, 50_000).pipe(
+    const [totalItr8] = pipe(
+      itr8Range(-50_000, 50_000),
       filter(isEven),
       map((x) => `${x} Mississippi`),
       skip(5),
@@ -75,13 +78,14 @@ describe('operators/interface/transduce.ts', () => {
       opr8RepeatEach(3),
       count(),
       itr8ToArray,
-    );
+    ) as Iterable<number>;
     const durationItr8 = hrtimeToMilliseconds(hrtime(startItr8));
 
     console.log('[transduce]       transIterators take', durationItr8, 'ms and return ', totalItr8);
 
     const startTransduce = hrtime();
-    const [totalTransduce] = itr8Range(-50_000, 50_000).pipe(
+    const [totalTransduce] = pipe(
+      itr8Range(-50_000, 50_000),
       transduce(
         comp(
           transducersJs.filter(isEven),
@@ -93,13 +97,14 @@ describe('operators/interface/transduce.ts', () => {
       ),
       count(),
       itr8ToArray,
-    );
+    ) as Array<number>;
     const durationTransduce = hrtimeToMilliseconds(hrtime(startTransduce));
 
     console.log('[transduce] TRANSDUCERS          take', durationTransduce, 'ms and return ', totalTransduce);
 
     const startItr8Async = hrtime();
-    const [totalItr8Async] = await itr8RangeAsync(-50_000, 50_000).pipe(
+    const [totalItr8Async] = await pipe(
+      itr8RangeAsync(-50_000, 50_000),
       filter(isEven),
       map((x) => `${x} Mississippi`),
       skip(5),
@@ -113,7 +118,8 @@ describe('operators/interface/transduce.ts', () => {
     console.log('[transduce] async transIterators take', durationItr8Async, 'ms and return ', totalItr8Async);
 
     const startTransduceAsync = hrtime();
-    const [totalTransduceAsync] = await itr8RangeAsync(-50_000, 50_000).pipe(
+    const [totalTransduceAsync] = await pipe(
+      itr8RangeAsync(-50_000, 50_000),
       transduce(
         comp(
           transducersJs.filter(isEven),

@@ -2,6 +2,7 @@ import { assert } from 'chai';
 import { intersperse, map, takeWhile, tap } from '../operators';
 import { forEach, itr8ToArray, itr8RangeAsync, itr8Pushable, itr8FromIterable } from '../interface';
 import { parseJson } from './parseJson';
+import { pipe } from '..';
 
 
 const a: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -16,7 +17,8 @@ describe('peer/parseJson.ts', () => {
     });
 
     assert.deepEqual(
-      await itr8FromIterable(jsonString).pipe(
+      await pipe(
+        itr8FromIterable(jsonString),
         parseJson(['$.b']),
         itr8ToArray,
       ),
@@ -24,7 +26,8 @@ describe('peer/parseJson.ts', () => {
     );
 
     assert.deepEqual(
-      await itr8FromIterable(jsonString).pipe(
+      await pipe(
+        itr8FromIterable(jsonString),
         parseJson(['$.l.3']),
         itr8ToArray,
       ),
@@ -34,7 +37,8 @@ describe('peer/parseJson.ts', () => {
     );
 
     assert.deepEqual(
-      await itr8FromIterable(jsonString).pipe(
+      await pipe(
+        itr8FromIterable(jsonString),
         parseJson(['$.*.*']),
         itr8ToArray,
       ),
@@ -49,11 +53,12 @@ describe('peer/parseJson.ts', () => {
     // console.log('itr8RPushable');
     const nrOfResults = 100_000;
 
-    const pushIt = itr8Pushable(100); // max 100 buffered items
+    const pushIt = itr8Pushable<string>(100); // max 100 buffered items
     setTimeout(async () => {
       let c3 = 0;
       pushIt.push(`{ "meta": { "nrOfResults": ${nrOfResults} }, "results": [`);
-      await itr8RangeAsync(0, nrOfResults - 1).pipe(
+      await pipe(
+        itr8RangeAsync(0, nrOfResults - 1),
         map((x) => (JSON.stringify({ id: x, name: `prisoner no. ${x}` }))),
         intersperse(','),
         forEach(async (x) => {
@@ -70,7 +75,8 @@ describe('peer/parseJson.ts', () => {
     // console.log('======== Setting up foreach on pushIt');
     let counter = 0;
     let failed = false;
-    await pushIt.pipe(
+    await pipe(
+      pushIt,
       parseJson(['$.results.*.name']),
       tap((x) => counter++),
       takeWhile((v) => {

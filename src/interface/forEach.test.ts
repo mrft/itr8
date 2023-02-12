@@ -7,6 +7,7 @@ import { forEach } from "./forEach";
 import { itr8FromIterator } from "./itr8FromIterator";
 import { itr8Range } from "./itr8Range";
 import { itr8RangeAsync } from "./itr8RangeAsync";
+import { pipe } from "../util";
 
 describe('operators/general/forEach.ts', () => {
   describe('forEach(...) method works properly', () => {
@@ -16,16 +17,16 @@ describe('operators/general/forEach.ts', () => {
 
       // we'll put all elements in an array and check that
       const result1: any[] = [];
-      itr8Range(4, 7)
-        .pipe(
-          map(plusOne),
+      pipe(
+        itr8Range(4, 7),
+        map(plusOne),
 
-          forEach(
-            (x) => {
-              result1.push(x);
-            }
-          ),
-        );
+        forEach(
+          (x) => {
+            result1.push(x);
+          }
+        ),
+      );
 
       // synchronous
       assert.deepEqual(
@@ -34,14 +35,14 @@ describe('operators/general/forEach.ts', () => {
       );
 
       const result2: any[] = [];
-      await itr8Range(4, 7)
-        .pipe(
-          map(wrapString),
-          forEach(async (x) => {
-            // console.log('----', x);
-            result2.push(x);
-          }),
-        );
+      await pipe(
+        itr8Range(4, 7),
+        map(wrapString),
+        forEach(async (x) => {
+          // console.log('----', x);
+          result2.push(x);
+        }),
+      );
 
       assert.deepEqual(
         result2,
@@ -50,14 +51,13 @@ describe('operators/general/forEach.ts', () => {
 
       // asynchronous
       const result3: any[] = [];
-      await itr8RangeAsync(4, 7)
-        .pipe(
-          map(plusOne),
-        ).pipe(
-          forEach(
-            (x) => { result3.push(x); }
-          ),
-        );
+      await pipe(
+        itr8RangeAsync(4, 7),
+        map(plusOne),
+        forEach(
+          (x) => { result3.push(x); }
+        ),
+      );
 
       assert.deepEqual(
         result3,
@@ -65,17 +65,15 @@ describe('operators/general/forEach.ts', () => {
       );
 
       const result4: any[] = [];
-      await itr8RangeAsync(4, 7)
-        .pipe(
-          map(wrapString),
+      await pipe(
+        itr8RangeAsync(4, 7),
+        map(wrapString),
+        forEach(
+          async (x) => {
+            result4.push(x);
+          }
         )
-        .pipe(
-          forEach(
-            async (x) => {
-              result4.push(x);
-            }
-          )
-        );
+      );
 
       assert.deepEqual(
         result4,
@@ -105,11 +103,11 @@ describe('operators/general/forEach.ts', () => {
         counter -= 1;
       };
 
-      await itr8Range(5, 2)
-        .pipe(
-          map(pow(2)), // => 25 16 9 4
-          forEach(forEachHandler, { concurrency: 4 }),
-        );
+      await pipe(
+        itr8Range(5, 2),
+        map(pow(2)), // => 25 16 9 4
+        forEach(forEachHandler, { concurrency: 4 }),
+      );
 
       assert.equal(maxCounter, 4);
 
@@ -123,11 +121,11 @@ describe('operators/general/forEach.ts', () => {
       result1 = [];
       counter = 0;
       maxCounter = 0;
-      await itr8Range(5, 2)
-        .pipe(
-          map(pow(2)), // => 25, 16, 9, 4
-          forEach(forEachHandler, { concurrency: 2 }),
-        );
+      await pipe(
+        itr8Range(5, 2),
+        map(pow(2)), // => 25, 16, 9, 4
+        forEach(forEachHandler, { concurrency: 2 }),
+      );
 
       assert.equal(maxCounter, 2);
 
@@ -173,7 +171,8 @@ describe('operators/general/forEach.ts', () => {
 
       // no prefetch should follow the tempo of the input
       const descr = 'processing time = 5';
-      await iteratorFactory().pipe(
+      await pipe(
+        iteratorFactory(),
         forEach(forEachFactory(descr, 5)),
       );
       assert.deepEqual(results[descr].values, [1, 2, 3, 4], `${descr}: 'values' fail!`);
@@ -198,12 +197,12 @@ describe('operators/general/forEach.ts', () => {
         counter -= 1;
       };
 
-      await itr8Range(4, 1)
-        .pipe(
-          map(pow2), // => 16, 9, 4, 1
-          batch(2),
-          forEach(forEachHandler),
-        );
+      await pipe(
+        itr8Range(4, 1),
+        map(pow2), // => 16, 9, 4, 1
+        batch(2),
+        forEach(forEachHandler),
+      );
 
       assert.equal(maxCounter, 1);
 

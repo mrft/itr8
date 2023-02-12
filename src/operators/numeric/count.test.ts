@@ -1,12 +1,13 @@
 import { assert } from 'chai';
-import { itr8Range, itr8RangeAsync, itr8ToArray } from '../..';
+import { itr8Range, itr8RangeAsync, itr8ToArray, pipe } from '../..';
 import { count } from './count';
 
 describe('operators/numeric/count.ts', () => {
   it('count(...) operator works properly', async () => {
     // sync
     assert.deepEqual(
-      itr8Range(1, 4).pipe(
+      pipe(
+        itr8Range(1, 4),
         count(),
         itr8ToArray,
       ),
@@ -15,7 +16,8 @@ describe('operators/numeric/count.ts', () => {
 
     // async
     assert.deepEqual(
-      await itr8Range(10, -4).pipe(
+      await pipe(
+        itr8Range(10, -4),
         count(),
         itr8ToArray,
       ),

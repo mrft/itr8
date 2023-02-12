@@ -46,7 +46,8 @@ import { itr8FromIterator } from "../../index";
  * src/operators/boolean/some.ts
  * src/operators/index.ts`;
  *
- * const printableTreeView = itr8FromString(str).pipe(
+ * const printableTreeView = pipe(
+ *   itr8FromString(str),
  *   lineByLine(),
  *   peek(),
  *   // parse the string into a data structure (peeking to next to fill the isLastInLevel & isVeryLast flags)
@@ -62,15 +63,15 @@ import { itr8FromIterator } from "../../index";
  *   }),
  *   // turn the data structure into a new string
  *   map(({ isDir, name, level, isLastInLevel, isVeryLast }) => {
- *     const padding = itr8FromSingleValue(' │ ')
- *       .pipe(
- *         repeatEach(level - 1),
- *         itr8ToString,
- *       );
+ *     const padding = pipe(
+ *       itr8FromSingleValue(' │ ')
+ *       repeatEach(level - 1),
+ *       itr8ToString,
+ *     );
  *
  *     const line = !(isLastInLevel || isVeryLast)
- *             ? ' ├─'
- *             : ' └─' // (!isVeryLast ? ' └─' : '─┴─')
+ *                ? ' ├─'
+ *                : ' └─' // (!isVeryLast ? ' └─' : '─┴─')
  *     ;
  *
  *     const filename = `${isDir ? '📁' : '📄'} ${name}`;

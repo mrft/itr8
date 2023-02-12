@@ -7,8 +7,8 @@ import { isPromise } from "../util";
  * @example
  * ```typescript
  *  // synchronous, same as Object.fromEntries(...)
- *  const myObj = itr8FromIterable([['a', 'value of A'], ['b', 'value of B'], ['c', 'value of C']])
- *    .pipe(
+ *  const myObj = pipe(
+ *      itr8FromIterable([['a', 'value of A'], ['b', 'value of B'], ['c', 'value of C']]),
  *      itr8ToObject,
  *    ) // => {
  *      //      a: 'value of A',
@@ -17,8 +17,8 @@ import { isPromise } from "../util";
  *      // }
  *
  *  // asynchronous
- *  await myObj2 = itr8FromIterable([['a', 'value of A'], ['b', 'value of B'], ['c', 'value of C']])
- *    .pipe(
+ *  await myObj2 = pipe(
+ *      itr8FromIterable([['a', 'value of A'], ['b', 'value of B'], ['c', 'value of C']]),
  *      delay(100),     // delay every element by 100 milliseconds
  *      itr8ToObject,
  *    ) // => {

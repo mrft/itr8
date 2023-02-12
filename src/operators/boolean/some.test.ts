@@ -1,21 +1,23 @@
 import { assert } from 'chai';
-import { itr8Range, itr8RangeAsync, itr8ToArray } from '../..';
+import { itr8Range, itr8RangeAsync, itr8ToArray, pipe } from '../..';
 import { some } from './some';
 
 describe('operators/boolean/some.ts', () => {
   it('some(...) operator works properly', async () => {
     const isEven = (a) => a % 2 === 0;
     assert.deepEqual(
-      itr8Range(0, 7).pipe(
+      pipe(
+        itr8Range(0, 7),
         some(isEven),
-        itr8ToArray
+        itr8ToArray,
       ),
       [true],
     );
 
     const moreThan5 = (a) => a > 5;
     assert.deepEqual(
-      await itr8RangeAsync(4, -3).pipe(
+      await pipe(
+        itr8RangeAsync(4, -3),
         some(moreThan5),
         itr8ToArray
       ),
