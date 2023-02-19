@@ -29,7 +29,8 @@ type TTransformer = {
  * ```typescript
  * import * as transducersJs from 'transducers-js';
  *
- * itr8Range(-50_000, 50_000).pipe(
+ * pipe(
+ *   itr8Range(-50_000, 50_000),
  *   transduce(
  *     transducersJs.comp(
  *       transducersJs.filter(isEven),

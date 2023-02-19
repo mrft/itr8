@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8Range, itr8FromStringAsync } from "../..";
+import { itr8ToArray, itr8Range, itr8FromStringAsync, pipe } from "../..";
 import { takeWhile } from "./takeWhile";
 import { tap } from "./tap";
 
@@ -9,7 +9,8 @@ describe('operators/general/takeWhile.ts', () => {
 
     tappedValues = [];
     assert.deepEqual(
-      itr8Range(0, 7).pipe(
+      pipe(
+        itr8Range(0, 7),
         tap((v) => { tappedValues.push(v) }),
         takeWhile((x) => x < 5),
         itr8ToArray,
@@ -21,7 +22,8 @@ describe('operators/general/takeWhile.ts', () => {
 
     tappedValues = [];
     assert.deepEqual(
-      await itr8FromStringAsync("Hello World!").pipe(
+      await pipe(
+        itr8FromStringAsync("Hello World!"),
         tap((v) => { tappedValues.push(v) }),
         takeWhile((x) => x !== 'o'),
         itr8ToArray,

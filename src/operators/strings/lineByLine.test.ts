@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { itr8FromArray, itr8FromArrayAsync, itr8ToArray } from '../..';
+import { itr8FromArray, itr8FromArrayAsync, itr8ToArray, pipe } from '../..';
 import { lineByLine } from './lineByLine';
 
 describe('operators/strings/lineByLine.ts', () => {
@@ -10,34 +10,53 @@ describe('operators/strings/lineByLine.ts', () => {
     const input2 = ['0', '1', '\n', '0', '2', '\n', '\n', '\n', '0', '5', '\n'];
     const expected2 = ['01', '02', '', '', '05', ''];
 
+    const input3 = ['Hel', 'lo\nWorld\n\nGo', 'od', 'by', 'e', '\nSpace', '!'];
+    const expected3 = ['Hello', 'World', '', 'Goodbye', 'Space!'];
+
+    const input4 = ['Hel', 'lo<br>World<br><br>Go', 'od', 'by', 'e', '<br>Space', '!'];
+    const expected4 = ['Hello', 'World', '', 'Goodbye', 'Space!'];
+
     // sync
     assert.deepEqual(
-      itr8ToArray(
-        itr8FromArray(input1).pipe(lineByLine()),
-      ),
+      pipe(itr8FromArray(input1), lineByLine(), itr8ToArray),
       expected1,
     );
 
     assert.deepEqual(
-      itr8ToArray(
-        itr8FromArray(input2).pipe(lineByLine()),
-      ),
+      pipe(itr8FromArray(input2), lineByLine(), itr8ToArray),
       expected2,
+    );
+
+    assert.deepEqual(
+      pipe(itr8FromArray(input3), lineByLine(), itr8ToArray),
+      expected3,
+    );
+
+    assert.deepEqual(
+      pipe(itr8FromArray(input4), lineByLine('<br>'), itr8ToArray),
+      expected4,
     );
 
     // async
     assert.deepEqual(
-      await itr8ToArray(
-        itr8FromArrayAsync(input1).pipe(lineByLine()),
-      ),
+      await pipe(itr8FromArrayAsync(input1), lineByLine(), itr8ToArray),
       expected1,
     );
 
     assert.deepEqual(
-      await itr8ToArray(
-        itr8FromArrayAsync(input2).pipe(lineByLine()),
-      ),
+      await pipe(itr8FromArray(input2), lineByLine(), itr8ToArray),
       expected2,
     );
+
+    assert.deepEqual(
+      await pipe(itr8FromArrayAsync(input3), lineByLine(), itr8ToArray),
+      expected3,
+    );
+
+    assert.deepEqual(
+      await pipe(itr8FromArrayAsync(input4), lineByLine('<br>'), itr8ToArray),
+      expected4,
+    );
+
   });
 });

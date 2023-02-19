@@ -4,8 +4,10 @@ import { itr8OperatorFactory } from "../../util/index";
  * Output a single thing which is the number of elements returned by the incoming iterator.
  * @example
  * ```typescript
- *    itr8FromArray([ 1, 2, 7, 4 ])
- *      .pipe(count()) // => [ 4 ]
+ *    pipe(
+ *      itr8FromArray([ 1, 2, 7, 4 ]),
+ *      count(), // => [ 4 ]
+ *    );
  * ```
  *
  * @param amount

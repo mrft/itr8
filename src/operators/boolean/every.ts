@@ -5,8 +5,10 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @example
  * ```typescript
- *    itr8FromArray([ 1, 2, 3, 4, 5, 6 ])
- *      .pipe(every((x) => x > 2)) // => [ false ]
+ *    pipe(
+ *      itr8FromArray([ 1, 2, 3, 4, 5, 6 ]),
+ *      every((x) => x > 2), // => [ false ]
+ *    );
  * ```
  *
  * The filter function can be asynchronous (in which case the resulting iterator will be

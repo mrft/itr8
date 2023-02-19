@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { itr8FromArray, itr8FromArrayAsync, itr8ToArray } from '../..';
+import { itr8FromArray, itr8FromArrayAsync, itr8ToArray, pipe } from '../..';
 import { dedup } from './dedup';
 import { map } from './map';
 
@@ -7,7 +7,8 @@ describe('operators/general/dedup.ts', () => {
   it('dedup(...) operator works properly', async () => {
     // sync
     assert.deepEqual(
-      itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+      pipe(
+        itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]),
         dedup((v) => v),
         itr8ToArray,
       ),
@@ -15,7 +16,8 @@ describe('operators/general/dedup.ts', () => {
     );
 
     assert.deepEqual(
-      itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+      pipe(
+        itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]),
         map((v) => ({ id: v })),
         dedup((v) => v.id - 7),
         itr8ToArray,
@@ -25,8 +27,8 @@ describe('operators/general/dedup.ts', () => {
     );
 
     assert.deepEqual(
-      itr8FromArray(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'])
-      .pipe(
+      pipe(
+        itr8FromArray(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']),
         dedup((v) => v.length),
         itr8ToArray,
       ),
@@ -35,7 +37,8 @@ describe('operators/general/dedup.ts', () => {
 
     // async
     assert.deepEqual(
-      await itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+      await pipe(
+        itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]),
         dedup((v) => v),
         itr8ToArray,
       ),
@@ -43,7 +46,8 @@ describe('operators/general/dedup.ts', () => {
     );
 
     assert.deepEqual(
-      await itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+      await pipe(
+        itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]),
         map((v) => ({ id: v })),
         dedup((v) => v.id - 7),
         itr8ToArray,
@@ -54,7 +58,8 @@ describe('operators/general/dedup.ts', () => {
 
     // also async mapFn is supported !!!
     assert.deepEqual(
-      await itr8FromArrayAsync(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']).pipe(
+      await pipe(
+        itr8FromArrayAsync(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']),
         dedup(async (v) => v.length),
         itr8ToArray,
       ),

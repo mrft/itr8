@@ -4,8 +4,10 @@ import { itr8OperatorFactory } from "../../util/index";
  * Output a single thing containing the sum of all values.
  * @example
  * ```typescript
- *    itr8FromArray([ 1, 2, 3, 4 ])
- *      .pipe(total()) // => [ 10 ]
+ *    pipe(
+ *      itr8FromArray([ 1, 2, 3, 4 ]),
+ *      total(), // => [ 10 ]
+ *    );
  * ```
  *
  * @param amount

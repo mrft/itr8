@@ -11,15 +11,17 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @example
  * ```typescript
- *    itr8.itr8FromArrayAsync([ 1, 2, 2, 2, 3, 4, 4, 3 ])
- *      .pipe(
- *        itr8.dedup() // => [ 1, 2, 3, 4, 3 ];
+ *    pipe(
+ *      itr8.itr8FromArrayAsync([ 1, 2, 2, 2, 3, 4, 4, 3 ]),
+ *      itr8.dedup(), // => [ 1, 2, 3, 4, 3 ]
+ *    );
  * ```
  * @example
  * ```typescript
- *    itr8.itr8FromArrayAsync([ { id: 1 }, { id: 2 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 4 }, { id: 3 } ])
- *      .pipe(
- *        itr8.dedup((a:{ id:number }) => id ) // => [ [ { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 3 } ];
+ *    pipe(
+ *      itr8.itr8FromArrayAsync([ { id: 1 }, { id: 2 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 4 }, { id: 3 } ])
+ *      itr8.dedup((a:{ id:number }) => id ) // => [ [ { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 3 } ];
+ *    );
  * ```
  *
  * @param mapFn

@@ -1,0 +1,20 @@
+# Since we want to allow users to do things like:
+#   import { * } from itr8/operators/...
+# (instead of import { * } from itr8/dist/operators/...)
+# we are NOT specifying the package.json/files files property (or setting it to *, that's the same)
+# but some files can be removed when the package is installed as a dependency.
+# So we are turning this around:
+#   keep everything, but remove what is listed in ths .npmignore
+# for example: we'll remove the src and test and docs folders (and others)
+#   cfr. https://docs.npmjs.com/cli/v9/configuring-npm/package-json?v=true#files
+dist/
+docs/
+docs_src/
+src/
+test/
+.eslintrc.js
+.eslintrcignore
+optimize_generated_docs_for_git.sh
+ROADMAP.md
+tsconfig.*json
+typedoc.js

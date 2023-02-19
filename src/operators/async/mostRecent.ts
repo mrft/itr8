@@ -1,4 +1,4 @@
-import { isPromise } from "util/types";
+import { isPromise } from "../../util";
 import { itr8FromIterator } from "../../index";
 
 /**
@@ -10,14 +10,12 @@ import { itr8FromIterator } from "../../index";
  * Every value on the incoming iterator will be returned at least once in order to keep
  * the operator 'passive'. This operator will not actively drain the incoming iterator.
  *
- * REMARK: it will always create an unbatched iterator, regardless of the input
- *
  * @example
  * ```typescript
  * // input iterator
- * const it = itr8.itr8Pushable();
+ * const it = itr8.itr8Pushable<string>();
  * // output iterator that will always return the mostRecent value of the input iterator
- * const itOut = it.pipe(mostRecent('My initial value'));
+ * const itOut = pipe(it, mostRecent('My initial value'));
  *
  * await sleep(1);
  * await itOut.next(); // => { value: 'My initial value' }

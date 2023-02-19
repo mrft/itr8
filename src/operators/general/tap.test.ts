@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8RangeAsync, itr8Range, itr8FromArray, itr8FromArrayAsync } from "../..";
+import { itr8ToArray, itr8RangeAsync, itr8Range, itr8FromArray, itr8FromArrayAsync, pipe } from "../..";
 import { tap } from "./tap";
 
 describe('operators/general/tap.ts', () => {
@@ -8,7 +8,8 @@ describe('operators/general/tap.ts', () => {
 
     // sync source iterator
     assert.deepEqual(
-      itr8FromArray([1, 2, 3, 4]).pipe(
+      pipe(
+        itr8FromArray([1, 2, 3, 4]),
         tap((x) => tappedArray.push(x)),
         itr8ToArray
       ),
@@ -19,9 +20,10 @@ describe('operators/general/tap.ts', () => {
     // async source iterator
     tappedArray = [];
     assert.deepEqual(
-      await itr8FromArrayAsync([1, 2, 3, 4]).pipe(
+      await pipe(
+        itr8FromArrayAsync([1, 2, 3, 4]),
         tap((x) => tappedArray.push(x)),
-        itr8ToArray
+        itr8ToArray,
       ),
       [1, 2, 3, 4],
     );

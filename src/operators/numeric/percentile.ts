@@ -12,8 +12,10 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @example
  * ```typescript
- *    itr8Range(1,100)
- *      .pipe(percentile(95))  // => [ 95 ]
+ *    pipe(
+ *      itr8Range(1,100),
+ *      percentile(95),  // => [ 95 ]
+ *    );
  * ```
  *
  * @param amount

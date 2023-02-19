@@ -8,14 +8,16 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @example
  * ```typescript
- *    itr8FromArray([ 1, 2, 3, 4 ])
- *      .pipe(reduce({ reducer: (acc, cur) => acc + cur, initialValue: 0 }) // => [ 10 ]
+ *    pipe(
+ *      itr8FromArray([ 1, 2, 3, 4 ]),
+ *      reduce({ reducer: (acc, cur) => acc + cur, initialValue: 0 }, // => [ 10 ]
+ *    );
  * ```
  *
  * The reduce function can be an asynchronous function (in which case the resulting
  * iterator will be asynchronous regardless of the input iterator)!
  *
- * @param reducerAndInitValue: an object of the form { initialValue: any, reducer: (accumulator:any, currentValue:any, presentIndex?: number) => any }
+ * @param reducerAndInitValue: an object of the form ```{ initialValue: any, reducer: (accumulator:any, currentValue:any, presentIndex?: number) => any }```
  *
  * @category operators/general
  */

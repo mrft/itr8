@@ -4,13 +4,17 @@ import { itr8OperatorFactory } from "../../util/index";
  * like string.split => output arrays of elements and use the given parameter as a delimiter
  * @example
  * ```typescript
- *    itr8FromArray([ 'hello', '|', 'world' ])
- *      .pipe(split('|')) // => [ ['hello'], ['world'] ]
+ *    pipe(
+ *      itr8FromArray([ 'hello', '|', 'world' ]),
+ *      split('|'), // => [ ['hello'], ['world'] ]
+ *    );
  * ```
  * @example
  * ```typescript
- *    itr8FromArray([ 1, true, 2, 3, true, 4 ])
- *      .pipe(split(true)) // => [ [1], [2,3], [4] ]
+ *    pipe(
+ *      itr8FromArray([ 1, true, 2, 3, true, 4 ]),
+ *      split(true), // => [ [1], [2,3], [4] ]
+ *    );
  * ```
  *
  * @category operators/general

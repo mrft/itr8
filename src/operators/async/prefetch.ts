@@ -1,4 +1,4 @@
-import { isPromise } from "util/types";
+import { isPromise } from "../../util";
 import { itr8FromIterator } from "../../index";
 
 /**
@@ -7,6 +7,9 @@ import { itr8FromIterator } from "../../index";
  * Instead of only asking for the next value of the incoming iterator when a next call comes in,
  * make sure to do one or more next calls to the incoming iterator up-front, to decrease the
  * waiting time.
+ *
+ * This can be used to kind of 'parallelize' the processing, while respecting the order.
+ * If the order is not important, you might want to take a look a the parallel(...) operator!
  *
  * This one can be useful, when the result needs to do some I/O (for example an API get
  * or a DB fetch), and processing also takes up a certain amount of time due to I/O.
@@ -22,11 +25,6 @@ import { itr8FromIterator } from "../../index";
  * more than one you can make sure that there is no waiting time for the next (maybe very fast)
  * processing to start because the promises they act upon are already resolved by the time they
  * are needed.
- *
- * When a single call produces multiple results (example: 'page-by-page' queries on a db), it
- * probably makes the most sense to use prefetch(...) before asBatch(...).
- *
- * REMARK: it will always create an unbatched iterator, regardless of the input
  *
  * @category operators/async
  */

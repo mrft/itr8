@@ -1,4 +1,4 @@
-import { itr8Pipe } from "../../index";
+import { compose } from "../../index";
 import { TTransIteratorSyncOrAsync } from "../../types";
 import { groupPer } from "../general/groupPer";
 import { asBatch } from "./asBatch";
@@ -11,9 +11,11 @@ import { asBatch } from "./asBatch";
  *
  * @example
  * ```typescript
- *    itr8FromArray([ 1, 2, 3, 4, 5, 6 ])
- *      .pipe(batch(2)) // technically means [ [1, 2], [3, 4], [5, 6] ] flagged as batch
- *      .pipe(map(x => x + 1)) // will still work on the numbers and not on the arrays
+ *    pipe(
+ *      itr8FromArray([ 1, 2, 3, 4, 5, 6 ]),
+ *      batch(2), // technically means [ [1, 2], [3, 4], [5, 6] ] flagged as batch
+ *      map(x => x + 1), // will still work on the numbers and not on the arrays
+ *    );
  *```
  *
  * @param batchSize
@@ -22,7 +24,7 @@ import { asBatch } from "./asBatch";
  * @category operators/batch
  */
 const batch = function <T>(batchSize: number): TTransIteratorSyncOrAsync<T> {
-  return itr8Pipe(
+  return compose(
     groupPer(batchSize),
     asBatch(),
   );

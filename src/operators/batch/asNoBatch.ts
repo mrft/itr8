@@ -1,4 +1,4 @@
-import { itr8FromIterator } from "../../interface/standard/index";
+import { itr8FromIterator } from "../../interface/";
 import { TTransIteratorSyncOrAsync } from "../../types";
 
 /**

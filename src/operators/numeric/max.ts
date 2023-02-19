@@ -4,8 +4,10 @@ import { itr8OperatorFactory } from "../../util/index";
  * Output a single thing which is the highest of all values.
  * @example
  * ```typescript
- *    itr8FromArray([ 1, 2, 7, 4 ])
- *      .pipe(total()) // => [ 7 ]
+ *    pipe(
+ *      itr8FromArray([ 1, 2, 7, 4 ]),
+ *      total(), // => [ 7 ]
+ *    );
  * ```
  *
  * @param amount

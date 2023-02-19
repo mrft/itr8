@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8FromArray, itr8FromArrayAsync } from "../..";
+import { itr8ToArray, itr8FromArray, itr8FromArrayAsync, pipe } from "../..";
 import { map } from "./map";
 import { uniqBy } from "./uniqBy";
 
@@ -7,7 +7,8 @@ describe('operators/general/uniqBy.ts', () => {
   it('uniqBy(...) operator works properly', async () => {
     // sync
     assert.deepEqual(
-      itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+      pipe(
+        itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]),
         uniqBy((v) => v),
         itr8ToArray,
       ),
@@ -15,7 +16,8 @@ describe('operators/general/uniqBy.ts', () => {
     );
 
     assert.deepEqual(
-      itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+      pipe(
+        itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]),
         map((v) => ({ id: v })),
         uniqBy((v) => v.id - 7),
         itr8ToArray,
@@ -24,7 +26,8 @@ describe('operators/general/uniqBy.ts', () => {
     );
 
     assert.deepEqual(
-      itr8FromArray(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']).pipe(
+      pipe(
+        itr8FromArray(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']),
         uniqBy((v) => v.length),
         itr8ToArray,
       ),
@@ -33,7 +36,8 @@ describe('operators/general/uniqBy.ts', () => {
 
     // async
     assert.deepEqual(
-      await itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+      await pipe(
+        itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]),
         uniqBy((v) => v),
         itr8ToArray,
       ),
@@ -41,7 +45,8 @@ describe('operators/general/uniqBy.ts', () => {
     );
 
     assert.deepEqual(
-      await itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]).pipe(
+      await pipe(
+        itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]),
         map((v) => ({ id: v })),
         uniqBy((v) => v.id - 7),
         itr8ToArray,
@@ -50,7 +55,8 @@ describe('operators/general/uniqBy.ts', () => {
     );
 
     assert.deepEqual(
-      await itr8FromArrayAsync(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']).pipe(
+      await pipe(
+        itr8FromArrayAsync(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']),
         uniqBy((v) => v.length),
         itr8ToArray,
       ),

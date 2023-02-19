@@ -1,5 +1,5 @@
 import { TTransIteratorSyncOrAsync } from "../../index";
-import { itr8FromIterator } from "../../interface/standard/itr8FromIterator";
+import { itr8FromIterator } from "../../interface/itr8FromIterator";
 
 /**
  * This operator will simply produce the same output, but the new Iterator will be marked
@@ -13,9 +13,11 @@ import { itr8FromIterator } from "../../interface/standard/itr8FromIterator";
  *
  * @example
  * ```typescript
- *    itr8FromArray([ [1, 2], [3, 4], [5, 6] ])
- *      .pipe(asBatch()) // same as input but flagged as batch
- *      .pipe(map(x => x + 1)) // will work on the numbers and not on the arrays
+ *    pipe(
+ *      itr8FromArray([ [1, 2], [3, 4], [5, 6] ]),
+ *      asBatch(), // same as input but flagged as batch
+ *      map(x => x + 1), // will work on the numbers and not on the arrays
+ *    );
  *```
  *
  * When can this be useful?

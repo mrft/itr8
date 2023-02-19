@@ -6,13 +6,17 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @example
  * ```typescript
- *    itr8FromArray([ 1, -2, 7, 4 ])
- *      .pipe(sort()) // => [ -2, 1, 4, 7 ]
+ *    pipe(
+ *      itr8FromArray([ 1, -2, 7, 4 ]),
+ *      sort(), // => [ -2, 1, 4, 7 ]
+ *    );
  * ```
  * @example
  * ```typescript
- *    itr8.itr8FromArrayAsync([ { v: 1 }, { v: -4 }, { v: 7 }, { v: 2 } ])
- *      .pipe(itr8.sort((a:{ v:number }, b:{ v:number }) => a.v - b.v))
+ *    pipe(
+ *      itr8.itr8FromArrayAsync([ { v: 1 }, { v: -4 }, { v: 7 }, { v: 2 } ]),
+ *      itr8.sort((a:{ v:number }, b:{ v:number }, => a.v - b.v))
+ *    );
  * ```
  *
  * @param amount

@@ -8,11 +8,13 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @example
  * ```typescript
- *    itr8FromArray([ 1, 2, 3, 4 ])
- *      .pipe(zip(itr8FromArray([ 'a', 'b', 'c', 'd' ])) // => [ [1, 'a'], [2, 'b'], [3, 'c'], [4, 'd' ] ]
+ *    pipe(
+ *      itr8FromArray([ 1, 2, 3, 4 ]),
+ *      zip(itr8FromArray([ 'a', 'b', 'c', 'd' ]), // => [ [1, 'a'], [2, 'b'], [3, 'c'], [4, 'd' ] ]
+ *    );
  * ```
  *
- * @param reducerAndInitValue: an object of the form { initialValue: any, reducer: (accumulator:any, currentValue:any, presentIndex?: number) => any }
+ * @param secondIterator
  *
  * @category operators/general
  */

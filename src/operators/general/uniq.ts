@@ -10,8 +10,10 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @example
  * ```typescript
- *    itr8FromArray([ 1, -2, 7, 4, -2, -2, 4, 1 ])
- *      .pipe(uniq()) // => [ 1, -2, 7, 4 ]
+ *    pipe(
+ *      itr8FromArray([ 1, -2, 7, 4, -2, -2, 4, 1 ]),
+ *      uniq(), // => [ 1, -2, 7, 4 ]
+ *    );
  * ```
  *
  * @category operators/general

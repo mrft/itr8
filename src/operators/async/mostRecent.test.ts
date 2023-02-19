@@ -1,12 +1,15 @@
 import { assert } from 'chai';
-import { itr8Pushable } from '../..';
+import { itr8Pushable, pipe } from '../..';
 import { sleep } from '../../testUtils';
 import { mostRecent } from './mostRecent';
 
 describe('operators/async/mostRecent.ts', () => {
   it('mostRecent(...) operator works properly', async () => {
-    const it = itr8Pushable();
-    const itOut = it.pipe(mostRecent('My initial value'));
+    const it = itr8Pushable<string>();
+    const itOut = pipe(
+      it,
+      mostRecent('My initial value'),
+    );
 
     await sleep(1);
     assert.deepEqual(await itOut.next(), { value: 'My initial value' });
@@ -45,9 +48,9 @@ describe('operators/async/mostRecent.ts', () => {
     // sync so 'done' promise not resolved yet
     assert.deepEqual(await itOut.next(), { value: 'fifth value' });
     await sleep(1);
-    assert.deepEqual(await itOut.next(), { done: true });
-    assert.deepEqual(await itOut.next(), { done: true });
-    assert.deepEqual(await itOut.next(), { done: true });
+    assert.deepEqual((await itOut.next()).done, true);
+    assert.deepEqual((await itOut.next()).done, true);
+    assert.deepEqual((await itOut.next()).done, true);
 
   });
 });

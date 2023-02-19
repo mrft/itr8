@@ -1,5 +1,5 @@
 import { TTransIteratorSyncOrAsync } from "../../index";
-import { itr8Pipe } from "../../util/index";
+import { compose } from "../../util/index";
 import { flatten } from "../general/flatten";
 import { asNoBatch } from "./asNoBatch";
 
@@ -8,9 +8,11 @@ import { asNoBatch } from "./asNoBatch";
  *
  * @example
  * ```typescript
- *    itr8FromArray([ [1, 2], [3, 4], [5, 6] ])
- *      .pipe(asBatch()) // same as input but flagged as batch
- *      .pipe(unBatch()) // [ 1, 2, 3, 4, 5, 6 ] and the batch flag is removed
+ *    pipe(
+ *      itr8FromArray([ [1, 2], [3, 4], [5, 6] ]),
+ *      asBatch(), // same as input but flagged as batch
+ *      unBatch(), // [ 1, 2, 3, 4, 5, 6 ] and the batch flag is removed
+ *    );
  *```
  * So it's like 'flatten' combined with the removal of the batch flag!
  *
@@ -20,7 +22,7 @@ import { asNoBatch } from "./asNoBatch";
  * @category operators/batch
  */
 const unBatch = function <T>(): TTransIteratorSyncOrAsync<T> {
-  return itr8Pipe(
+  return compose(
     asNoBatch(),
     flatten(),
   );
