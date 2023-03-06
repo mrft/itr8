@@ -1,4 +1,5 @@
-import { itr8OperatorFactory, thenable } from "../../util/index";
+import { thenable } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Only keep elements where the filter function returns true.
@@ -8,30 +9,28 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/general
  */
-const filter = itr8OperatorFactory<any, any, void, (any) => boolean | Promise<boolean>>(
-  (nextIn, state, filterFn) => {
-    if (nextIn.done) return { done: true };
+const filter = <TIn>(filterFn: (v: TIn) => boolean) =>
+  powerMap<TIn, TIn, void>(
+    (nextIn, _state) => {
+      if (nextIn.done) return { done: true };
 
-    return thenable(filterFn(nextIn.value))
-      .then((result) => {
-          if (result) return { done: false, value: nextIn.value };
-          return { done: false };
-        }).src;
+      return thenable(filterFn(nextIn.value)).then((result) => {
+        if (result) return { done: false, value: nextIn.value };
+        return { done: false };
+      }).src;
 
-    // const result = filterFn(nextIn.value);
-    // if (isPromise(result)) {
-    //   return (async () => {
-    //     if (await result) return { done: false, value: nextIn.value };
-    //     return { done: false };
-    //   })();
-    // } else {
-    //   if (result) return { done: false, value: nextIn.value };
-    //   return { done: false };
-    // }
-  },
-  () => undefined,
-);
+      // const result = filterFn(nextIn.value);
+      // if (isPromise(result)) {
+      //   return (async () => {
+      //     if (await result) return { done: false, value: nextIn.value };
+      //     return { done: false };
+      //   })();
+      // } else {
+      //   if (result) return { done: false, value: nextIn.value };
+      //   return { done: false };
+      // }
+    },
+    () => undefined
+  );
 
-export {
-  filter,
-}
+export { filter };

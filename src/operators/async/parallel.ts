@@ -1,5 +1,11 @@
 import { pipe } from "../..";
-import { forEach, itr8FromIterator, itr8FromSingleValue, itr8Pushable, itr8ToArray } from "../../interface";
+import {
+  forEach,
+  itr8FromIterator,
+  itr8FromSingleValue,
+  itr8Pushable,
+  itr8ToArray,
+} from "../../interface";
 import { TPipeable, TPushable, TTransIteratorSyncOrAsync } from "../../types";
 
 /**
@@ -73,21 +79,64 @@ import { TPipeable, TPushable, TTransIteratorSyncOrAsync } from "../../types";
  *
  * @category operators/async
  */
-const parallel = (
-  options:{concurrency:number, keepOrder?:boolean},
-  transIt:(it:Iterator<unknown> | AsyncIterator<unknown>)=>Iterator<unknown> | AsyncIterator<unknown>,
-  ...moreTransIts:Array<(it:Iterator<unknown> | AsyncIterator<unknown>)=>Iterator<unknown> | AsyncIterator<unknown>>
-):TTransIteratorSyncOrAsync => {
+function parallel<A, B>(
+  options: { concurrency: number; keepOrder?: boolean },
+  transIt1: TTransIteratorSyncOrAsync<A, B>
+): TTransIteratorSyncOrAsync<A, B>;
+function parallel<A, B, C>(
+  options: { concurrency: number; keepOrder?: boolean },
+  transIt1: TTransIteratorSyncOrAsync<A, B>,
+  transIt2: TTransIteratorSyncOrAsync<B, C>
+): TTransIteratorSyncOrAsync<A, C>;
+function parallel<A, B, C, D>(
+  options: { concurrency: number; keepOrder?: boolean },
+  transIt1: TTransIteratorSyncOrAsync<A, B>,
+  transIt2: TTransIteratorSyncOrAsync<B, C>,
+  transIt3: TTransIteratorSyncOrAsync<C, D>
+): TTransIteratorSyncOrAsync<A, D>;
+function parallel<A, B, C, D, E>(
+  options: { concurrency: number; keepOrder?: boolean },
+  transIt1: TTransIteratorSyncOrAsync<A, B>,
+  transIt2: TTransIteratorSyncOrAsync<B, C>,
+  transIt3: TTransIteratorSyncOrAsync<C, D>,
+  transIt4: TTransIteratorSyncOrAsync<D, E>
+): TTransIteratorSyncOrAsync<A, E>;
+function parallel<A, B, C, D, E, F>(
+  options: { concurrency: number; keepOrder?: boolean },
+  transIt1: TTransIteratorSyncOrAsync<A, B>,
+  transIt2: TTransIteratorSyncOrAsync<B, C>,
+  transIt3: TTransIteratorSyncOrAsync<C, D>,
+  transIt4: TTransIteratorSyncOrAsync<D, E>,
+  transIt5: TTransIteratorSyncOrAsync<E, F>
+): TTransIteratorSyncOrAsync<A, F>;
+// function pipe<IN, A, B, C, D, E>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E): E;
+// function pipe<IN, A, B, C, D, E, F>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F): F;
+// function pipe<IN, A, B, C, D, E, F, G>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G): G;
+// function pipe<IN, A, B, C, D, E, F, G, H>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G, fn8: (x: G) => H): H;
+// function pipe<IN, A, B, C, D, E, F, G, H, I>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G, fn8: (x: G) => H, fn9: (x: H) => I): I;
+// function pipe<IN, A, B, C, D, E, F, G, H, I, J>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G, fn8: (x: G) => H, fn9: (x: H) => I, fn10: (x: I) => J): J;
+// function pipe<IN, A, B, C, D, E, F, G, H, I, J>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G, fn8: (x: G) => H, fn9: (x: H) => I, fn10: (x: I) => J, ...moreFns: Array<(x: unknown) => unknown>): unknown;
+// function parallel<IN, A>(
+function parallel(
+  options: { concurrency: number; keepOrder?: boolean },
+  transIt: TTransIteratorSyncOrAsync,
+  ...moreTransIts: Array<TTransIteratorSyncOrAsync>
+): TTransIteratorSyncOrAsync {
   // combine all parameters into a single transIterator in order to apply it
   const transItsCombined = moreTransIts.reduce(
-    (acc, cur) => ((input) => cur(acc(input))),
-    transIt,
+    (acc, cur) => (input) => cur(acc(input)),
+    transIt
   );
   // = compose(transIt, ...moreTransIts)
 
   if (options.keepOrder === undefined || options.keepOrder) {
-    return <T,U>(inIt: Iterator<T> | AsyncIterator<T>):TPipeable & AsyncIterableIterator<U> => {
-      type TItOfItsElement = { callbackIt: TPushable & AsyncIterableIterator<boolean>, subIt: TPushable & AsyncIterableIterator<T> };
+    return <T, U>(
+      inIt: Iterator<T> | AsyncIterator<T>
+    ): TPipeable & AsyncIterableIterator<U> => {
+      type TItOfItsElement = {
+        callbackIt: TPushable & AsyncIterableIterator<boolean>;
+        subIt: TPushable & AsyncIterableIterator<T>;
+      };
 
       async function* iteratorOfIterables() {
         // create an iterator to push the results of each 'lane' to
@@ -102,7 +151,10 @@ const parallel = (
             forEach(
               async (inElement) => {
                 // console.log(`${JSON.stringify(inElement)}: taking lane (${timePassed()} ms)`);
-                const itOfItsElement:TItOfItsElement = { callbackIt: itr8Pushable<boolean>(), subIt: itr8Pushable()};
+                const itOfItsElement: TItOfItsElement = {
+                  callbackIt: itr8Pushable<boolean>(),
+                  subIt: itr8Pushable(),
+                };
                 outIteratorOfIterators.push(itOfItsElement);
                 // actively drain the subIterator to force parallel processing
                 // and push the results onto the subItPushable
@@ -119,8 +171,8 @@ const parallel = (
                 await itr8ToArray(itOfItsElement.callbackIt);
                 // console.log(`${JSON.stringify(inElement)}: clearing lane because outIterator has processed all elemants... (${timePassed()} ms)`);
               },
-              { concurrency: options.concurrency },
-            ),
+              { concurrency: options.concurrency }
+            )
           );
 
           // after the forEach, make sure we indicate that the iterator is done!
@@ -134,11 +186,16 @@ const parallel = (
           subItElement.callbackIt.done();
         }
       }
-      return itr8FromIterator(iteratorOfIterables()) as TPipeable & AsyncIterableIterator<U>;
-    }
+      return itr8FromIterator(iteratorOfIterables()) as TPipeable &
+        AsyncIterableIterator<U>;
+    };
   } else {
-    return <T,U>(inIt: Iterator<T> | AsyncIterator<T>):TPipeable & AsyncIterableIterator<U> => {
-      type TItElement = { callbackIt: TPushable & AsyncIterableIterator<boolean> } | { value: T };
+    return <T, U>(
+      inIt: Iterator<T> | AsyncIterator<T>
+    ): TPipeable & AsyncIterableIterator<U> => {
+      type TItElement =
+        | { callbackIt: TPushable & AsyncIterableIterator<boolean> }
+        | { value: T };
 
       async function* iteratorOfValues() {
         // create an iterator to push calculated values onto
@@ -166,8 +223,8 @@ const parallel = (
                 await itr8ToArray(callbackIt);
                 // console.log(`${JSON.stringify(inElement)}: clearing lane because outIterator has processed all elemants...`);
               },
-              { concurrency: options.concurrency },
-            ),
+              { concurrency: options.concurrency }
+            )
           );
 
           // after the forEach, make sure we indicate that the iterator is done!
@@ -180,17 +237,18 @@ const parallel = (
             yield (subItElement as { value: T }).value;
           } else {
             // send signal back to forEach that the processing has finished for this subIterator
-            (subItElement as { callbackIt: TPushable & AsyncIterableIterator<boolean> })
-              .callbackIt.done();
+            (
+              subItElement as {
+                callbackIt: TPushable & AsyncIterableIterator<boolean>;
+              }
+            ).callbackIt.done();
           }
         }
       }
-      return itr8FromIterator(iteratorOfValues()) as TPipeable & AsyncIterableIterator<U>;
-    }
+      return itr8FromIterator(iteratorOfValues()) as TPipeable &
+        AsyncIterableIterator<U>;
+    };
   }
-};
-
-export {
-  parallel,
 }
 
+export { parallel };

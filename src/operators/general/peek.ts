@@ -1,5 +1,4 @@
-import { isPromise, itr8OperatorFactory } from "../../util";
-import { itr8FromIterator } from "../../index";
+import { powerMap } from "./powerMap";
 
 /**
  * To solve some problems you need to know what the next element(s) is (are) going
@@ -113,56 +112,90 @@ import { itr8FromIterator } from "../../index";
  *
  * @category operators/general
  */
-const peek = itr8OperatorFactory<unknown, { value: any, previous: any[], next: any[] }, { previous: any[], current: any, next: any[] }, number | void, number | void>(
-  (nextIn, state, peekForward = 1, peekBackward = 1) => {
-    // const peekForward2 = 
-    // do not return a value until either we have enough nextValues, or the input iterator is done
-    if (nextIn.done) {
-      // drain what's left of the next elements
-      if (state.next.length === 0 || peekForward === 0) {
-        return { done: true, state: { current: Symbol['ITR8_NO_CURRENT'], next: [], previous: state.previous } };
-      } else {
-        const [ firstOfNext, ...restOfNext ] = state.next;
+const peek = <TIn>(peekForward = 1, peekBackward = 1) =>
+  powerMap<
+    TIn,
+    { value: TIn; previous: TIn[]; next: TIn[] },
+    { previous: TIn[]; current: TIn; next: TIn[] }
+  >(
+    (nextIn, state) => {
+      if (nextIn.done) {
+        // drain what's left of the next elements
+        if (state.next.length === 0 || peekForward === 0) {
+          return {
+            done: true,
+            state: {
+              current: Symbol["ITR8_NO_CURRENT"],
+              next: [],
+              previous: state.previous,
+            },
+          };
+        } else {
+          const [firstOfNext, ...restOfNext] = state.next;
 
-        const newState = {
-          current: firstOfNext,
-          next: restOfNext || [],
-          previous: [state.current, ...state.previous].slice(0, peekBackward as number),
+          const newState = {
+            current: firstOfNext,
+            next: restOfNext || [],
+            previous: [state.current, ...state.previous].slice(
+              0,
+              peekBackward as number
+            ),
+          };
+          return {
+            done: false,
+            value: {
+              value: newState.current,
+              next: newState.next,
+              previous: newState.previous,
+            },
+            state: newState,
+          };
         }
-        return { done: false, value: { value: newState.current, next: newState.next, previous: newState.previous }, state: newState };
-      }
-    } else { // NOT nextIn.done
-      if (state.next.length < peekForward) {
-        const newState = {
-          current: state.current, // still Symbol['ITR8_NO_CURRENT'] until we have enough next values
-          next: [...state.next, nextIn.value].slice(0, peekForward as number),
-          previous: state.previous,
-        }
-        return { done: false, state: newState };
       } else {
-        // the 'normal' case in the middle of a flow
-        const [ firstOfNext, ...restOfNext ] = state.next;
-        const current = peekForward === 0 ? nextIn.value : firstOfNext;
-        const newState = {
-          current,
-          next: [...(restOfNext || []), nextIn.value].slice(0, peekForward as number),
-          previous: (state.current === Symbol['ITR8_NO_CURRENT'] ? state.previous : [state.current, ...(state.previous || [])])
-            .slice(0, peekBackward as number),
+        // NOT nextIn.done
+        if (state.next.length < peekForward) {
+          const newState = {
+            current: state.current, // still Symbol['ITR8_NO_CURRENT'] until we have enough next values
+            next: [...state.next, nextIn.value].slice(0, peekForward as number),
+            previous: state.previous,
+          };
+          return { done: false, state: newState };
+        } else {
+          // the 'normal' case in the middle of a flow
+          const [firstOfNext, ...restOfNext] = state.next;
+          const current = peekForward === 0 ? nextIn.value : firstOfNext;
+          const newState = {
+            current,
+            next: [...(restOfNext || []), nextIn.value].slice(
+              0,
+              peekForward as number
+            ),
+            previous: (state.current === Symbol["ITR8_NO_CURRENT"]
+              ? state.previous
+              : [state.current, ...(state.previous || [])]
+            ).slice(0, peekBackward as number),
+          };
+          return {
+            done: false,
+            value: {
+              value: newState.current,
+              next: newState.next,
+              previous: newState.previous,
+            },
+            state: newState,
+          };
         }
-        return { done: false, value: { value: newState.current, next: newState.next, previous: newState.previous }, state: newState };
       }
-    }
-  },
-  () => ({
-    // hasPrevious: false,
-    previous: [],
-    current: Symbol['ITR8_NO_CURRENT'],
-    next: [],
-    // hasNext
-  })
-)
+    },
+    () => ({
+      // hasPrevious: false,
+      previous: [],
+      current: Symbol["ITR8_NO_CURRENT"],
+      next: [],
+      // hasNext
+    })
+  );
 // const peek = (amountNext: number, amountPrevious: number = 0) => {
-
 
 //   // return <T>(it: Iterator<T> | AsyncIterator<T>):Iterator<T> | AsyncIterator<T> => {
 //   //   let inputs:Array<Promise<IteratorResult<T>> | IteratorResult<T>> = [];
@@ -209,6 +242,4 @@ const peek = itr8OperatorFactory<unknown, { value: any, previous: any[], next: a
 //   // }
 // };
 
-export {
-  peek,
-}
+export { peek };

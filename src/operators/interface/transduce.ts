@@ -1,14 +1,12 @@
-import { itr8OperatorFactory, thenable } from "../../util/index";
-
+import { powerMap } from "../general/powerMap";
 
 type TTransformer = {
-  '@@transducer/init': () => unknown,
-  '@@transducer/result': (result) => unknown,
-  '@@transducer/step': (result, input) => unknown,
-  '@@transducer/reduced'?: boolean, // for short circuiting
-  '@@transducer/value'?: unknown, // value when reduced = true
-}
-
+  "@@transducer/init": () => unknown;
+  "@@transducer/result": (result) => unknown;
+  "@@transducer/step": (result, input) => unknown;
+  "@@transducer/reduced"?: boolean; // for short circuiting
+  "@@transducer/value"?: unknown; // value when reduced = true
+};
 
 /**
  * If you're a fan of transducers, this operator allows you to use any existing transducers
@@ -46,41 +44,48 @@ type TTransformer = {
  *
  * @category operators/interface
  */
-const transduce = itr8OperatorFactory<any, any, { toArrayTransformer: TTransformer, transformer: TTransformer }, (TTransformer) => TTransformer>(
-  (nextIn, state, _transducer) => {
-    // state will hold the current transformer
-    if (state.transformer['@@transducer/reduced'] === true) return { done: true, value: state.transformer['@@transducer/value'] };
-    if (nextIn.done) return { done: true };
+const transduce = <TIn>(transducer: (TTransformer) => TTransformer) =>
+  powerMap<
+    TIn,
+    TIn,
+    { toArrayTransformer: TTransformer; transformer: TTransformer }
+  >(
+    (nextIn, state) => {
+      // state will hold the current transformer
+      if (state.transformer["@@transducer/reduced"] === true)
+        return { done: true, value: state.transformer["@@transducer/value"] };
+      if (nextIn.done) return { done: true };
 
-    const newResult:unknown[] = [];
-    (state.toArrayTransformer as any).curResult = newResult;
-    state.transformer['@@transducer/result'](state.transformer['@@transducer/step'](newResult, nextIn.value));
+      const newResult: unknown[] = [];
+      (state.toArrayTransformer as any).curResult = newResult;
+      state.transformer["@@transducer/result"](
+        state.transformer["@@transducer/step"](newResult, nextIn.value)
+      );
 
-    if (state.transformer['@@transducer/reduced']) return { done: true, value: state.transformer['@@transducer/value'] };
+      if (state.transformer["@@transducer/reduced"])
+        return { done: true, value: state.transformer["@@transducer/value"] };
 
-    return { done: false, iterable: newResult, state };
-  },
-  (transducer) => {
-    // our transform function passed into the transformer should fill an array with results
-    const toArrayTransformer:TTransformer & { curResult: unknown[] } = {
-      curResult: [],
-      "@@transducer/init": () => ([]),
-      "@@transducer/result": (result) => toArrayTransformer.curResult,
-      "@@transducer/step": function(result, input) {
-        return toArrayTransformer.curResult.push(input);
-      },
-      // "@@transducer/reduced": true, // for short circuiting
-      // "@@transducer/value": 'some value', // value when reduced = true
-    };
+      return { done: false, iterable: newResult, state };
+    },
+    () => {
+      // our transform function passed into the transformer should fill an array with results
+      const toArrayTransformer: TTransformer & { curResult: unknown[] } = {
+        curResult: [],
+        "@@transducer/init": () => [],
+        "@@transducer/result": (result) => toArrayTransformer.curResult,
+        "@@transducer/step": function (result, input) {
+          return toArrayTransformer.curResult.push(input);
+        },
+        // "@@transducer/reduced": true, // for short circuiting
+        // "@@transducer/value": 'some value', // value when reduced = true
+      };
 
-    const state = {
-      toArrayTransformer,
-      transformer: transducer(toArrayTransformer),
-    };
-    return state;
-  },
-);
+      const state = {
+        toArrayTransformer,
+        transformer: transducer(toArrayTransformer),
+      };
+      return state;
+    }
+  );
 
-export {
-  transduce,
-}
+export { transduce };

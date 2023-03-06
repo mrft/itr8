@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "../general/powerMap";
 
 /**
  * On every item, output the average so far
@@ -15,16 +15,19 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/numeric
  */
-const runningAverage = itr8OperatorFactory<number, number, { done: boolean, count: number, sum: number }, void>(
-  (nextIn, state, params) => {
-    if (nextIn.done) return { done: true };
-    const newCount = state.count + 1;
-    const newSum = state.sum + nextIn.value;
-    return { done: false, state: { ...state, count: newCount, sum: newSum }, value: newSum / newCount };
-  },
-  () => ({ done: false, count: 0, sum: 0 }),
-);
+const runningAverage = () =>
+  powerMap<number, number, { done: boolean; count: number; sum: number }>(
+    (nextIn, state) => {
+      if (nextIn.done) return { done: true };
+      const newCount = state.count + 1;
+      const newSum = state.sum + nextIn.value;
+      return {
+        done: false,
+        state: { ...state, count: newCount, sum: newSum },
+        value: newSum / newCount,
+      };
+    },
+    () => ({ done: false, count: 0, sum: 0 })
+  );
 
-export {
-  runningAverage,
-}
+export { runningAverage };

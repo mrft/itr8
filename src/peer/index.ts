@@ -14,8 +14,8 @@
  * @module
  */
 
-export * from './stream';
+export * from "./stream";
 
-export * from './observable';
+export * from "./observable";
 
-export * from './parseJson';
+export * from "./parseJson";

@@ -10,12 +10,16 @@ import { itr8FromIterator } from "./itr8FromIterator";
  *
  * @category interface/standard
  */
-function itr8FromStringAsync(s: string): TPipeable & AsyncIterableIterator<string> {
+function itr8FromStringAsync(
+  s: string
+): TPipeable & AsyncIterableIterator<string> {
   return itr8FromIterator(
-    (async function* () { for (const x of s) { yield x; } })()
+    (async function* () {
+      for (const x of s) {
+        yield x;
+      }
+    })()
   );
 }
 
-export {
-  itr8FromStringAsync,
-}
+export { itr8FromStringAsync };

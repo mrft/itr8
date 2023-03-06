@@ -3,24 +3,21 @@ import { sleep } from "../testUtils";
 import { itr8Pushable } from "./itr8Pushable";
 import { itr8ToArray } from "./itr8ToArray";
 
-describe('interface/itr8Pushable.ts', () => {
-  it('itr8Pushable(...) works properly', async () => {
+describe("interface/itr8Pushable.ts", () => {
+  it("itr8Pushable(...) works properly", async () => {
     // this is the case where the buffer is not set so it'll keep growing
     const pushIt = itr8Pushable();
     setImmediate(async () => {
       pushIt.push(1);
       await sleep(1);
-      pushIt.push('a');
+      pushIt.push("a");
       pushIt.push(2);
       await sleep(1);
-      pushIt.push('b');
+      pushIt.push("b");
       await sleep(1);
       pushIt.done();
     });
-    assert.deepEqual(
-      await itr8ToArray(pushIt),
-      [1, 'a', 2, 'b'],
-    );
+    assert.deepEqual(await itr8ToArray(pushIt), [1, "a", 2, "b"]);
 
     // now test if the buffer limit works as well
     // in this case at most buffer size elements will be kept, and the oldest one

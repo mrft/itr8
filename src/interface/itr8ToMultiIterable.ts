@@ -1,6 +1,7 @@
-// import { takeWhile } from "../../operators/index";
-// import { forEach } from "./forEach";
-// import { itr8FromIterable } from "./itr8FromIterable";
+import { takeWhile } from "../operators/general/takeWhile";
+import { pipe } from "../util";
+import { forEach } from "./forEach";
+import { itr8FromIterable } from "./itr8FromIterable";
 import { itr8FromIterator } from "./itr8FromIterator";
 
 /**
@@ -26,11 +27,15 @@ import { itr8FromIterator } from "./itr8FromIterator";
  *
  * @category interface/standard
  */
-function itr8ToMultiIterable<T>(/* abandonedTimeoutMilliseconds = Infinity */)
-  : (it: Iterator<T> | AsyncIterator<T>) => AsyncIterable<T> {
+function itr8ToMultiIterable<
+  T
+>(/* abandonedTimeoutMilliseconds = Infinity */): (
+  it: Iterator<T> | AsyncIterator<T>
+) => AsyncIterable<T> {
   return (it: Iterator<T> | AsyncIterator<T>) => {
     const subscriberMap: Map<AsyncIterableIterator<T>, number> = new Map();
-    const buffer: Map<number, IteratorResult<T> | Promise<IteratorResult<T>>> = new Map();
+    const buffer: Map<number, IteratorResult<T> | Promise<IteratorResult<T>>> =
+      new Map();
 
     const retVal: AsyncIterable<T> = {
       [Symbol.asyncIterator]: () => {
@@ -44,21 +49,22 @@ function itr8ToMultiIterable<T>(/* abandonedTimeoutMilliseconds = Infinity */)
             // remove old stuff in buffer
             const minIndex = Math.min(...subscriberMap.values());
             // Maps are iterated in insertion order !
-            for (const i of buffer.keys()) {
-              if (i < minIndex) {
-                buffer.delete(i);
-              } else {
-                break;
-              }
-            }
-            // -> the version below didn't work because it would complain in takeWhile about "(0 , util_1.itr8OperatorFactory) is not a function"
-            // pipe(
-            //   itr8FromIterable(buffer.keys()),
-            //   takeWhile((i) => i < minIndex),
-            //   forEach((i) => {
+            // ['IMPERATIVE' VERSION]
+            // for (const i of buffer.keys()) {
+            //   if (i < minIndex) {
             //     buffer.delete(i);
-            //   }),
-            // );
+            //   } else {
+            //     break;
+            //   }
+            // }
+            // ['DECLARATIVE' VERSION]
+            pipe(
+              buffer.keys(),
+              takeWhile((i) => i < minIndex),
+              forEach((i) => {
+                buffer.delete(i);
+              })
+            );
 
             subscriberMap.set(outIt, index + 1);
             return buffer.get(index) as Promise<IteratorResult<T>>;
@@ -66,16 +72,17 @@ function itr8ToMultiIterable<T>(/* abandonedTimeoutMilliseconds = Infinity */)
         };
 
         // add the new iterator to the subscriberMap
-        subscriberMap.set(outIt, buffer.size === 0 ? 0 : Math.min(...buffer.keys()));
+        subscriberMap.set(
+          outIt,
+          buffer.size === 0 ? 0 : Math.min(...buffer.keys())
+        );
         // TODO: set a disconnect timeout (we'll need to store the last get time, or the timeout id)
         return itr8FromIterator(outIt) as AsyncIterator<T>;
-      }
+      },
     };
     // subscriberMap.set(outIt, buffer.size > 0 ? buffer.values.next().value : 0);
     return retVal as AsyncIterableIterator<T>;
   };
 }
 
-export {
-  itr8ToMultiIterable,
-}
+export { itr8ToMultiIterable };

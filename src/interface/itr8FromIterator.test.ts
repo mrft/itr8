@@ -1,4 +1,3 @@
-
-describe('interface/itr8FromIterator.ts', () => {
+describe("interface/itr8FromIterator.ts", () => {
   // TODO
 });

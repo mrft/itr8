@@ -1,5 +1,5 @@
-export * from './mostRecent';
+export * from "./mostRecent";
 
-export * from './prefetch';
+export * from "./prefetch";
 
-export * from './parallel';
+export * from "./parallel";

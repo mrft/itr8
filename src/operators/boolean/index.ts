@@ -1,3 +1,3 @@
-export * from './every';
+export * from "./every";
 
-export * from './some';
+export * from "./some";

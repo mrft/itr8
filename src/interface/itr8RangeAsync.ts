@@ -16,7 +16,11 @@ import { itr8FromIterator } from "./itr8FromIterator";
  *
  * @category interface/standard
  */
-function itr8RangeAsync(from: number, to: number, step?:number):TPipeable & AsyncIterableIterator<number> {
+function itr8RangeAsync(
+  from: number,
+  to: number,
+  step?: number
+): TPipeable & AsyncIterableIterator<number> {
   const stepValue = step !== undefined ? Math.abs(step) : 1;
   const upwards = from < to;
   return itr8FromIterator(
@@ -30,10 +34,8 @@ function itr8RangeAsync(from: number, to: number, step?:number):TPipeable & Asyn
           yield i;
         }
       }
-    })(),
+    })()
   );
 }
 
-export {
-  itr8RangeAsync,
-}
+export { itr8RangeAsync };

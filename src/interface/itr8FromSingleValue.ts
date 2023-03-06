@@ -12,10 +12,10 @@ import { itr8FromIterator } from "./itr8FromIterator";
  */
 function itr8FromSingleValue<T>(v: any): TPipeable & IterableIterator<T> {
   return itr8FromIterator(
-    (function* () { yield v; })()
+    (function* () {
+      yield v;
+    })()
   );
 }
 
-export {
-  itr8FromSingleValue,
-}
+export { itr8FromSingleValue };

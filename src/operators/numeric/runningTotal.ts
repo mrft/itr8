@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "../general/powerMap";
 
 /**
  * On every item, output the total so far.
@@ -14,17 +14,16 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/numeric
  */
-const runningTotal = itr8OperatorFactory<number, number, number, void>(
-  (nextIn: IteratorResult<any>, state: number) => {
-    if (nextIn.done) {
-      return { done: true };
-    }
-    const newTotal = state + nextIn.value;
-    return { done: false, value: newTotal, state: newTotal };
-  },
-  () => 0,
-);
+const runningTotal = () =>
+  powerMap<number, number, number>(
+    (nextIn, state) => {
+      if (nextIn.done) {
+        return { done: true };
+      }
+      const newTotal = state + nextIn.value;
+      return { done: false, value: newTotal, state: newTotal };
+    },
+    () => 0
+  );
 
-export {
-  runningTotal,
-}
+export { runningTotal };

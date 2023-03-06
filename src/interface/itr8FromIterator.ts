@@ -38,9 +38,10 @@ import { pipe } from "../util/index";
  *
  * @category interface/standard
  */
-function itr8FromIterator<PTIterator extends Iterator<any> | AsyncIterator<any>>
-  (iterator: PTIterator): TPipeable & PTIterator {
-  const retVal = (iterator as TPipeable & PTIterator);
+function itr8FromIterator<
+  PTIterator extends Iterator<any> | AsyncIterator<any>
+>(iterator: PTIterator): TPipeable & PTIterator {
+  const retVal = iterator as TPipeable & PTIterator;
   /**
    * @deprecated Use the simple pipe(...) and compose(...) functions instead !!!
    *
@@ -49,19 +50,16 @@ function itr8FromIterator<PTIterator extends Iterator<any> | AsyncIterator<any>>
    * @returns
    */
   retVal.pipe = <A = any, B = any>(
-    fn1: ((a: (Iterator<A> | AsyncIterator<A>)) => B),
+    fn1: (a: Iterator<A> | AsyncIterator<A>) => B,
     ...moreFns: Array<(unknown) => unknown>
   ) => {
     // return compose(fn1, ...moreFns)(iterator);
     // return pipe(iterator, fn1, moreFns);
-    return moreFns.reduce(
-      (prev, cur) => cur(prev),
-      fn1(iterator),
-    );
-  }
+    return moreFns.reduce((prev, cur) => cur(prev), fn1(iterator));
+  };
   return retVal;
 }
 
 export {
   itr8FromIterator, // used to be called 'itr8Proxy'
-}
+};

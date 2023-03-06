@@ -1,7 +1,4 @@
-import { itr8OperatorFactory } from "../../index";
-// import { map } from "../general/map";
-// import { split } from "../general/split";
-// import { stringToChar } from "./stringToChar";
+import { powerMap } from "../general/powerMap";
 
 /**
  * The input must be a stream of characters or strings,
@@ -32,27 +29,43 @@ import { itr8OperatorFactory } from "../../index";
  * @param {string} separator: the string that will be considered the newline sequence
  * @category operators/strings
  */
-const lineByLine = itr8OperatorFactory<string, string, { done: boolean, buffer: string }, string | void>(
-  (nextIn, { done, buffer }, splitBy = '\n') => {
-    if (nextIn.done) {
-      if (done) {
-        return { done: true, state: { done: true, buffer: '' } };
+const lineByLine = (splitBy = "\n") =>
+  powerMap<string, string, { done: boolean; buffer: string }>(
+    (nextIn, { done, buffer }) => {
+      if (nextIn.done) {
+        if (done) {
+          return { done: true, state: { done: true, buffer: "" } };
+        } else {
+          return {
+            done: false,
+            value: buffer,
+            state: { done: true, buffer: "" },
+          };
+        }
       } else {
-        return { done: false, value: buffer, state: { done: true, buffer: '' } };
+        const lines = nextIn.value.split(splitBy as string);
+        if (lines.length === 1) {
+          return {
+            done: false,
+            state: { done: false, buffer: buffer + lines[0] },
+          };
+        } else if (lines.length === 2) {
+          return {
+            done: false,
+            value: buffer + lines[0],
+            state: { done: false, buffer: lines[1] },
+          };
+        } else {
+          return {
+            done: false,
+            iterable: [buffer + lines[0], ...lines.slice(1, -1)],
+            state: { done: false, buffer: lines[lines.length - 1] },
+          };
+        }
       }
-    } else {
-      const lines = nextIn.value.split(splitBy as string);
-      if (lines.length === 1) {
-        return { done: false, state: { done: false, buffer: buffer + lines[0] } };
-      } else if (lines.length === 2) {
-        return { done: false, value: buffer + lines[0], state: { done: false, buffer: lines[1] } };
-      } else {
-        return { done: false, iterable: [buffer + lines[0], ...lines.slice(1, -1) ], state: { done: false, buffer: lines[lines.length - 1] } };
-      }
-    }
-  },
-  () => ({ done: false, buffer: '' })
-)
+    },
+    () => ({ done: false, buffer: "" })
+  );
 
 // Original implementation by combining other operators
 // const lineByLine = () => compose(
@@ -61,7 +74,4 @@ const lineByLine = itr8OperatorFactory<string, string, { done: boolean, buffer: 
 //   map(x => x.reduce((acc, cur) => acc + cur, '')),
 // );
 
-
-export {
-  lineByLine,
-}
+export { lineByLine };

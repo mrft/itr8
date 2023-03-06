@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Only returns unique elements. It works with a simple compare, so ok for simple types like
@@ -18,21 +18,19 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const uniq = itr8OperatorFactory<any, any, Set<any>>(
-  (nextIn: IteratorResult<any>, state:Set<any>) => {
-    if (nextIn.done) {
-      return { done: true };
-    } else if (state.has(nextIn.value)) {
-      return { done: false, state };
-    }
-    const newState = new Set(state);
-    newState.add(nextIn.value);
-    return { done: false, value: nextIn.value, state: newState };
-  },
-  () => new Set([]),
-);
+const uniq = <TIn>() =>
+  powerMap<TIn, TIn, Set<TIn>>(
+    (nextIn, state) => {
+      if (nextIn.done) {
+        return { done: true };
+      } else if (state.has(nextIn.value)) {
+        return { done: false, state };
+      }
+      const newState = new Set(state);
+      newState.add(nextIn.value);
+      return { done: false, value: nextIn.value, state: newState };
+    },
+    () => new Set([])
+  );
 
-
-export {
-  uniq,
-}
+export { uniq };

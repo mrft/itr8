@@ -33,11 +33,15 @@ import { isPromise } from "../util";
  *
  * @category interface/standard
  */
-function itr8ToObject<TK extends string | number | symbol, TV>(iterator: Iterator<[TK: string | number | symbol, TV:unknown]> | AsyncIterator<[TK:string | number | symbol, TV:any]>): Record<TK,TV> | Promise<Record<TK,TV>> {
+function itr8ToObject<TK extends string | number | symbol, TV>(
+  iterator:
+    | Iterator<[TK: string | number | symbol, TV: unknown]>
+    | AsyncIterator<[TK: string | number | symbol, TV: any]>
+): Record<TK, TV> | Promise<Record<TK, TV>> {
   let n = iterator.next();
   if (isPromise(n)) {
     return (async () => {
-      const asyncResult:Record<TK,TV> = {} as Record<TK,TV>;
+      const asyncResult: Record<TK, TV> = {} as Record<TK, TV>;
       while (!(await n).done) {
         const [k, v] = (await n).value;
         asyncResult[k] = v;
@@ -47,17 +51,15 @@ function itr8ToObject<TK extends string | number | symbol, TV>(iterator: Iterato
     })();
   } else {
     // return Array.from(iterator);
-    const result:Record<TK,TV> = {} as Record<TK,TV>;
-    let nSync = (n as IteratorResult<[TK,TV]>);
+    const result: Record<TK, TV> = {} as Record<TK, TV>;
+    let nSync = n as IteratorResult<[TK, TV]>;
     while (!nSync.done) {
       const [k, v] = nSync.value;
       result[k] = v;
-      nSync = iterator.next() as IteratorResult<[TK,TV]>;
+      nSync = iterator.next() as IteratorResult<[TK, TV]>;
     }
     return result;
   }
 }
 
-export {
-  itr8ToObject,
-}
+export { itr8ToObject };

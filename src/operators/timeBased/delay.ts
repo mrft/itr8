@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "../general/powerMap";
 
 /**
  * Simply delay every element by the given nr of milliseconds.
@@ -6,17 +6,14 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/timeBased
  */
-const delay = itr8OperatorFactory<any, any, void, number>(
-  (nextIn, state, timeout) => {
-    return new Promise<any>(
-      (resolve /*, reject*/) => {
+const delay = <TIn>(timeout: number) =>
+  powerMap<TIn, TIn, void>(
+    (nextIn, _state) => {
+      return new Promise<any>((resolve /*, reject*/) => {
         setTimeout(() => resolve(nextIn), timeout);
-      }
-    );
-  },
-  () => undefined,
-);
+      });
+    },
+    () => undefined
+  );
 
-export {
-  delay,
-}
+export { delay };

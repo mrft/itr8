@@ -1,17 +1,13 @@
-import { assert } from 'chai';
-import { itr8FromArrayAsync, itr8Range, itr8ToArray, pipe } from '../..';
-import { runningAverage } from './runningAverage';
+import { assert } from "chai";
+import { itr8FromArrayAsync, itr8Range, itr8ToArray, pipe } from "../..";
+import { runningAverage } from "./runningAverage";
 
-describe('operators/numeric/runningAverage.ts', () => {
-  it('runningAverage(...) operator works properly', async () => {
+describe("operators/numeric/runningAverage.ts", () => {
+  it("runningAverage(...) operator works properly", async () => {
     // sync
     assert.deepEqual(
-      pipe(
-        itr8Range(1, 10),
-        runningAverage(),
-        itr8ToArray,
-      ),
-      [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5],
+      pipe(itr8Range(1, 10), runningAverage(), itr8ToArray),
+      [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5]
     );
 
     // async
@@ -21,8 +17,7 @@ describe('operators/numeric/runningAverage.ts', () => {
         runningAverage(),
         itr8ToArray
       ),
-      [1, 1.5, 1.6666666666666667, 2.25, 2.4],
+      [1, 1.5, 1.6666666666666667, 2.25, 2.4]
     );
   });
-
 });

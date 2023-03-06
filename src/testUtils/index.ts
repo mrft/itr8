@@ -6,7 +6,7 @@
  */
 
 import { Stream } from "stream";
-import * as FakeTimers from '@sinonjs/fake-timers';
+import * as FakeTimers from "@sinonjs/fake-timers";
 
 /**
  * A function that will produce a readable NodeJS stream based on an
@@ -19,13 +19,15 @@ const arrayToStream = (arr: any[], timeBetweenChunks = 10) => {
     // empty
   };
 
-  arr.forEach((item, index) => setTimeout(() => readable.push(item), index * timeBetweenChunks));
+  arr.forEach((item, index) =>
+    setTimeout(() => readable.push(item), index * timeBetweenChunks)
+  );
 
   // no more data
   setTimeout(() => readable.push(null), arr.length * timeBetweenChunks);
 
   return readable;
-}
+};
 
 /**
  * Resolve promise after the given amount of time. If you pass in a second parameter,
@@ -35,7 +37,8 @@ const arrayToStream = (arr: any[], timeBetweenChunks = 10) => {
  * @param value
  * @returns a Promise that resolves after the given number of milliseconds.
  */
-const sleep = (milliseconds: number, value?: any) => new Promise((resolve) => setTimeout(() => resolve(value), milliseconds));
+const sleep = (milliseconds: number, value?: any) =>
+  new Promise((resolve) => setTimeout(() => resolve(value), milliseconds));
 
 /**
  * process.hrtime() method can be used to measure execution time, but returns an array
@@ -43,7 +46,10 @@ const sleep = (milliseconds: number, value?: any) => new Promise((resolve) => se
  * @param {Array<Integer>} hrtime tuple [seconds, nanoseconds]
  * @returns the input translated to milliseconds
  */
-function hrtimeToMilliseconds([seconds, nanoseconds]: [number, number]): number {
+function hrtimeToMilliseconds([seconds, nanoseconds]: [
+  number,
+  number
+]): number {
   return seconds * 1000 + nanoseconds / 1000000;
 }
 
@@ -68,18 +74,20 @@ function hrtimeToMilliseconds([seconds, nanoseconds]: [number, number]): number 
  *  await awaitPromiseWithFakeTimers(clock, someAsyncFunctionCall());
  * ```
  *
- * @param clock 
- * @param p 
+ * @param clock
+ * @param p
  */
-async function awaitPromiseWithFakeTimers<T>(clock:FakeTimers.InstalledClock, p:Promise<T>):Promise<T> {
+async function awaitPromiseWithFakeTimers<T>(
+  clock: FakeTimers.InstalledClock,
+  p: Promise<T>
+): Promise<T> {
   await clock.runAllAsync();
   return p;
 }
-
 
 export {
   arrayToStream,
   sleep,
   hrtimeToMilliseconds,
   awaitPromiseWithFakeTimers,
-}
+};

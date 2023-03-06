@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "es2018",
-      "DOM",
-    ],
+    "lib": ["es2018", "DOM"],
     "target": "es2018",
     // "noImplicitAny": true,
     "strictNullChecks": true,
@@ -12,7 +9,7 @@
     "module": "CommonJS", // ES2015
     "sourceMap": true,
     "declaration": true,
-    "esModuleInterop": true,
+    "esModuleInterop": true
     // "moduleResolution": "Classis",
     // "strict": true,
     // "isolatedModules": true,
@@ -22,9 +19,5 @@
       "module": "CommonJS"
     }
   },
-  "exclude": [
-    "dist",
-    "node_modules",
-    "test"
-  ]
+  "exclude": ["dist", "node_modules", "test"]
 }

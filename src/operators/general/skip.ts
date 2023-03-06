@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Skip the 'amount' first elements and return all the others unchanged.
@@ -7,15 +7,14 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const skip = itr8OperatorFactory<any, any, number, number>(
-  (nextIn, state, params) => {
-    if (nextIn.done) return { done: true };
-    if (state < params) return { done: false, state: state + 1 };
-    return { done: false, value: nextIn.value };
-  },
-  () => 0,
-);
+const skip = <TIn>(params = 0) =>
+  powerMap<TIn, TIn, number>(
+    (nextIn, state) => {
+      if (nextIn.done) return { done: true };
+      if (state < params) return { done: false, state: state + 1 };
+      return { done: false, value: nextIn.value };
+    },
+    () => 0
+  );
 
-export {
-  skip,
-}
+export { skip };

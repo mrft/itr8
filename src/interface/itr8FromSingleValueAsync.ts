@@ -10,12 +10,14 @@ import { itr8FromIterator } from "./itr8FromIterator";
  *
  * @category interface/standard
  */
-function itr8FromSingleValueAsync<T>(v: any): TPipeable & AsyncIterableIterator<T> {
+function itr8FromSingleValueAsync<T>(
+  v: any
+): TPipeable & AsyncIterableIterator<T> {
   return itr8FromIterator(
-    (async function* () { yield v; })()
+    (async function* () {
+      yield v;
+    })()
   );
 }
 
-export {
-  itr8FromSingleValueAsync,
-}
+export { itr8FromSingleValueAsync };

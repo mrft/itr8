@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Tap will run a function 'on the side' without while passing the iterator
@@ -8,22 +8,21 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
- const tap = itr8OperatorFactory<any, any, void, (any) => void>(
-  (nextIn, state, tapFn: (TIn) => void) => {
-    if (nextIn.done) {
-      return { done: true };
-    } else {
-      try {
-        tapFn(nextIn.value);
-      } catch (e) {
-        console.warn('Tap function caused an exception', e, e.stack);
+const tap = <TIn>(tapFn: (TIn) => void) =>
+  powerMap<TIn, TIn, void>(
+    (nextIn, _state) => {
+      if (nextIn.done) {
+        return { done: true };
+      } else {
+        try {
+          tapFn(nextIn.value);
+        } catch (e) {
+          console.warn("Tap function caused an exception", e, e.stack);
+        }
+        return { done: false, value: nextIn.value };
       }
-      return { done: false, value: nextIn.value };
-    }
-  },
-  () => undefined,
-);
+    },
+    () => undefined
+  );
 
-export {
-  tap,
-}
+export { tap };

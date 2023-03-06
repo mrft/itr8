@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Intersperse the the argument bewteen each element of the iterator.
@@ -19,20 +19,22 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const intersperse = itr8OperatorFactory<any, any, boolean, any>(
-  (nextIn: any, state, intersperseThing) => {
-    if (nextIn.done) {
-      return { done: true };
-    } else if (state) {
-      return { done: false, iterable: [intersperseThing, nextIn.value], state };
-    }
-    // first time, just return the first element
-    return { done: false, iterable: [nextIn.value], state: true };
-  },
-  () => false,
-);
+const intersperse = (intersperseThing: unknown) =>
+  powerMap<unknown, unknown, boolean>(
+    (nextIn, state) => {
+      if (nextIn.done) {
+        return { done: true };
+      } else if (state) {
+        return {
+          done: false,
+          iterable: [intersperseThing, nextIn.value],
+          state,
+        };
+      }
+      // first time, just return the first element
+      return { done: false, iterable: [nextIn.value], state: true };
+    },
+    () => false
+  );
 
-
-export {
-  intersperse,
-}
+export { intersperse };

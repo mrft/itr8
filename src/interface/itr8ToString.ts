@@ -15,7 +15,7 @@ import { forEach } from "./forEach";
  *    intersperse(' / '), // adds | between every 2 elements
  *    itr8ToString,
  *  ) // => 'Hello / Goodbye'
- * 
+ *
  *  const alphabet = pipe(
  *    itr8Range(0, 25),
  *    map((i: number) => String.fromCharCode("A".charCodeAt(0) + i)),
@@ -28,11 +28,13 @@ import { forEach } from "./forEach";
  *
  * @category interface/standard
  */
-function itr8ToString<T>(iterator: Iterator<T> | AsyncIterator<T>): string | Promise<string> {
+function itr8ToString<T>(
+  iterator: Iterator<T> | AsyncIterator<T>
+): string | Promise<string> {
   let n = iterator.next();
   if (isPromise(n)) {
     return (async () => {
-      let asyncResult = '';
+      let asyncResult = "";
       while (!(await n).done) {
         asyncResult = asyncResult + (await n).value;
         n = iterator.next();
@@ -41,8 +43,8 @@ function itr8ToString<T>(iterator: Iterator<T> | AsyncIterator<T>): string | Pro
     })();
   } else {
     // return Array.from(iterator);
-    let result = '';
-    let nSync = (n as IteratorResult<T>);
+    let result = "";
+    let nSync = n as IteratorResult<T>;
     while (!nSync.done) {
       result = result + nSync.value;
       nSync = iterator.next() as IteratorResult<T>;
@@ -51,6 +53,4 @@ function itr8ToString<T>(iterator: Iterator<T> | AsyncIterator<T>): string | Pro
   }
 }
 
-export {
-  itr8ToString,
-}
+export { itr8ToString };

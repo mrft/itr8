@@ -3,12 +3,9 @@ import { pipe } from "../util";
 import { itr8Range } from "./itr8Range";
 import { itr8ToMultiIterable } from "./itr8ToMultiIterable";
 
-describe('interface/itr8ToMultiIterable.ts', () => {
-  it('itr8ToMultiIterable(...) works properly', async () => {
-    const subscribeable = pipe(
-      itr8Range(1, 10_000),
-      itr8ToMultiIterable(),
-    );
+describe("interface/itr8ToMultiIterable.ts", () => {
+  it("itr8ToMultiIterable(...) works properly", async () => {
+    const subscribeable = pipe(itr8Range(1, 10_000), itr8ToMultiIterable());
 
     const subscriberA = subscribeable[Symbol.asyncIterator]();
     const subscriberB = subscribeable[Symbol.asyncIterator]();

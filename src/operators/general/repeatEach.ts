@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Repeat each element of the iterator for the given amount.
@@ -31,19 +31,22 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const repeatEach = itr8OperatorFactory<unknown, unknown, void, number>(
-  (nextIn, _state, count) => {
-    if (nextIn.done) {
-      return { done: true };
-    }
-    return {
-      done: false,
-      iterable: (function* () { for (let i = 0; i < count; i++) { yield nextIn.value; } })(),
-    };
-  },
-  () => undefined,
-);
+const repeatEach = <TIn>(count = 2) =>
+  powerMap<TIn, TIn, void>(
+    (nextIn, _state) => {
+      if (nextIn.done) {
+        return { done: true };
+      }
+      return {
+        done: false,
+        iterable: (function* () {
+          for (let i = 0; i < count; i++) {
+            yield nextIn.value;
+          }
+        })(),
+      };
+    },
+    () => undefined
+  );
 
-export {
-  repeatEach,
-}
+export { repeatEach };

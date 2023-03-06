@@ -1,10 +1,10 @@
-import * as Stream from 'stream';
-import { isPromise } from '../util';
-import { itr8FromIterator, itr8FromIterable } from '../index';
-import { map } from '../operators/general/map';
-import { stringToChar } from '../operators/strings/stringToChar';
+import * as Stream from "stream";
+import { isPromise } from "../util";
+import { itr8FromIterator, itr8FromIterable } from "../index";
+import { map } from "../operators/general/map";
+import { stringToChar } from "../operators/strings/stringToChar";
 
-import { TPipeable } from '../types';
+import { TPipeable } from "../types";
 
 /**
  * Transforms a readable stream into an async itr8.
@@ -28,7 +28,9 @@ import { TPipeable } from '../types';
  *
  * @category peer/stream
  */
-const itr8FromStream = (stream:Stream.Readable):TPipeable & AsyncIterableIterator<any> => {
+const itr8FromStream = (
+  stream: Stream.Readable
+): TPipeable & AsyncIterableIterator<any> => {
   return itr8FromIterator(stream[Symbol.asyncIterator]());
 
   // let buffer:any[] = [];
@@ -75,7 +77,7 @@ const itr8FromStream = (stream:Stream.Readable):TPipeable & AsyncIterableIterato
   // };
 
   // return itr8FromIterator(retVal);
-}
+};
 
 /**
  * This will produce an AsyncIterableIterator where each value is a string
@@ -90,16 +92,16 @@ const itr8FromStream = (stream:Stream.Readable):TPipeable & AsyncIterableIterato
  *
  * @category peer/stream
  */
-const itr8FromStdin:()=>TPipeable & AsyncIterableIterator<string> = () => {
-  process.stdin.setEncoding('utf8');
+const itr8FromStdin: () => TPipeable & AsyncIterableIterator<string> = () => {
+  process.stdin.setEncoding("utf8");
   return itr8FromStream(process.stdin);
-    // OBSOLETE BECAUSE OF the setEnconding
-    // pipe(
-    //   itr8FromStream(process.stdin),
-    //   map(x => x.toString()),
-    //   // stringToChar(),
-    // );
-}
+  // OBSOLETE BECAUSE OF the setEnconding
+  // pipe(
+  //   itr8FromStream(process.stdin),
+  //   map(x => x.toString()),
+  //   // stringToChar(),
+  // );
+};
 /**
  * Creates a readable (object-mode) stream from a (sync or async) iterator.
  *
@@ -108,7 +110,7 @@ const itr8FromStdin:()=>TPipeable & AsyncIterableIterator<string> = () => {
  *
  * @category peer/stream
  */
-const itr8ToReadableStream = (iterable:Iterable<any> | AsyncIterable<any>) => {
+const itr8ToReadableStream = (iterable: Iterable<any> | AsyncIterable<any>) => {
   const itr = itr8FromIterable(iterable);
 
   return new Stream.Readable({
@@ -140,19 +142,15 @@ const itr8ToReadableStream = (iterable:Iterable<any> | AsyncIterable<any>) => {
           }
           if (i < size) n = itr.next() as IteratorResult<any>;
         }
-    }
+      }
     },
-   });
+  });
 
   // rs.on('resume')
   // (async) {}
   // itr8
   // rs.push(edad);
   // rs.push(null);
-}
+};
 
-export {
-  itr8FromStream,
-  itr8ToReadableStream,
-  itr8FromStdin,
-}
+export { itr8FromStream, itr8ToReadableStream, itr8FromStdin };

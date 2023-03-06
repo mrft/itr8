@@ -1,3 +1,1 @@
-
-describe('interface/itr8FromIterable.ts', () => {
-});
+describe("interface/itr8FromIterable.ts", () => {});

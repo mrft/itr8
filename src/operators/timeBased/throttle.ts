@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "../general/powerMap";
 
 /**
  * Only useful on async iterators.
@@ -11,19 +11,20 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/timeBased
  */
-const throttle = itr8OperatorFactory<any,any,number,number>(
-  (nextIn, state, throttleMilliseconds: number) => {
-    if (nextIn.done) { return { done: true }; }
-    const now = Date.now();
+const throttle = <TIn>(throttleMilliseconds: number) =>
+  powerMap<TIn, TIn, number>(
+    (nextIn, state) => {
+      if (nextIn.done) {
+        return { done: true };
+      }
+      const now = Date.now();
 
-    if (now - state > throttleMilliseconds) {
-      return { done: false, value: nextIn.value, state: now };
-    }
-    return { done: false, state };
-  },
-  () => -Infinity,
-);
+      if (now - state > throttleMilliseconds) {
+        return { done: false, value: nextIn.value, state: now };
+      }
+      return { done: false, state };
+    },
+    () => -Infinity
+  );
 
-export {
-  throttle,
-}
+export { throttle };

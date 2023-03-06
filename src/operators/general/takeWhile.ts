@@ -1,4 +1,5 @@
-import { itr8OperatorFactory, thenable } from "../../util/index";
+import { thenable } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Only take elements as long as the filter function returns true.
@@ -8,19 +9,17 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/general
  */
-const takeWhile = itr8OperatorFactory<any, any, void, (any) => boolean | Promise<boolean>>(
-  (nextIn, _state, filterFn) => {
-    if (nextIn.done) return { done: true };
+const takeWhile = <TIn>(filterFn: (x: TIn) => boolean | Promise<boolean>) =>
+  powerMap<TIn, TIn, void>(
+    (nextIn, _state) => {
+      if (nextIn.done) return { done: true };
 
-    return thenable(filterFn(nextIn.value))
-      .then((filterFnResult) => {
-          if (filterFnResult) return { done: false, value: nextIn.value };
-          return { done: true };
-        }).src;
-  },
-  () => undefined,
-);
+      return thenable(filterFn(nextIn.value)).then((filterFnResult) => {
+        if (filterFnResult) return { done: false, value: nextIn.value };
+        return { done: true };
+      }).src;
+    },
+    () => undefined
+  );
 
-export {
-  takeWhile,
-}
+export { takeWhile };

@@ -58,12 +58,12 @@ import { itr8FromIterator } from "../../index";
  * @category operators/async
  */
 const mostRecent = <T>(initalValue: T) => {
-  return (it: Iterator<T> | AsyncIterator<T>):AsyncIterator<T> => {
-    let nextOut:IteratorResult<T> = { value: initalValue };
+  return (it: Iterator<T> | AsyncIterator<T>): AsyncIterator<T> => {
+    let nextOut: IteratorResult<T> = { value: initalValue };
     let resolveNextOutRead;
 
     const handleInputPromise = async () => {
-      let nextOutRead:Promise<boolean> | undefined = undefined;
+      let nextOutRead: Promise<boolean> | undefined = undefined;
       do {
         if (isPromise(nextOutRead)) {
           await nextOutRead;
@@ -73,7 +73,7 @@ const mostRecent = <T>(initalValue: T) => {
           resolveNextOutRead = resolve;
         });
       } while (!nextOut.done);
-    }
+    };
 
     const retVal = {
       // [Symbol.iterator]: () => retVal as IterableIterator<T>,
@@ -85,13 +85,11 @@ const mostRecent = <T>(initalValue: T) => {
           resolveNextOutRead(true);
         }
         return nextOut;
-      }
+      },
     };
 
     return itr8FromIterator(retVal as any);
-  }
+  };
 };
 
-export {
-  mostRecent,
-}
+export { mostRecent };

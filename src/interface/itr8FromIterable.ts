@@ -15,7 +15,9 @@ import { itr8FromIterator } from "./itr8FromIterator";
  *
  * @category interface/standard
  */
-function itr8FromIterable<T>(it:Iterable<T> | AsyncIterable<T>):TPipeable & (IterableIterator<T> | AsyncIterableIterator<T>) {
+function itr8FromIterable<T>(
+  it: Iterable<T> | AsyncIterable<T>
+): TPipeable & (IterableIterator<T> | AsyncIterableIterator<T>) {
   if (it[Symbol.iterator]) {
     return itr8FromIterator(it[Symbol.iterator]());
   } else {
@@ -23,6 +25,4 @@ function itr8FromIterable<T>(it:Iterable<T> | AsyncIterable<T>):TPipeable & (Ite
   }
 }
 
-export {
-  itr8FromIterable,
-}
+export { itr8FromIterable };

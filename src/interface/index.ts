@@ -33,36 +33,36 @@
  * @module
  */
 
-export * from './forEach';
+export * from "./forEach";
 
-export * from './itr8FromArray';
+export * from "./itr8FromArray";
 
-export * from './itr8FromArrayAsync';
+export * from "./itr8FromArrayAsync";
 
-export * from './itr8FromIterable';
+export * from "./itr8FromIterable";
 
-export * from './itr8FromIterator';
+export * from "./itr8FromIterator";
 
-export * from './itr8FromSingleValue';
+export * from "./itr8FromSingleValue";
 
-export * from './itr8FromSingleValueAsync';
+export * from "./itr8FromSingleValueAsync";
 
-export * from './itr8FromString';
+export * from "./itr8FromString";
 
-export * from './itr8FromStringAsync';
+export * from "./itr8FromStringAsync";
 
-export * from './itr8Interval';
+export * from "./itr8Interval";
 
-export * from './itr8Pushable';
+export * from "./itr8Pushable";
 
-export * from './itr8Range';
+export * from "./itr8Range";
 
-export * from './itr8RangeAsync';
+export * from "./itr8RangeAsync";
 
-export * from './itr8ToArray';
+export * from "./itr8ToArray";
 
-export * from './itr8ToObject';
+export * from "./itr8ToObject";
 
-export * from './itr8ToString';
+export * from "./itr8ToString";
 
-export * from './itr8ToMultiIterable';
+export * from "./itr8ToMultiIterable";
