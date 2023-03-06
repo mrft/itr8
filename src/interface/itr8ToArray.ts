@@ -8,11 +8,13 @@ import { isPromise } from "../util";
  *
  * @category interface/standard
  */
-function itr8ToArray<T>(iterator: Iterator<T> | AsyncIterator<T>): Array<T | any> | Promise<Array<T | any>> {
+function itr8ToArray<T>(
+  iterator: Iterator<T> | AsyncIterator<T>
+): Array<T | any> | Promise<Array<T | any>> {
   let n = iterator.next();
   if (isPromise(n)) {
     return (async () => {
-      const asyncResult:T[] = [];
+      const asyncResult: T[] = [];
       while (!(await n).done) {
         asyncResult.push((await n).value);
         n = iterator.next();
@@ -21,8 +23,8 @@ function itr8ToArray<T>(iterator: Iterator<T> | AsyncIterator<T>): Array<T | any
     })();
   } else {
     // return Array.from(iterator);
-    const result:T[] = [];
-    let nSync = (n as IteratorResult<T>);
+    const result: T[] = [];
+    let nSync = n as IteratorResult<T>;
     while (!nSync.done) {
       result.push(nSync.value);
       nSync = iterator.next() as IteratorResult<T>;
@@ -31,6 +33,4 @@ function itr8ToArray<T>(iterator: Iterator<T> | AsyncIterator<T>): Array<T | any
   }
 }
 
-export {
-  itr8ToArray,
-}
+export { itr8ToArray };

@@ -1,5 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
-
+import { powerMap } from "../general/powerMap";
 
 /**
  * Only useful on async iterators.
@@ -10,19 +9,18 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/timeBased
  */
-const debounce = itr8OperatorFactory<any,any,number,number>(
-  (nextIn, state, cooldownMilliseconds) => {
-    if (nextIn.done) return { done: true };
-    const newState = Date.now();
-    const timePassed = newState - state;
-    if (timePassed > cooldownMilliseconds) {
-      return { done: false, value: nextIn.value, state: newState };
-    }
-    return { done: false, state: newState }
-  },
-  () => -Infinity,
-);
+const debounce = <TIn>(cooldownMilliseconds: number) =>
+  powerMap<TIn, TIn, number>(
+    (nextIn, state) => {
+      if (nextIn.done) return { done: true };
+      const newState = Date.now();
+      const timePassed = newState - state;
+      if (timePassed > cooldownMilliseconds) {
+        return { done: false, value: nextIn.value, state: newState };
+      }
+      return { done: false, state: newState };
+    },
+    () => -Infinity
+  );
 
-export {
-  debounce,
-}
+export { debounce };

@@ -33,7 +33,11 @@ import { itr8FromIterator } from "./itr8FromIterator";
  *
  * @category interface/standard
  */
-function itr8Range(from: number, to: number, step?:number):TPipeable & IterableIterator<number> {
+function itr8Range(
+  from: number,
+  to: number,
+  step?: number
+): TPipeable & IterableIterator<number> {
   const stepValue = step !== undefined ? Math.abs(step) : 1;
   const upwards = from < to;
   return itr8FromIterator(
@@ -47,10 +51,8 @@ function itr8Range(from: number, to: number, step?:number):TPipeable & IterableI
           yield i;
         }
       }
-    })(),
+    })()
   );
 }
 
-export {
-  itr8Range,
-}
+export { itr8Range };

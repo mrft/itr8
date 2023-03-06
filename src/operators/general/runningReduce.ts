@@ -1,4 +1,5 @@
-import { itr8OperatorFactory, thenable } from "../../util/index";
+import { thenable } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * The runnigReduce() method executes a user-supplied "reducer" callback function on each element of
@@ -10,51 +11,52 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  * ```typescript
  *    pipe(
  *      itr8FromArray([ 1, 2, 3, 4 ]),
- *      reduce({ reducer: (acc, cur) => acc + cur, initialValue: 0 }, // => [ 1, 3, 6, 10 ]
+ *      reduce((acc, cur) => acc + cur, 0),
  *    );
+ *    // => [ 1, 3, 6, 10 ]
  * ```
  *
  * The reduce function can be an asynchronous function (in which case the resulting
  * iterator will be asynchronous regardless of the input iterator)!
  *
- * @param reducerAndInitValue: an object of the form ```{ initialValue: any, reducer: (accumulator:any, currentValue:any, presentIndex?: number) => any }```
+ * @param reducer
+ * @param initialValue: value passed as 'accumulator' on the very first call to the reducer function
  *
  * @category operators/general
  */
-const runningReduce = itr8OperatorFactory<
- any,
- any,
- { index: number, accumulator: any, done?: true },
- {
-   reducer: (accumulator:any, currentValue:any, presentIndex?: number) => any,
-   initialValue: any,
- }
->(
- (nextIn, state, params) => {
-   if (state.done) { return { done: true }; }
+const runningReduce = <TIn, TOut>(
+  reducer: (
+    accumulator: TOut,
+    currentValue: TIn,
+    presentIndex?: number
+  ) => TOut | Promise<TOut>,
+  initialValue: TOut
+) =>
+  powerMap<TIn, TOut, { index: number; accumulator: TOut; done?: true }>(
+    (nextIn, state) => {
+      if (state.done) {
+        return { done: true };
+      }
 
-   const acc = state.index === 0 ? params.initialValue : state.accumulator;
+      const acc = state.index === 0 ? initialValue : state.accumulator;
 
-   if (nextIn.done) {
-     return { done: true, value: acc, state };
-   }
+      if (nextIn.done) {
+        return { done: true, value: acc, state };
+      }
 
-   return thenable(params.reducer(acc, nextIn.value, state.index))
-     .then((reduced) => ({
-         done: false,
-         value: reduced,
-         state: {
-           ...state,
-           index: state.index + 1,
-           accumulator: reduced,
-         }
-       }),
-     )
-     .src;
- },
- () => ({ index: 0, accumulator: undefined }),
-);
+      return thenable(reducer(acc, nextIn.value, state.index)).then(
+        (reduced) => ({
+          done: false,
+          value: reduced,
+          state: {
+            ...state,
+            index: state.index + 1,
+            accumulator: reduced,
+          },
+        })
+      ).src;
+    },
+    () => ({ index: 0, accumulator: initialValue })
+  );
 
-export {
-  runningReduce,
-}
+export { runningReduce };

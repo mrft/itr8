@@ -1,4 +1,5 @@
-import { itr8OperatorFactory, thenable } from "../../util/index";
+import { thenable } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * The reduce() method executes a user-supplied "reducer" callback function on each element of
@@ -10,71 +11,73 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  * ```typescript
  *    pipe(
  *      itr8FromArray([ 1, 2, 3, 4 ]),
- *      reduce({ reducer: (acc, cur) => acc + cur, initialValue: 0 }, // => [ 10 ]
+ *      reduce((acc, cur) => acc + cur, 0),
  *    );
+ *    // => [ 10 ]
  * ```
  *
  * The reduce function can be an asynchronous function (in which case the resulting
  * iterator will be asynchronous regardless of the input iterator)!
  *
- * @param reducerAndInitValue: an object of the form ```{ initialValue: any, reducer: (accumulator:any, currentValue:any, presentIndex?: number) => any }```
+ * @param reducer
+ * @param initialValue: value passed as 'accumulator' on the very first call to the reducer function
  *
  * @category operators/general
  */
-const reduce = itr8OperatorFactory<
-  any,
-  any,
-  { index: number, accumulator: any, done: boolean },
-  {
-    reducer: (accumulator:any, currentValue:any, presentIndex?: number) => any,
-    initialValue: any,
-  }
->(
-  (nextIn, state, params) => {
-    if (state.done) { return { done: true }; }
+const reduce = <TIn, TOut>(
+  reducer: (
+    accumulator: TOut,
+    currentValue: TIn,
+    presentIndex?: number
+  ) => TOut | Promise<TOut>,
+  initialValue: TOut
+) =>
+  powerMap<TIn, TOut, { index: number; accumulator: TOut; done: boolean }>(
+    (nextIn, state) => {
+      if (state.done) {
+        return { done: true };
+      }
 
-    const acc = state.index === 0 ? params.initialValue : state.accumulator;
+      const acc = state.accumulator;
 
-    if (nextIn.done) {
-      return { done: false, value: acc, state: { ...state, done: true } }
-    }
+      if (nextIn.done) {
+        return { done: false, value: acc, state: { ...state, done: true } };
+      }
 
-    return thenable(params.reducer(acc, nextIn.value, state.index))
-      .then((reduced) => ({
+      return thenable(reducer(acc, nextIn.value, state.index)).then(
+        (reduced) => ({
           done: false,
           state: {
             ...state,
             index: state.index + 1,
             accumulator: reduced,
-          }
+          },
         })
       ).src;
 
-    // const reduced = params.reducer(acc, nextIn.value, state.index);
-    // if (isPromise(reduced)) {
-    //   return (async () => ({
-    //     done: false,
-    //     state: {
-    //       ...state,
-    //       index: state.index + 1,
-    //       accumulator: await reduced,
-    //     }
-    //   }))();
-    // }
+      // const reduced = params.reducer(acc, nextIn.value, state.index);
+      // if (isPromise(reduced)) {
+      //   return (async () => ({
+      //     done: false,
+      //     state: {
+      //       ...state,
+      //       index: state.index + 1,
+      //       accumulator: await reduced,
+      //     }
+      //   }))();
+      // }
 
-    // // synchronous
-    // return {
-    //   done: false,
-    //   state: {
-    //     ...state,
-    //     index: state.index + 1,
-    //     accumulator: reduced,
-    //   }
-    // };
-  },
-  () => ({ index: 0, accumulator: undefined, done: false }),
-);
+      // // synchronous
+      // return {
+      //   done: false,
+      //   state: {
+      //     ...state,
+      //     index: state.index + 1,
+      //     accumulator: reduced,
+      //   }
+      // };
+    },
+    () => ({ index: 0, accumulator: initialValue, done: false })
+  );
 
-export {
-  reduce,
-}
+export { reduce };

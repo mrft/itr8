@@ -1,4 +1,5 @@
-import { itr8OperatorFactory, thenable } from "../../util/index";
+import { thenable } from "../../util";
+import { powerMap } from "./powerMap";
 
 /**
  * The zip() operator outputs tuples containing 1 element from the first and
@@ -18,37 +19,33 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/general
  */
-const zip = itr8OperatorFactory<any, any, void, Iterator<any> | AsyncIterator<any>>(
-  (nextIn, state, secondIterator) => {
-    if (nextIn.done) {
-      return { done: true };
-    }
+const zip = <TIn>(secondIterator: Iterator<any> | AsyncIterator<any>) =>
+  powerMap<TIn, TIn, void>(
+    (nextIn, _state) => {
+      if (nextIn.done) {
+        return { done: true };
+      }
 
-    return thenable(secondIterator.next())
-      .then((secondNext) => ({
-          done: false,
-          value: [nextIn.value, (secondNext as IteratorResult<any>).value],
-        })
-      )
-      .src;
+      return thenable(secondIterator.next()).then((secondNext) => ({
+        done: false,
+        value: [nextIn.value, (secondNext as IteratorResult<any>).value],
+      })).src;
 
-    // const secondNext = secondIterator.next();
-    // if (isPromise(secondNext)) {
-    //   return (async () => ({
-    //     done: false,
-    //     value: [nextIn.value, (await secondNext as IteratorResult<any>).value],
-    //   }))();
-    // }
+      // const secondNext = secondIterator.next();
+      // if (isPromise(secondNext)) {
+      //   return (async () => ({
+      //     done: false,
+      //     value: [nextIn.value, (await secondNext as IteratorResult<any>).value],
+      //   }))();
+      // }
 
-    // // synchronous
-    // return {
-    //   done: false,
-    //   value: [nextIn.value, (secondNext as IteratorResult<any>).value],
-    // };
-  },
-  () => undefined,
-);
+      // // synchronous
+      // return {
+      //   done: false,
+      //   value: [nextIn.value, (secondNext as IteratorResult<any>).value],
+      // };
+    },
+    () => undefined
+  );
 
-export {
-  zip,
-}
+export { zip };

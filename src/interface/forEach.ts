@@ -5,8 +5,8 @@
  * @module
  */
 
-import { isPromise } from '../util';
-import { itr8FromIterable } from './itr8FromIterable';
+import { isPromise } from "../util";
+import { itr8FromIterable } from "./itr8FromIterable";
 
 /**
  * produces a function that can be applied to an iterator and that will execute
@@ -28,7 +28,10 @@ import { itr8FromIterable } from './itr8FromIterable';
  *
  * @category interface/standard
  */
-const forEach = function <T = any>(handler: (T) => void | Promise<void>, options?: { concurrency?: number }): ((it: Iterator<T> | AsyncIterator<T>) => void) {
+const forEach = function <T = any>(
+  handler: (T) => void | Promise<void>,
+  options?: { concurrency?: number }
+): (it: Iterator<T> | AsyncIterator<T>) => void {
   return (it: Iterator<T>) => {
     const maxRunningHandlers = options?.concurrency || 1;
     const runningHandlers: Set<Promise<void>> = new Set();
@@ -41,14 +44,16 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
           // ignore this we only want to know there is an open spot again
         }
       }
-    }
-    const addToRunningHandlersList = (handlerPossiblePromise: Promise<void>) => {
+    };
+    const addToRunningHandlersList = (
+      handlerPossiblePromise: Promise<void>
+    ) => {
       // add it to the running handlers list
       runningHandlers.add(handlerPossiblePromise);
       handlerPossiblePromise.finally(() => {
         runningHandlers.delete(handlerPossiblePromise);
       });
-    }
+    };
 
     const nextPromiseOrValue = it.next();
     if (isPromise(nextPromiseOrValue)) {
@@ -64,7 +69,7 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
         if (isPromise(handlerPossiblePromise)) {
           addToRunningHandlersList(handlerPossiblePromise);
         }
-      }
+      };
       return (async () => {
         let next = (await nextPromise) as IteratorResult<any>;
         while (!next.done) {
@@ -77,16 +82,21 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
     } else {
       let next = nextPromiseOrValue;
       if (!next.done) {
-        const handlerPossiblePromise: Promise<void> | void = handler(next.value);
+        const handlerPossiblePromise: Promise<void> | void = handler(
+          next.value
+        );
         if (isPromise(handlerPossiblePromise)) {
           return (async () => {
-            let handlerPossiblePromiseIn: Promise<void> | undefined = handlerPossiblePromise;
+            let handlerPossiblePromiseIn: Promise<void> | undefined =
+              handlerPossiblePromise;
             while (!next.done) {
               await waitForOpenSpot();
 
               // TODO: add a try catch so errors can be handled properly?
               // or maybe we should leave it to the user???
-              const handlerPromise = handlerPossiblePromiseIn || handler(next.value) as Promise<void>;
+              const handlerPromise =
+                handlerPossiblePromiseIn ||
+                (handler(next.value) as Promise<void>);
               handlerPossiblePromiseIn = undefined;
 
               addToRunningHandlersList(handlerPromise);
@@ -106,8 +116,6 @@ const forEach = function <T = any>(handler: (T) => void | Promise<void>, options
       }
     }
   };
-}
-
-export {
-  forEach,
 };
+
+export { forEach };

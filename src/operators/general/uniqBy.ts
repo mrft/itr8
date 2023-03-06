@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Only returns unique elements by comparing the result of the mapping function applied
@@ -18,22 +18,21 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const uniqBy = itr8OperatorFactory<any, any, Set<any>, (v:any) => any>(
-  (nextIn: IteratorResult<any>, state:Set<any>, mapFn) => {
-    if (nextIn.done) {
-      return { done: true };
-    }
-    const hash = mapFn(nextIn.value);
-    if (state.has(hash)) {
-      return { done: false, state };
-    }
-    const newState = new Set(state);
-    newState.add(hash);
-    return { done: false, value: nextIn.value, state: newState };
-  },
-  () => new Set([]),
-);
+const uniqBy = <TIn, TMapFn>(mapFn: (v: TIn) => TMapFn) =>
+  powerMap<TIn, TIn, Set<TMapFn>>(
+    (nextIn, state) => {
+      if (nextIn.done) {
+        return { done: true };
+      }
+      const hash = mapFn(nextIn.value);
+      if (state.has(hash)) {
+        return { done: false, state };
+      }
+      const newState = new Set(state);
+      newState.add(hash);
+      return { done: false, value: nextIn.value, state: newState };
+    },
+    () => new Set([])
+  );
 
-export {
-  uniqBy,
-}
+export { uniqBy };

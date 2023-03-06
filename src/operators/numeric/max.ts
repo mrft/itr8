@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "../general/powerMap";
 
 /**
  * Output a single thing which is the highest of all values.
@@ -14,18 +14,24 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/numeric
  */
-const max = itr8OperatorFactory<number, number, { done: boolean, max: number }, void>(
-  (nextIn: IteratorResult<any>, state: { done: boolean, max: number }) => {
-    if (state.done) {
-      return { done: true };
-    } else if (nextIn.done) {
-      return { done: false, value: state.max, state: { ...state, done: true } };
-    }
-    return { done: false, state: { ...state, max: Math.max(state.max, nextIn.value) } };
-  },
-  () => ({ done: false, max: -Infinity }),
-);
+const max = () =>
+  powerMap<number, number, { done: boolean; max: number }>(
+    (nextIn, state) => {
+      if (state.done) {
+        return { done: true };
+      } else if (nextIn.done) {
+        return {
+          done: false,
+          value: state.max,
+          state: { ...state, done: true },
+        };
+      }
+      return {
+        done: false,
+        state: { ...state, max: Math.max(state.max, nextIn.value) },
+      };
+    },
+    () => ({ done: false, max: -Infinity })
+  );
 
-export {
-  max,
-}
+export { max };

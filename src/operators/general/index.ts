@@ -1,37 +1,37 @@
-export * from './dedup';
+export * from "./dedup";
 
-export * from './filter';
+export * from "./filter";
 
-export * from './flatten';
+export * from "./flatten";
 
-export * from './groupPer';
+export * from "./groupPer";
 
-export * from './intersperse';
+export * from "./intersperse";
 
-export * from './peek';
+export * from "./peek";
 
-export * from './map';
+export * from "./map";
 
-export * from './reduce';
+export * from "./reduce";
 
-export * from './repeatEach';
+export * from "./repeatEach";
 
-export * from './runningReduce';
+export * from "./runningReduce";
 
-export * from './skip';
+export * from "./skip";
 
-export * from './sort';
+export * from "./sort";
 
-export * from './split';
+export * from "./split";
 
-export * from './take';
+export * from "./take";
 
-export * from './takeWhile';
+export * from "./takeWhile";
 
-export * from './tap';
+export * from "./tap";
 
-export * from './uniq';
+export * from "./uniq";
 
-export * from './uniqBy';
+export * from "./uniqBy";
 
-export * from './zip';
+export * from "./zip";

@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Only take 'amount' elements and then stop.
@@ -10,15 +10,15 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const take = itr8OperatorFactory<any, any, number, number>(
-  (nextIn, state, params) => {
-    if (nextIn.done) return { done: true };
-    if (state < params) return { done: false, value: nextIn.value, state: state + 1 };
-    return { done: true };
-  },
-  () => 0,
-);
+const take = <TIn>(count = Infinity) =>
+  powerMap<TIn, TIn, number>(
+    (nextIn, state) => {
+      if (nextIn.done) return { done: true };
+      if (state < count)
+        return { done: false, value: nextIn.value, state: state + 1 };
+      return { done: true };
+    },
+    () => 0
+  );
 
-export {
-  take,
-}
+export { take };

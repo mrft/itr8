@@ -1,53 +1,52 @@
-import { assert } from 'chai';
-import { intersperse, map, takeWhile, tap } from '../operators';
-import { forEach, itr8ToArray, itr8RangeAsync, itr8Pushable, itr8FromIterable } from '../interface';
-import { parseJson } from './parseJson';
-import { pipe } from '..';
-
+import { assert } from "chai";
+import { intersperse, map, takeWhile, tap } from "../operators";
+import {
+  forEach,
+  itr8ToArray,
+  itr8RangeAsync,
+  itr8Pushable,
+  itr8FromIterable,
+} from "../interface";
+import { parseJson } from "./parseJson";
+import { pipe } from "..";
 
 const a: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-const b: string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+const b: string[] = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
 
-describe('peer/parseJson.ts', () => {
-  it('can parse json on an iterator', async () => {
+describe("peer/parseJson.ts", () => {
+  it("can parse json on an iterator", async () => {
     const jsonString = JSON.stringify({
-      a: 'this is A',
+      a: "this is A",
       b: 2,
-      l: ['zero', 'one', 'two', 'three'],
+      l: ["zero", "one", "two", "three"],
     });
 
     assert.deepEqual(
-      await pipe(
-        itr8FromIterable(jsonString),
-        parseJson(['$.b']),
-        itr8ToArray,
-      ),
-      [[2, '$.b']],
+      await pipe(itr8FromIterable(jsonString), parseJson(["$.b"]), itr8ToArray),
+      [[2, "$.b"]]
     );
 
     assert.deepEqual(
       await pipe(
         itr8FromIterable(jsonString),
-        parseJson(['$.l.3']),
-        itr8ToArray,
+        parseJson(["$.l.3"]),
+        itr8ToArray
       ),
-      [
-        ['three', '$.l.3'],
-      ],
+      [["three", "$.l.3"]]
     );
 
     assert.deepEqual(
       await pipe(
         itr8FromIterable(jsonString),
-        parseJson(['$.*.*']),
-        itr8ToArray,
+        parseJson(["$.*.*"]),
+        itr8ToArray
       ),
       [
-        ['zero', '$.l.0'],
-        ['one', '$.l.1'],
-        ['two', '$.l.2'],
-        ['three', '$.l.3'],
-      ],
+        ["zero", "$.l.0"],
+        ["one", "$.l.1"],
+        ["two", "$.l.2"],
+        ["three", "$.l.3"],
+      ]
     );
 
     // console.log('itr8RPushable');
@@ -59,41 +58,39 @@ describe('peer/parseJson.ts', () => {
       pushIt.push(`{ "meta": { "nrOfResults": ${nrOfResults} }, "results": [`);
       await pipe(
         itr8RangeAsync(0, nrOfResults - 1),
-        map((x) => (JSON.stringify({ id: x, name: `prisoner no. ${x}` }))),
-        intersperse(','),
+        map((x) => JSON.stringify({ id: x, name: `prisoner no. ${x}` })),
+        intersperse(","),
         forEach(async (x) => {
           // if (c3 % 100_000 === 0) console.log('pushing', x);
           pushIt.push(x);
           c3++;
-        }),
+        })
       );
-      pushIt.push(']');
+      pushIt.push("]");
       pushIt.done();
-    },
-      1,
-    );
+    }, 1);
     // console.log('======== Setting up foreach on pushIt');
     let counter = 0;
     let failed = false;
     await pipe(
       pushIt,
-      parseJson(['$.results.*.name']),
+      parseJson(["$.results.*.name"]),
       tap((x) => counter++),
       takeWhile((v) => {
-        if (v[0].startsWith('prisoner no. ')) return true;
+        if (v[0].startsWith("prisoner no. ")) return true;
         failed = true;
         return false;
       }),
-      forEach((value) => { // needed for draining the iterator !!!
+      forEach((value) => {
+        // needed for draining the iterator !!!
         // if (counter % 100_000 === 0) console.log('                                            -> forEach', counter, value);
         // if (!failed && !value.startsWith('prisoner no. ')) {
         //   failed = true;
         //   assert.fail('value does not start with ´prisoner no.´ as expected');
         // };
-      }),
+      })
     );
     assert.isFalse(failed);
     assert.equal(counter, nrOfResults);
-
   }).timeout(20_000);
 });

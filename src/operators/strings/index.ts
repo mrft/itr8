@@ -1,3 +1,3 @@
-export * from './lineByLine';
+export * from "./lineByLine";
 
-export * from './stringToChar';
+export * from "./stringToChar";

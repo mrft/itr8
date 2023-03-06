@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Sorts the elements (using the given sort function if provided).
@@ -23,22 +23,28 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const sort = itr8OperatorFactory<any, any, { done: boolean, list: any[] }, ((a: any, b: any) => number) | void>(
-  (nextIn: IteratorResult<any>, state, sortFn) => {
-    if (state.done) {
-      return { done: true };
-    } else if (nextIn.done) {
-      // sort function modifes the state, so this is not 'pure'
-      return { done: false, iterable: state.list.sort(sortFn ? sortFn : undefined), state: { ...state, done: true } };
-    }
-    return { done: false, state: { ...state, list: [...state.list, nextIn.value] } };
-    // bad (but more performant?): modifying state.list instead of returning a new state!
-    // state.list.push(nextIn.value);
-    // return { done: false, state: { ...state, list: state.list /* [...state.list, nextIn.value] */ } };
-  },
-  () => ({ done: false, list: [] }),
-);
+const sort = <TIn>(sortFn?: (a: TIn, b: TIn) => number) =>
+  powerMap<TIn, TIn, { done: boolean; list: TIn[] }>(
+    (nextIn: IteratorResult<any>, state) => {
+      if (state.done) {
+        return { done: true };
+      } else if (nextIn.done) {
+        // sort function modifes the state, so this is not 'pure'
+        return {
+          done: false,
+          iterable: state.list.sort(sortFn ? sortFn : undefined),
+          state: { ...state, done: true },
+        };
+      }
+      return {
+        done: false,
+        state: { ...state, list: [...state.list, nextIn.value] },
+      };
+      // bad (but more performant?): modifying state.list instead of returning a new state!
+      // state.list.push(nextIn.value);
+      // return { done: false, state: { ...state, list: state.list /* [...state.list, nextIn.value] */ } };
+    },
+    () => ({ done: false, list: [] })
+  );
 
-export {
-  sort,
-}
+export { sort };

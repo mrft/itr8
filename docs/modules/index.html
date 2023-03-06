@@ -37,7 +37,7 @@
 </li>
 <li><strong>utility</strong> functions: functions used to implement the rest of the library that culd be used by others to help them write their own &#39;operators&#39;<ul>
 <li><code>isPromise</code></li>
-<li><code>itr8OperatorFactory</code>: build your own operators easily</li>
+<li><code>powerMap operator</code>: build your own operators easily</li>
 <li><code>forLoop</code>: do a <code>for (init; check; after) {}</code> loop, regardless whether init and/or check and/or after is asynchronous or not</li>
 <li><code>compose</code>: chain functions together, passing the output of the first as input of the next (so you can read from left to right)</li>
 <li><code>thenable</code>: write the same code, regardless whether the input is a promise or a regular value</li>
@@ -81,7 +81,7 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 </ul>
 </div></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/mrft/itr8/blob/a165d0d/src/index.ts#L64">index.ts:64</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/mrft/itr8/blob/32745c8/src/index.ts#L64">index.ts:64</a></li></ul></aside>
 <section class="tsd-panel-group">
 <section class="tsd-panel tsd-typography"></section></section>
 <section class="tsd-panel-group tsd-index-group">
@@ -115,7 +115,6 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 <a href="index.html#itr8FromString" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>itr8<wbr/>From<wbr/>String</span></a>
 <a href="index.html#itr8FromStringAsync" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>itr8<wbr/>From<wbr/>String<wbr/>Async</span></a>
 <a href="index.html#itr8Interval" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>itr8<wbr/>Interval</span></a>
-<a href="index.html#itr8OperatorFactory" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>itr8<wbr/>Operator<wbr/>Factory</span></a>
 <a href="index.html#itr8Pipe" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>itr8<wbr/>Pipe</span></a>
 <a href="index.html#itr8Pushable" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>itr8<wbr/>Pushable</span></a>
 <a href="index.html#itr8Range" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>itr8<wbr/>Range</span></a>
@@ -156,11 +155,15 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 <a href="index.html#zip" class="tsd-index-link tsd-kind-reference tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg><span>zip</span></a>
 </div></section>
 <section class="tsd-index-section">
-<h3 class="tsd-index-heading">Type Aliases</h3>
+<h3 class="tsd-index-heading">Type Aliases - Other</h3>
 <div class="tsd-index-list"><a href="../types/index.TNextFnResult.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-4194304-path"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)" id="icon-4194304-text"></path></svg><span>TNext<wbr/>Fn<wbr/>Result</span></a>
 <a href="../types/index.TPipeable.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>TPipeable</span></a>
 <a href="../types/index.TPushable.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>TPushable</span></a>
 <a href="../types/index.TTransIteratorSyncOrAsync.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>TTrans<wbr/>Iterator<wbr/>Sync<wbr/>Or<wbr/>Async</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Type Aliases - util</h3>
+<div class="tsd-index-list"><a href="../types/index.TThenable.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>TThenable</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>References</h2>
@@ -212,8 +215,6 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 <h3 class="tsd-anchor-link"><span>itr8<wbr/>From<wbr/>String<wbr/>Async</span><a href="#itr8FromStringAsync" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>Re-exports <a href="../functions/interface.itr8FromStringAsync.html">itr8FromStringAsync</a></section>
 <section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="itr8Interval" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>itr8<wbr/>Interval</span><a href="#itr8Interval" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>Re-exports <a href="../functions/interface.itr8Interval.html">itr8Interval</a></section>
-<section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="itr8OperatorFactory" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>itr8<wbr/>Operator<wbr/>Factory</span><a href="#itr8OperatorFactory" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>Re-exports <a href="../functions/util.itr8OperatorFactory.html">itr8OperatorFactory</a></section>
 <section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="itr8Pipe" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>itr8<wbr/>Pipe</span><a href="#itr8Pipe" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>Re-exports <a href="../functions/util.itr8Pipe.html">itr8Pipe</a></section>
 <section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module"><a id="itr8Pushable" class="tsd-anchor"></a>
@@ -343,7 +344,6 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#itr8FromString" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>itr8<wbr/>From<wbr/>String</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#itr8FromStringAsync" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>itr8<wbr/>From<wbr/>String<wbr/>Async</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#itr8Interval" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>itr8<wbr/>Interval</a></li>
-<li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#itr8OperatorFactory" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>itr8<wbr/>Operator<wbr/>Factory</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#itr8Pipe" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>itr8<wbr/>Pipe</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#itr8Pushable" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>itr8<wbr/>Pushable</a></li>
 <li class="tsd-kind-reference tsd-parent-kind-module"><a href="index.html#itr8Range" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8388608-path"></use><use href="#icon-8388608-text"></use></svg>itr8<wbr/>Range</a></li>
@@ -385,6 +385,7 @@ so &#39;filter&#39; is the operator, and the function it produces is the transIt
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/index.TNextFnResult.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>TNext<wbr/>Fn<wbr/>Result</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/index.TPipeable.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>TPipeable</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/index.TPushable.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>TPushable</a></li>
+<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/index.TThenable.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>TThenable</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/index.TTransIteratorSyncOrAsync.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>TTrans<wbr/>Iterator<wbr/>Sync<wbr/>Or<wbr/>Async</a></li></ul></nav></div></div>
 <div class="container tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>

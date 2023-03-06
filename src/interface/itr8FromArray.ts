@@ -12,11 +12,7 @@ import { itr8FromIterator } from "./itr8FromIterator";
  * @category interface/standard
  */
 function itr8FromArray<T>(a: Array<T>): TPipeable & IterableIterator<T> {
-  return itr8FromIterator(
-    a[Symbol.iterator]()
-  );
+  return itr8FromIterator(a[Symbol.iterator]());
 }
 
-export {
-  itr8FromArray,
-}
+export { itr8FromArray };

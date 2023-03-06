@@ -1,3 +1,3 @@
-export * from './gunzip';
+export * from "./gunzip";
 
-export * from './gzip';
+export * from "./gzip";

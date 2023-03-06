@@ -1,5 +1,5 @@
 import { promisify } from "util";
-import * as zlib from 'zlib';
+import * as zlib from "zlib";
 import { map } from "../general/map";
 
 /**
@@ -9,14 +9,17 @@ import { map } from "../general/map";
  *
  * @category operators/coding_decoding
  */
-const gzip = () => map((data:Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string | number) => {
-  if (typeof data === 'number') {
-    return promisify(zlib.gzip)(Buffer.from([data]));
-  } else {
-    return promisify(zlib.gzip)(data);
-  }
-});
+const gzip = () =>
+  map(
+    (
+      data: Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string | number
+    ) => {
+      if (typeof data === "number") {
+        return promisify(zlib.gzip)(Buffer.from([data]));
+      } else {
+        return promisify(zlib.gzip)(data);
+      }
+    }
+  );
 
-export {
-  gzip,
-};
+export { gzip };

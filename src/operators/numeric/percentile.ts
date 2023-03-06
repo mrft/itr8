@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "../general/powerMap";
 
 /**
  * Output the percentile(x)
@@ -22,23 +22,35 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/numeric
  */
-const percentile = itr8OperatorFactory<number, number, { done: boolean, count: number, topArray: number[] }, number>(
-  (nextIn, state, percentage) => {
-    if (state.done) return { done: true };
-    if (nextIn.done) return { done: false, value: state.topArray[0], state: { ...state, done: true } };
-    const newCount = state.count + 1;
-    const newTopArraySize = Math.floor((100 - percentage) / 100 * newCount) + 1;
-    const newTopArray = [...state.topArray, nextIn.value];
-    newTopArray.sort((a, b) => a - b);
-    while (newTopArraySize < newTopArray.length) {
-      newTopArray.shift();
-    }
-    // console.log('value', nextIn.value, 'percentage', percentage, 'count', state.count, 'newTopArraySize', newTopArraySize, 'state.topArray', state.topArray);
-    return { done: false, state: { ...state, count: newCount, topArray: newTopArray } };
-  },
-  () => ({ done: false, count: 0, topArray: [] }),
-);
+const percentile = (percentage: number) =>
+  powerMap<
+    number,
+    number,
+    { done: boolean; count: number; topArray: number[] }
+  >(
+    (nextIn, state) => {
+      if (state.done) return { done: true };
+      if (nextIn.done)
+        return {
+          done: false,
+          value: state.topArray[0],
+          state: { ...state, done: true },
+        };
+      const newCount = state.count + 1;
+      const newTopArraySize =
+        Math.floor(((100 - percentage) / 100) * newCount) + 1;
+      const newTopArray = [...state.topArray, nextIn.value];
+      newTopArray.sort((a, b) => a - b);
+      while (newTopArraySize < newTopArray.length) {
+        newTopArray.shift();
+      }
+      // console.log('value', nextIn.value, 'percentage', percentage, 'count', state.count, 'newTopArraySize', newTopArraySize, 'state.topArray', state.topArray);
+      return {
+        done: false,
+        state: { ...state, count: newCount, topArray: newTopArray },
+      };
+    },
+    () => ({ done: false, count: 0, topArray: [] })
+  );
 
-export {
-  percentile,
-}
+export { percentile };

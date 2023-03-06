@@ -17,8 +17,10 @@ import { itr8FromIterator } from "./itr8FromIterator";
  *
  * @category interface/standard
  */
-function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T> & TPushable {
-  const buffer:any[] = [];
+function itr8Pushable<T>(
+  bufferSize?: number
+): TPipeable & AsyncIterableIterator<T> & TPushable {
+  const buffer: any[] = [];
 
   let currentResolve;
   // let currentReject;
@@ -32,10 +34,10 @@ function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T
     });
     buffer.push(currentDataPromise);
     while (bufferSize !== undefined && buffer.length > bufferSize + 1) {
-        // remove the oldest one from the buffer
-        buffer.shift();
+      // remove the oldest one from the buffer
+      buffer.shift();
     }
-  }
+  };
 
   createNewCurrentDataPromise();
 
@@ -52,10 +54,10 @@ function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T
         const asyncNext = await firstOfBufferPromise;
         return asyncNext;
       } else {
-        throw new Error('[itr8FromObservable] No elements in the buffer?')
+        throw new Error("[itr8FromObservable] No elements in the buffer?");
       }
     },
-    push: (value:T) => {
+    push: (value: T) => {
       currentResolve({ value });
       createNewCurrentDataPromise();
     },
@@ -66,9 +68,8 @@ function itr8Pushable<T>(bufferSize?:number):TPipeable & AsyncIterableIterator<T
     },
   };
 
-  return itr8FromIterator(retVal as AsyncIterableIterator<T>) as TPipeable & AsyncIterableIterator<T> & { push:(T) => void, done:() => void };
+  return itr8FromIterator(retVal as AsyncIterableIterator<T>) as TPipeable &
+    AsyncIterableIterator<T> & { push: (T) => void; done: () => void };
 }
 
-export {
-  itr8Pushable,
-}
+export { itr8Pushable };

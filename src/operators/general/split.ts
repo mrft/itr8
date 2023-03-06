@@ -1,4 +1,4 @@
-import { itr8OperatorFactory } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * like string.split => output arrays of elements and use the given parameter as a delimiter
@@ -19,21 +19,23 @@ import { itr8OperatorFactory } from "../../util/index";
  *
  * @category operators/general
  */
-const split = itr8OperatorFactory<any, any, any[] | undefined, any>(
-  (nextIn: any, state, delimiter) => {
-    if (nextIn.done) {
-      if (state === undefined) {
-        return { done: true };
+const split = <TIn>(delimiter) =>
+  powerMap<TIn, TIn, TIn[] | null>(
+    (nextIn, state) => {
+      if (nextIn.done) {
+        if (state === null) {
+          return { done: true };
+        }
+        return { done: false, value: state, state: null };
+      } else if (nextIn.value === delimiter) {
+        return { done: false, value: state || [], state: [] };
       }
-      return { done: false, value: state, state: undefined };
-    } else if (nextIn.value === delimiter) {
-      return { done: false, value: state || [], state: [] };
-    }
-    return { done: false, state: [...(state === undefined ? [] : state), nextIn.value] };
-  },
-  () => undefined,
-);
+      return {
+        done: false,
+        state: [...(state === null ? [] : state), nextIn.value],
+      };
+    },
+    () => null
+  );
 
-export {
-  split,
-}
+export { split };

@@ -1,11 +1,11 @@
-import { assert } from 'chai';
-import * as FakeTimers from '@sinonjs/fake-timers';
-import { itr8Pushable, itr8ToArray, pipe } from '../..';
-import { sleep } from '../../testUtils';
-import { throttle } from './throttle';
+import { assert } from "chai";
+import * as FakeTimers from "@sinonjs/fake-timers";
+import { itr8Pushable, itr8ToArray, pipe } from "../..";
+import { sleep } from "../../testUtils";
+import { throttle } from "./throttle";
 
-describe('operators/timeBased/throttle.ts', () => {
-  it('throttle(...) operator works properly', async () => {
+describe("operators/timeBased/throttle.ts", () => {
+  it("throttle(...) operator works properly", async () => {
     const clock = FakeTimers.install(); // don't forget to uninstall the clock in a finally block !
     try {
       const pushIt = itr8Pushable();
@@ -27,20 +27,13 @@ describe('operators/timeBased/throttle.ts', () => {
         pushIt.done();
       });
 
-      const resultPromise = pipe(
-        pushIt,
-        throttle(3 * 5),
-        itr8ToArray,
-      );
+      const resultPromise = pipe(pushIt, throttle(3 * 5), itr8ToArray);
 
       // now run all the clock ticks
       await clock.runAllAsync();
 
       // and then run the assertions
-      assert.deepEqual(
-        await resultPromise,
-        [1, 4, 7],
-      );
+      assert.deepEqual(await resultPromise, [1, 4, 7]);
     } finally {
       clock.uninstall();
     }

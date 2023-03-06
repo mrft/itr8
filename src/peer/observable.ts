@@ -1,6 +1,6 @@
-import { Observable, from } from 'rxjs';
-import { TPipeable } from '../types';
-import { itr8Pushable } from '../interface/itr8Pushable';
+import { Observable, from } from "rxjs";
+import { TPipeable } from "../types";
+import { itr8Pushable } from "../interface/itr8Pushable";
 
 /**
  * Turns an Observable into an AsyncIterableIterator,
@@ -11,18 +11,22 @@ import { itr8Pushable } from '../interface/itr8Pushable';
  *
  * @category peer/observable
  */
-function itr8FromObservable<T>(observable:Observable<T>):TPipeable & AsyncIterableIterator<T> {
+function itr8FromObservable<T>(
+  observable: Observable<T>
+): TPipeable & AsyncIterableIterator<T> {
   const retVal = itr8Pushable();
   observable.subscribe({
     next(data) {
       retVal.push(data);
     },
     error(err) {
-      retVal.push(Promise.reject(`[observable] something wrong occurred: ${err}`));
+      retVal.push(
+        Promise.reject(`[observable] something wrong occurred: ${err}`)
+      );
     },
     complete() {
       retVal.done();
-    }
+    },
   });
   return retVal as TPipeable & AsyncIterableIterator<T>;
 
@@ -80,7 +84,9 @@ function itr8FromObservable<T>(observable:Observable<T>):TPipeable & AsyncIterab
  *
  * @category peer/observable
  */
-function itr8ToObservable<T>(iterator:IterableIterator<T> | AsyncIterableIterator<T>):Observable<T> {
+function itr8ToObservable<T>(
+  iterator: IterableIterator<T> | AsyncIterableIterator<T>
+): Observable<T> {
   // const iterable = {
   //   [Symbol.iterator]: () => iterable,
   //   [Symbol.asyncIterator]: () => iterable,
@@ -89,8 +95,4 @@ function itr8ToObservable<T>(iterator:IterableIterator<T> | AsyncIterableIterato
   return from(iterator);
 }
 
-
-export {
-  itr8FromObservable,
-  itr8ToObservable,
-}
+export { itr8FromObservable, itr8ToObservable };

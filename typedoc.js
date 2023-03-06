@@ -4,11 +4,11 @@
 /** @type {import('../../../src').IPluginOptions} */
 module.exports = {
   entryPoints: [
-    './src/interface/index.ts',
-    './src/operators/index.ts',
-    './src/util/index.ts',
-    './src/index.ts',
-    './src/peer/index.ts',
+    "./src/interface/index.ts",
+    "./src/operators/index.ts",
+    "./src/util/index.ts",
+    "./src/index.ts",
+    "./src/peer/index.ts",
   ],
   tsconfig: "./tsconfig.prod.json",
   // the typedoc-plugin-pages can add more pages to the output
@@ -16,8 +16,8 @@ module.exports = {
   pluginPages: {
     pages: [
       {
-        title: 'Roadmap',
-        source: './ROADMAP.md',
+        title: "Roadmap",
+        source: "./ROADMAP.md",
         // children: [
         //   { title: 'Configuration', source: 'configuration.md' },
         // ],

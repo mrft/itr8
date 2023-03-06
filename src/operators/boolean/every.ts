@@ -1,4 +1,5 @@
-import { itr8OperatorFactory, thenable } from "../../util/index";
+import { thenable } from "../../util/index";
+import { powerMap } from "../general/powerMap";
 
 /**
  * Return true if every item returns true on the test function.
@@ -16,21 +17,19 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/boolean
  */
-const every = itr8OperatorFactory<any, any, { done: boolean }, (any) => boolean | Promise<boolean>>(
-  (nextIn, state, filterFn) => {
-    if (state.done) return { done: true };
-    if (nextIn.done) return { done: false, value: true, state: { done: true } };
+const every = <TIn>(filterFn: (TIn) => boolean | Promise<boolean>) =>
+  powerMap<TIn, boolean, { done: boolean }>(
+    (nextIn, state) => {
+      if (state.done) return { done: true };
+      if (nextIn.done)
+        return { done: false, value: true, state: { done: true } };
 
-    return thenable(filterFn(nextIn.value))
-      .then((result) => {
+      return thenable(filterFn(nextIn.value)).then((result) => {
         if (result) return { done: false, state: { done: false } };
         return { done: false, value: result, state: { done: true } };
-      })
-      .src;
-  },
-  () => ({ done: false }),
-);
+      }).src;
+    },
+    () => ({ done: false })
+  );
 
-export {
-  every,
-}
+export { every };

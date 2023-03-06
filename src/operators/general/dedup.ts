@@ -1,4 +1,5 @@
-import { itr8OperatorFactory, thenable } from "../../util/index";
+import { thenable } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Removes consecutive doubles.
@@ -28,24 +29,22 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/general
  */
-const dedup = itr8OperatorFactory<any, any, unknown | undefined, void | ((v:any) => any)>(
-  (nextIn: IteratorResult<any>, state, mapFn) => {
-    if (nextIn.done) {
-      return { done: true };
-    }
+const dedup = <TIn>(mapFn?: (v: TIn) => any) =>
+  powerMap<TIn, boolean, void | TIn>(
+    (nextIn, state) => {
+      if (nextIn.done) {
+        return { done: true };
+      }
 
-    // promise if mapFn is async!
-    const valueToCompare = mapFn ? mapFn(nextIn.value) : nextIn.value;
-    return thenable(valueToCompare).then((v) => {
-      return v !== state
-        ? { done: false, value: nextIn.value, state: v }
-        : { done: false, state: v };
-    })
-    .src
-  },
-  () => undefined,
-);
+      // promise if mapFn is async!
+      const valueToCompare = mapFn ? mapFn(nextIn.value) : nextIn.value;
+      return thenable(valueToCompare).then((v) => {
+        return v !== state
+          ? { done: false, value: nextIn.value, state: v }
+          : { done: false, state: v };
+      }).src;
+    },
+    () => undefined
+  );
 
-export {
-  dedup,
-}
+export { dedup };

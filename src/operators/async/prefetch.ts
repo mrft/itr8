@@ -29,9 +29,11 @@ import { itr8FromIterator } from "../../index";
  * @category operators/async
  */
 const prefetch = (amount: number) => {
-  return <T>(it: Iterator<T> | AsyncIterator<T>):Iterator<T> | AsyncIterator<T> => {
-    let inputs:Array<Promise<IteratorResult<T>> | IteratorResult<T>> = [];
-    let isAsyncInput:boolean;
+  return <T>(
+    it: Iterator<T> | AsyncIterator<T>
+  ): Iterator<T> | AsyncIterator<T> => {
+    let inputs: Array<Promise<IteratorResult<T>> | IteratorResult<T>> = [];
+    let isAsyncInput: boolean;
     const addInputIfNeeded = async () => {
       if (inputs.length < amount) {
         if (isAsyncInput && inputs.length > 0) await inputs[0];
@@ -48,7 +50,7 @@ const prefetch = (amount: number) => {
         }
         inputs.push(next);
       }
-    }
+    };
 
     const retVal = {
       [Symbol.asyncIterator]: () => retVal as AsyncIterableIterator<T>,
@@ -65,15 +67,15 @@ const prefetch = (amount: number) => {
           return firstInput;
         }
         return isAsyncInput
-          ? Promise.resolve({ done: true, value: undefined }) as Promise<IteratorResult<T>>
-          : { done: true, value: undefined } as IteratorResult<T>;
-      }
+          ? (Promise.resolve({ done: true, value: undefined }) as Promise<
+              IteratorResult<T>
+            >)
+          : ({ done: true, value: undefined } as IteratorResult<T>);
+      },
     };
 
     return itr8FromIterator(retVal as any);
-  }
+  };
 };
 
-export {
-  prefetch,
-}
+export { prefetch };

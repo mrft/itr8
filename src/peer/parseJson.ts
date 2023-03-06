@@ -1,6 +1,5 @@
-import { JSONParser, Tokenizer, TokenParser } from '@streamparser/json';
-import { itr8OperatorFactory } from "../util/index";
-
+import { JSONParser, Tokenizer, TokenParser } from "@streamparser/json";
+import { powerMap } from "../operators/general/powerMap";
 
 /**
  * **REMARK**: based upon @streamparser/json, but added as a peer dependency,
@@ -36,79 +35,89 @@ import { itr8OperatorFactory } from "../util/index";
  *
  * @category peer/parseJson
  */
-const parseJson = itr8OperatorFactory<Uint8Array | Buffer | string, Record<string,any>, { parser: typeof JSONParser, common: Record<string, any>, done: boolean }, Array<string>>(
-  (nextIn, state, params) => {
-    if (nextIn.done || state.done) {
-      return { done: true };
-    }
+const parseJson = (params: Array<string>) =>
+  powerMap<
+    Uint8Array | Buffer | string,
+    Record<string, any>,
+    { parser: typeof JSONParser; common: Record<string, any>; done: boolean }
+  >(
+    (nextIn, state) => {
+      if (nextIn.done || state.done) {
+        return { done: true };
+      }
 
-    // don't modify, but return a new state !
-    // but I am going to violate this principle with the state.common property
-    // which will be passed on from state to state, but WILL BE MODIFIED
-    // That is because the parser.onValue method will push its values to state.common.parsedObjects
-    const newState = { ...state };
-    newState.common.parsedObjects = []; // empty again !
-    if (!newState.parser) {
-      const parser = new JSONParser({
-        paths: params, // ['$.*'],
-        // paths: ['$.*.key', '$.*.name'],
+      // don't modify, but return a new state !
+      // but I am going to violate this principle with the state.common property
+      // which will be passed on from state to state, but WILL BE MODIFIED
+      // That is because the parser.onValue method will push its values to state.common.parsedObjects
+      const newState = { ...state };
+      newState.common.parsedObjects = []; // empty again !
+      if (!newState.parser) {
+        const parser = new JSONParser({
+          paths: params, // ['$.*'],
+          // paths: ['$.*.key', '$.*.name'],
 
-        // true seems to use too much memory, and we don't need to keep the parent
-        // we just want to be able to build the 'path'
-        keepStack: false,
-        // stringBufferSize: 0, // set to 0 to don't buffer. Min valid value is 4.
-        // numberBufferSize: 0,
-      });
+          // true seems to use too much memory, and we don't need to keep the parent
+          // we just want to be able to build the 'path'
+          keepStack: false,
+          // stringBufferSize: 0, // set to 0 to don't buffer. Min valid value is 4.
+          // numberBufferSize: 0,
+        });
 
-      parser.onValue = (value, key, parent, stack) => {
-        // console.log('                                 onValue', value);
-        // if (stack.length === 0) /* We are done. Exit. */ return;
-        // By default, the parser keeps all the child elements in memory until the root parent is emitted.
-        // Let's delete the objects after processing them in order to optimize memory.
-        if (Array.isArray(parent)) {
-          parent.shift();
-        } else {
-          delete parent[key]; // don't waste memory
-        }
+        parser.onValue = (value, key, parent, stack) => {
+          // console.log('                                 onValue', value);
+          // if (stack.length === 0) /* We are done. Exit. */ return;
+          // By default, the parser keeps all the child elements in memory until the root parent is emitted.
+          // Let's delete the objects after processing them in order to optimize memory.
+          if (Array.isArray(parent)) {
+            parent.shift();
+          } else {
+            delete parent[key]; // don't waste memory
+          }
 
-        const path = stack.map((si) => '' + (si.key === undefined ? '$' : si.key)).join('.') + '.' + key;
+          const path =
+            stack
+              .map((si) => "" + (si.key === undefined ? "$" : si.key))
+              .join(".") +
+            "." +
+            key;
 
-        // return an array instead of a string for the path?
-        // const {_, substack } = stack;
-        // const pathArray = (substack && substack.map((si) => si.key)) || [];
+          // return an array instead of a string for the path?
+          // const {_, substack } = stack;
+          // const pathArray = (substack && substack.map((si) => si.key)) || [];
 
-        newState.common.parsedObjects.push([value, path]);
+          newState.common.parsedObjects.push([value, path]);
 
-        // remove values from stack
-        for (const s of stack) {
-          // console.log('stack item', s);
-          // eslint-disable-next-line no-prototype-builtins
-          if (stack.hasOwnProperty('value')) delete s.value;
-        }
-      };
-      parser.onEnd = () => {
-        // console.log('                                 onEnd');
-        newState.done = true;
-      };
+          // remove values from stack
+          for (const s of stack) {
+            // console.log('stack item', s);
+            // eslint-disable-next-line no-prototype-builtins
+            if (stack.hasOwnProperty("value")) delete s.value;
+          }
+        };
+        parser.onEnd = () => {
+          // console.log('                                 onEnd');
+          newState.done = true;
+        };
 
-      newState.parser = parser;
-    }
+        newState.parser = parser;
+      }
 
-    newState.parser.write(nextIn.value);
+      newState.parser.write(nextIn.value);
 
-    if (newState.common.parsedObjects.length > 0) {
-      return { done: false, iterable: newState.common.parsedObjects, state: newState };
-    } else if (newState.done) {
-      return { done: true, state: newState };
-    } else {
-      return { done: false, state: newState}
-    }
-  },
-  () => ({ parser: null, done: false, common: {} })
-);
+      if (newState.common.parsedObjects.length > 0) {
+        return {
+          done: false,
+          iterable: newState.common.parsedObjects,
+          state: newState,
+        };
+      } else if (newState.done) {
+        return { done: true, state: newState };
+      } else {
+        return { done: false, state: newState };
+      }
+    },
+    () => ({ parser: null, done: false, common: {} })
+  );
 
-
-
-export {
-  parseJson,
-}
+export { parseJson };

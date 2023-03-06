@@ -13,7 +13,9 @@ import { itr8Pushable } from "./itr8Pushable";
  *
  * @category interface/standard
  */
-function itr8Interval(intervalMilliseconds:number):TPipeable & AsyncIterableIterator<number> & TPushable {
+function itr8Interval(
+  intervalMilliseconds: number
+): TPipeable & AsyncIterableIterator<number> & TPushable {
   const it = itr8Pushable<number>(Infinity); // infinite buffer !!!
   const interval = setInterval(() => {
     it.push(Date.now());
@@ -22,10 +24,8 @@ function itr8Interval(intervalMilliseconds:number):TPipeable & AsyncIterableIter
   it.done = () => {
     clearInterval(interval);
     return origDone();
-  }
+  };
   return it;
 }
 
-export {
-  itr8Interval,
-}
+export { itr8Interval };

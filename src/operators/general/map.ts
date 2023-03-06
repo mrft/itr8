@@ -1,4 +1,5 @@
-import { itr8OperatorFactory, thenable } from "../../util/index";
+import { thenable } from "../../util/index";
+import { powerMap } from "./powerMap";
 
 /**
  * Translate each element into something else by applying the supplied mapping function
@@ -11,34 +12,34 @@ import { itr8OperatorFactory, thenable } from "../../util/index";
  *
  * @category operators/general
  */
-const map = itr8OperatorFactory<any, any, void, (any) => any>(
-  (nextIn, state, mapFn: (TIn) => any | Promise<any>) => {
-    if (nextIn.done) {
-      return { done: true };
-    } else {
-      return thenable(mapFn(nextIn.value))
-        .then((value) => ({ done: false, value}))
-        .src; // return the 'raw' value or promise, not the 'wrapped' version
+const map = <TIn, TOut>(mapFn: (v: TIn) => TOut | Promise<TOut>) =>
+  powerMap<TIn, TOut, void>(
+    (nextIn, _state) => {
+      if (nextIn.done) {
+        return { done: true };
+      } else {
+        return thenable(mapFn(nextIn.value)).then((value) => ({
+          done: false,
+          value,
+        })).src; // return the 'raw' value or promise, not the 'wrapped' version
 
-      // const nextValOrPromise = mapFn(nextIn.value);
-      // if (isPromise(nextValOrPromise)) {
-      //   return (async () => {
-      //     return {
-      //       done: false,
-      //       value: await nextValOrPromise,
-      //     }
-      //   })();
-      // } else {
-      //   return {
-      //     done: false,
-      //     value: nextValOrPromise,
-      //   }
-      // }
-    }
-  },
-  () => undefined,
-);
+        // const nextValOrPromise = mapFn(nextIn.value);
+        // if (isPromise(nextValOrPromise)) {
+        //   return (async () => {
+        //     return {
+        //       done: false,
+        //       value: await nextValOrPromise,
+        //     }
+        //   })();
+        // } else {
+        //   return {
+        //     done: false,
+        //     value: nextValOrPromise,
+        //   }
+        // }
+      }
+    },
+    () => undefined
+  );
 
-export {
-  map,
-}
+export { map };
