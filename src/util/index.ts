@@ -68,17 +68,19 @@ const AsyncFunction = Object.getPrototypeOf(async function () {
  * ```typescript
  * // the same code can be applied without changes to a promise or a non promise
  * // by doing it all in the then-callback
- * thenable(123).then(
+ * thenable(123)
+ *  .then(
  *    (v) => {
  *      console.log(v);
  *      return getSomeOtherSyncOrAsyncVal(v);
  *    }
- * ).then(
+ *  )
+ *  .then(
  *    (otherVal) => {
  *      console.log(otherVal);
  *      return getYetAnotherVal(v);
  *    }
- * )
+ *  )
  * ```
  *
  * ???
@@ -89,7 +91,6 @@ const AsyncFunction = Object.getPrototypeOf(async function () {
  * or maybe thenable should always return a new object with poerties ```{ src, then, finally, ... }``` so
  * that the interface resembles a promise, but if we need the actual promise or value
  * we should simply call src?
- *
  *
  * @param x a Promise or a regular value
  * @returns an object that has a then function and a src property pointing to the original input
@@ -522,6 +523,7 @@ export {
   compose,
   pipe,
   isPromise,
+  AsyncFunction,
   thenable,
   forLoop,
   // itr8OperatorFactory,

@@ -4,7 +4,6 @@ import * as Stream from "stream";
 import {
   itr8ToArray,
   itr8Range,
-  itr8FromIterator,
   average,
   groupPer,
   take,
@@ -49,6 +48,31 @@ function hrtimeToMilliseconds([seconds, nanoseconds]: [
   return seconds * 1000 + nanoseconds / 1000000;
 }
 
+/**
+ * @param n the prime number you want (the 1st is 2, the 2nd is 3, the 3rd is 5 etc.)
+ * @returns the prime number corresponding to the given index
+ */
+function nthPrime(n: number): number {
+  const primes = [2];
+  let i = 3;
+  let count = 1;
+  while (count < n) {
+    let isPrime = true;
+    for (let j = 0; j < primes.length; j++) {
+      if (i % primes[j] === 0) {
+        isPrime = false;
+        break;
+      }
+    }
+    if (isPrime) {
+      primes.push(i);
+      count++;
+    }
+    i += 2;
+  }
+  return primes[n - 1];
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // The actual test suite starts here
@@ -79,18 +103,22 @@ describe("itr8 test suite", () => {
   describe("General perf and mem tests to prove the concept", () => {
     describe("Check speed", () => {
       it("compare the speed of native arrays with the iterator versions", () => {
-        const rangeMax = 20_000;
-        const myLimit = 200;
+        const rangeMax = 100;
+        const myLimit = 5;
 
+        const nthPrimeCallsIt: number[] = [];
         let resultIt: number[] = [];
         const avgDurationIt = pipe(
-          itr8Range(0, 10),
+          itr8Range(1, 10),
           map((_x) => {
             const start = hrtime();
             resultIt = pipe(
               itr8Range(1, rangeMax),
-              map((x) => x / 2),
-              filter((x) => x % 3 === 0),
+              map((x) => {
+                nthPrimeCallsIt.push(x);
+                return nthPrime(x + 500);
+              }),
+              filter((x) => x % 10 === 3), // only keep the ones ending with 3
               skip(5),
               take(myLimit),
               itr8ToArray
@@ -102,14 +130,18 @@ describe("itr8 test suite", () => {
           (it) => (it.next() as IteratorResult<number>).value
         );
 
+        const nthPrimeCallsArr: number[] = [];
         let resultArr: number[] = [];
         const avgDurationArr = pipe(
-          itr8Range(0, 10),
+          itr8Range(1, 10),
           map((_x) => {
             const start = hrtime();
             resultArr = (itr8ToArray(itr8Range(1, rangeMax)) as number[])
-              .map((x) => x / 2)
-              .filter((x) => x % 3 === 0)
+              .map((x) => {
+                nthPrimeCallsArr.push(x);
+                return nthPrime(x + 500);
+              })
+              .filter((x) => x % 10 === 3) // only keep the ones ending with 3
               .slice(5)
               .slice(0, myLimit);
             const duration = hrtimeToMilliseconds(hrtime(start));
@@ -120,7 +152,7 @@ describe("itr8 test suite", () => {
         );
 
         console.log(
-          "      - [native arrays versus iterators]",
+          "        - [native arrays versus iterators]",
           "itr8 took",
           avgDurationIt,
           `(${resultIt.length} results)`,
@@ -128,13 +160,24 @@ describe("itr8 test suite", () => {
           avgDurationArr,
           `(${resultArr.length} results)`
         );
+        console.log(
+          "        - [native arrays versus iterators]",
+          "itr8 called nthPrime",
+          nthPrimeCallsIt.length,
+          "times",
+          "- array called nthPrime",
+          "itr8 called nthPrime",
+          nthPrimeCallsArr.length,
+          "times"
+        );
 
         assert.equal(resultIt.length, resultArr.length);
         assert.deepEqual(resultIt, resultArr);
+        assert.isBelow(nthPrimeCallsIt.length, nthPrimeCallsArr.length);
 
         // iterators should be faster than creating the intermediate arrays
         assert.isBelow(avgDurationIt, avgDurationArr);
-      }).timeout(2000);
+      }).timeout(1000);
     });
 
     describe("Check a really large set", () => {
@@ -172,7 +215,7 @@ describe("itr8 test suite", () => {
 
         const startIt = hrtime();
         const itSync = pipe(
-          itr8FromIterator(syncGen()),
+          syncGen(),
           take(1_000_000),
           map((x) => (x.startsWith("nine") ? `9: ${x}` : x)),
           groupPer(10)
@@ -184,7 +227,7 @@ describe("itr8 test suite", () => {
         const durationIt = hrtimeToMilliseconds(hrtime(startIt));
 
         console.log(
-          "      - [mem usage for really large set]",
+          "        - [mem usage for really large set]",
           "itr8 took",
           durationIt
         );
@@ -193,7 +236,7 @@ describe("itr8 test suite", () => {
 
         const startItAsync = hrtime();
         const itAsync = pipe(
-          itr8FromIterator(asyncGen()),
+          asyncGen(),
           take(1_000_000),
           map((x) => (x.startsWith("nine") ? `9: ${x}` : x)),
           groupPer(10)

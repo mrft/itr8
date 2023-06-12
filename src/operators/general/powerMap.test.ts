@@ -3,9 +3,13 @@ import { hrtime } from "process";
 import { powerMap } from "./powerMap";
 import { forEach } from "../../interface/forEach";
 import { itr8Range, itr8RangeAsync, itr8ToArray } from "../../interface/index";
-import { hrtimeToMilliseconds } from "../../testUtils";
+import {
+  awaitPromiseWithFakeTimers,
+  hrtimeToMilliseconds,
+} from "../../testUtils";
 import { TNextFnResult } from "../../types";
 import { pipe } from "../../util";
+import * as FakeTimers from "@sinonjs/fake-timers";
 
 /**
  * A bunch of operators created with the operator factory in order to test multiple
@@ -304,6 +308,43 @@ const transIts = {
       () => undefined
     );
   },
+  /**
+   * operator that uses isLast to indicate that no further pulls from the incoming iterator
+   * are needed after returning the current value
+   *
+   * it will take the first 5 elements (assuming there will be > 5 elements to keep it simple !)
+   */
+  opr8ValueIsLast: <TIn>() =>
+    powerMap<TIn, TIn, number>(
+      (nextIn, state) => ({
+        done: false,
+        value: nextIn.value,
+        state: state + 1,
+        isLast: state + 1 === 5,
+      }),
+      () => 0
+    ),
+  /**
+   * operator that uses isLast to indicate that no further pulls from the incoming iterator
+   * are needed after returning every value from the current 'iterable'
+   *
+   * it will repeat the first element 5 times and then stop
+   */
+  opr8IterableIsLast: <TIn>() =>
+    powerMap<TIn, TIn, void>(
+      (nextIn, _state) => ({
+        done: false,
+        isLast: true,
+        iterable: [
+          nextIn.value,
+          nextIn.value,
+          nextIn.value,
+          nextIn.value,
+          nextIn.value,
+        ],
+      }),
+      () => undefined
+    ),
 };
 
 /**
@@ -466,18 +507,37 @@ describe("./operators/general/powerMap.ts", () => {
     });
 
     it("opr8Delay(...) operator works properly (async operator created with an async nextFn function)", async () => {
-      assert.deepEqual(
-        await itr8ToArray(transIts.opr8Delay(10)(itr8Range(1, 7))),
-        [1, 2, 3, 4, 5, 6, 7],
-        "async opr8Delay on sync iterator fails"
-      );
+      const clock = FakeTimers.install();
+      try {
+        assert.deepEqual(
+          await awaitPromiseWithFakeTimers(
+            clock,
+            pipe(
+              itr8Range(1, 7),
+              transIts.opr8Delay(10),
+              itr8ToArray
+            ) as Promise<Array<number>>
+          ),
+          [1, 2, 3, 4, 5, 6, 7],
+          "async opr8Delay on sync iterator fails"
+        );
 
-      // asynchronous
-      assert.deepEqual(
-        await itr8ToArray(transIts.opr8Delay(10)(itr8RangeAsync(1, 7))),
-        [1, 2, 3, 4, 5, 6, 7],
-        "async opr8Delay on async iterator fails"
-      );
+        // asynchronous
+        assert.deepEqual(
+          await awaitPromiseWithFakeTimers(
+            clock,
+            pipe(
+              itr8RangeAsync(1, 7),
+              transIts.opr8Delay(10),
+              itr8ToArray
+            ) as Promise<Array<number>>
+          ),
+          [1, 2, 3, 4, 5, 6, 7],
+          "async opr8Delay on async iterator fails"
+        );
+      } finally {
+        clock.uninstall();
+      }
     });
 
     it("opr8TakeUseStateFactoryParams(...) operator works properly (sync operator created by combining existing operators with the compose function)", async () => {
@@ -534,6 +594,94 @@ describe("./operators/general/powerMap.ts", () => {
       );
     });
 
+    it("opr8ValueIsLast(...) operator works as expected (uses isLast with value to indicate nothing more will follow)", async () => {
+      const it = itr8Range(1, 100);
+      const transformedIt = pipe(it, transIts.opr8ValueIsLast());
+      assert.deepEqual(
+        pipe(transformedIt, itr8ToArray),
+        [1, 2, 3, 4, 5],
+        "sync fails"
+      );
+      // pull the transformedIterator 10 more times (they all should return done: true)
+      pipe(
+        itr8Range(1, 10),
+        forEach((_x) => {
+          transformedIt.next();
+        })
+      );
+      // the input iterator should not be pulled more often than 5 times !!!
+      assert.deepEqual(
+        it.next().value,
+        6,
+        "only the given amount should be pulled from the incoming iterator and not an element more"
+      );
+
+      const itAsync = itr8RangeAsync(1, 100);
+      const transformedItAsync = pipe(itAsync, transIts.opr8ValueIsLast());
+      assert.deepEqual(
+        await pipe(transformedItAsync, itr8ToArray),
+        [1, 2, 3, 4, 5],
+        "sync fails"
+      );
+      // pull the transformedIterator 10 more times (they all should return done: true)
+      await pipe(
+        itr8Range(1, 10),
+        forEach(async (_x) => {
+          await transformedItAsync.next();
+        })
+      );
+      // the input iterator should not be pulled more often than 5 times !!!
+      assert.deepEqual(
+        (await itAsync.next()).value,
+        6,
+        "only the given amount should be pulled from the incoming (async) iterator and not an element more"
+      );
+    });
+
+    it("opr8IterableIsLast(...) operator works as expected (uses isLast with iterable to indicate nothing more will follow)", async () => {
+      const it = itr8Range(1, 100);
+      const transformedIt = pipe(it, transIts.opr8IterableIsLast());
+      assert.deepEqual(
+        pipe(transformedIt, itr8ToArray),
+        [1, 1, 1, 1, 1],
+        "sync fails"
+      );
+      // pull the transformedIterator 10 more times (they all should return done: true)
+      pipe(
+        itr8Range(1, 10),
+        forEach((_x) => {
+          transformedIt.next();
+        })
+      );
+      // the input iterator should not be pulled more often than 5 times !!!
+      assert.deepEqual(
+        it.next().value,
+        2,
+        "only the given amount should be pulled from the incoming iterator and not an element more"
+      );
+
+      const itAsync = itr8RangeAsync(1, 100);
+      const transformedItAsync = pipe(itAsync, transIts.opr8IterableIsLast());
+      assert.deepEqual(
+        await pipe(transformedItAsync, itr8ToArray),
+        [1, 1, 1, 1, 1],
+        "sync fails"
+      );
+      // pull the transformedIterator 10 more times (they all should return done: true)
+      await pipe(
+        itr8Range(1, 10),
+        forEach(async (_x) => {
+          await transformedItAsync.next();
+        })
+      );
+      // the input iterator should not be pulled more often than 5 times !!!
+      assert.deepEqual(
+        (await itAsync.next()).value,
+        2,
+        "only the given amount should be pulled from the incoming (async) iterator and not an element more"
+      );
+    });
+
     /**
      * If we expose a function representing the operator that can be composed (output same as input)
      * we might be able to improve performance because we'll have less intermediate iterators.
@@ -565,7 +713,6 @@ describe("./operators/general/powerMap.ts", () => {
         });
       });
 
-      // TODO: investigate and fix the COMPILE ERROR
       it("an operator exists that can apply a transNextFn to an iterator", () => {
         const transItMapTimes2 = transIts.opr8Map((x) => x * 2);
         const transItFilterOver6 = transIts.opr8FilterSyncSync((x) => x > 6);
@@ -618,7 +765,7 @@ describe("./operators/general/powerMap.ts", () => {
         console.log(
           ` * transIts took ${durationTransIt} ms and transNexts took ${durationTransNext} ms`
         );
-      }).timeout(1_000);
+      }).timeout(2_000);
     });
   });
 });

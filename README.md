@@ -210,6 +210,7 @@ If you ever found yourself in one of these situations, this library might be use
 - HighlandJS is stream based, which makes it NodeJS only (at least without browserify). Also, streams are kind of cumbersome, and the sync and async iterator protocols are dead simple and part of the standard.
 - js-iterator: 'dot-chaining' has the disadvantage that you cannot simply add your own operators
   and I hate this 'you-can-only-do-what-already-exists-in-the library' situation.
+- https://github.com/OliverJAsh/iterable-transformers/ is unfinished.
 
 So, while all these libraries have their merit, none of them covered my needs well enough, so at a certain point things became clear enough in my head to write my own library.
 

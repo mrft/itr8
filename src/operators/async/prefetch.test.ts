@@ -6,7 +6,6 @@ import {
   hrtimeToMilliseconds,
   sleep,
 } from "../../testUtils";
-import { itr8FromIterator } from "../../interface/itr8FromIterator";
 import { prefetch } from "./prefetch";
 import { pipe } from "../../util";
 
@@ -21,7 +20,7 @@ describe("operators/async/prefetch.ts", () => {
           yield await sleep(10, 3);
           yield await sleep(10, 4);
         }
-        return itr8FromIterator(innerIteratorFactory());
+        return innerIteratorFactory();
       };
 
       // by sleeping for a while after the first next() call

@@ -41,9 +41,20 @@ type TNextFnResult<TOut, TState> =
   // { done: true } | ( { done: false, state?: TState } & (Record<string, never> | { value: TOut } | { iterable: Iterable<TOut> | AsyncIterable<TOut> }) )
   | { done: true }
   | { done: false; state?: TState }
-  | ({ done: false; state?: TState } & (
-      | { value: TOut }
-      | { iterable: Iterable<TOut> | AsyncIterable<TOut> }
+  | ({
+      done: false;
+      state?: TState;
+      /** indicates that nothing else should be pulled from the incoming iterator, we're done AFTER this value or iterator */
+      isLast?: boolean;
+    } & ( // | Record<string, never> // empty
+      | {
+          /** returns a single value given the current input iterator value and the state */
+          value: TOut;
+        }
+      | {
+          /** returns multiple values given the current input iterator value and the state */
+          iterable: Iterable<TOut> | AsyncIterable<TOut>;
+        }
     ));
 
 /**

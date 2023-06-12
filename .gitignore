@@ -2,6 +2,8 @@ node_modules
 npm-debug.log
 .env
 .idea
-dist/
 env.js
 .vscode
+# only add these on a version bump (npm run version)
+dist/
+docs/

@@ -14,6 +14,8 @@ export * from "./map";
 
 export * from "./reduce";
 
+export * from "./repeat";
+
 export * from "./repeatEach";
 
 export * from "./runningReduce";

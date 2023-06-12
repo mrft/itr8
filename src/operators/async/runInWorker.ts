@@ -1,8 +1,29 @@
 import { itr8Pushable } from "../../interface";
 
 /**
- * I'd like to create an operator that will take another transiterator as input,
- * and that will run that transiterator in another thread without any hassle.
+ * Can help with writing worker threads in typescript,
+ * by checking if it's being run from ts-node or not.
+ * If it's run from ts-node, it will return the same filename with the .ts or .mts extension
+ * untouched. If it is not run from ts-node, the extension will be replaced with .js or .mjs.
+ *
+ * (found in a comment on a page about using typescript in workers
+ * https://wanago.io/2019/05/06/node-js-typescript-12-worker-threads/#comment-1549)
+ *
+ * @param filename
+ * @returns the translated filename (if running under ts-node, it will return the same filename)
+ */
+const fileResolver = function (filename: string) {
+  // check if code is not running under ts-node
+  if (!process[Symbol.for("ts-node.register.instance")]) {
+    return filename.replace(/\.ts$/, ".js").replace(/\.mts$/, ".mjs");
+  }
+
+  return filename;
+};
+
+/**
+ * I'd like to create an operator that will take another transIterator as input,
+ * and that will run that transIterator in another thread without any hassle.
  * It means that the input iterator's output should be sent to the worker, and the output should
  * be sent back to the main thread.
  *
@@ -80,7 +101,7 @@ import { itr8Pushable } from "../../interface";
 //     )
 //   }).timeout(10_000);
 
-//   it('functionBody of a transiterator that is piped', async () => {
+//   it('functionBody of a transIterator that is piped', async () => {
 //     const transIt = compose(
 //       filter((a) => a > 10),
 //       map((a) => a),

@@ -1,0 +1,82 @@
+services:
+  itr8node12tests:
+    image: itr8node12tests
+    container_name: itr8node12tests
+    user: "node"
+    build:
+      context: ..
+      dockerfile: ./test/Dockerfile
+      target: itr8_on_node12
+    # entrypoint: entrypoint
+    # profiles:
+    #   - profileName
+    working_dir: /home/node/itr8
+    # environment:
+    #   - TEST_INSIDE_DOCKER_SLEEP=0
+    # - NODE_ENV=production # don't do this as dev dependencies will not be installed !!!
+    # volumes:
+    #   - ./:/home/node/app
+    # expose:
+    #   - "8081"
+    # command: ls && ( rm -rf node_modules || echo 'No files to remove') && npm run test
+    command: npm run testInsideDocker
+  itr8node14tests:
+    image: itr8node14tests
+    container_name: itr8node14tests
+    user: "node"
+    build:
+      context: ..
+      dockerfile: ./test/Dockerfile
+      target: itr8_on_node14
+    working_dir: /home/node/itr8
+    # environment:
+    #   - TEST_INSIDE_DOCKER_SLEEP=30
+    command: npm run testInsideDocker
+  itr8node16tests:
+    image: itr8node16tests
+    container_name: itr8node16tests
+    user: "node"
+    build:
+      context: ..
+      dockerfile: ./test/Dockerfile
+      target: itr8_on_node16
+    working_dir: /home/node/itr8
+    # environment:
+    #   - TEST_INSIDE_DOCKER_SLEEP=60
+    command: npm run testInsideDocker
+  itr8node18tests:
+    image: itr8node18tests
+    container_name: itr8node18tests
+    user: "node"
+    build:
+      context: ..
+      dockerfile: ./test/Dockerfile
+      target: itr8_on_node18
+    working_dir: /home/node/itr8
+    # environment:
+    #   - TEST_INSIDE_DOCKER_SLEEP=90
+    command: npm run testInsideDocker
+  itr8node19tests:
+    image: itr8node19tests
+    container_name: itr8node19tests
+    user: "node"
+    build:
+      context: ..
+      dockerfile: ./test/Dockerfile
+      target: itr8_on_node19
+    working_dir: /home/node/itr8
+    # environment:
+    #   - TEST_INSIDE_DOCKER_SLEEP=90
+    command: npm run testInsideDocker
+  itr8node20tests:
+    image: itr8node20tests
+    container_name: itr8node20tests
+    user: "node"
+    build:
+      context: ..
+      dockerfile: ./test/Dockerfile
+      target: itr8_on_node20
+    working_dir: /home/node/itr8
+    # environment:
+    #   - TEST_INSIDE_DOCKER_SLEEP=90
+    command: npm run testInsideDocker

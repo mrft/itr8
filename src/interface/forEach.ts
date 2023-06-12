@@ -31,7 +31,7 @@ import { itr8FromIterable } from "./itr8FromIterable";
 const forEach = function <T = any>(
   handler: (T) => void | Promise<void>,
   options?: { concurrency?: number }
-): (it: Iterator<T> | AsyncIterator<T>) => void {
+): (it: Iterator<T> | AsyncIterator<T>) => void | Promise<void> {
   return (it: Iterator<T>) => {
     const maxRunningHandlers = options?.concurrency || 1;
     const runningHandlers: Set<Promise<void>> = new Set();

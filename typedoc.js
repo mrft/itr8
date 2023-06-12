@@ -1,4 +1,4 @@
-// This is the configuration file for typedoc to knwo how to generate
+// This is the configuration file for typedoc to know how to generate
 // the documentation
 
 /** @type {import('../../../src').IPluginOptions} */

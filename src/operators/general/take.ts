@@ -14,8 +14,15 @@ const take = <TIn>(count = Infinity) =>
   powerMap<TIn, TIn, number>(
     (nextIn, state) => {
       if (nextIn.done) return { done: true };
-      if (state < count)
-        return { done: false, value: nextIn.value, state: state + 1 };
+      if (state < count) {
+        const newState = state + 1;
+        return {
+          done: false,
+          value: nextIn.value,
+          state: newState,
+          isLast: newState == count,
+        };
+      }
       return { done: true };
     },
     () => 0

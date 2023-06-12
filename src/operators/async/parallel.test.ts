@@ -6,7 +6,6 @@ import {
   hrtimeToMilliseconds,
   sleep,
 } from "../../testUtils";
-import { itr8FromIterator } from "../../interface/itr8FromIterator";
 import { parallel } from "./parallel";
 import { pipe } from "../../util";
 import { map } from "../general/map";
@@ -33,7 +32,7 @@ const iteratorFactory = (): AsyncIterableIterator<number> => {
     // yield await sleep(10, 3);
     // yield await sleep(10, 4);
   }
-  return itr8FromIterator(innerIteratorFactory());
+  return innerIteratorFactory();
 };
 
 /**

@@ -19,7 +19,7 @@ import { forLoop, isPromise, thenable } from "../../util";
  *
  * powerMap is an operator that generates a transIterator that
  * will work both on synchronous and asynchronous iterators.
- * The factory needs to be provided with a single function of the form:
+ * The powerMap needs to be provided with a single function of the form:
  *
  * ```typescript
  * (nextOfPreviousIteratorInTheChain, state) => TNextFnResult | Promise<[TNextFnResult]>
@@ -37,11 +37,11 @@ import { forLoop, isPromise, thenable } from "../../util";
  *
  * BEWARE: NEVER MODIFY THE STATE OBJECT (or any of its children!), ALWAYS RETURN A NEW VALUE!
  *
- * Why is the initial state not a simple value,but a function that produces the state?
+ * Why is the initial state not a simple value, but a function that produces the state?
  *  This way, even if nextFn would modify the state, it wouldn't mess with other instances
  *  of the same operator? Because if we'd like to deep clone the initial state ourselves, we might
  *  end up with some complex cases when classes are involved (I hope no one who's interested in
- *  this library will want to use classes in their state, because the library is more 'functional
+ *  this library will want to use classes as their state, because the library is more 'functional
  *  programming' oriented)
  *
  * @typeParam TIn the type of values that the input iterator must produce
@@ -64,6 +64,9 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
   type TOperatorState = {
     state: TState;
     currentOutputIterator: Iterator<TOut> | AsyncIterator<TOut> | undefined;
+    /** Means that we are done after this value or after finishing the currentOutputIterator */
+    isLastOutputIterator: boolean;
+    /** Means that we are done entirely */
     done: boolean;
   };
 
@@ -74,6 +77,7 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
     const operatorState: TOperatorState = {
       state: pState,
       currentOutputIterator: undefined,
+      isLastOutputIterator: false,
       done: false,
     };
 
@@ -137,6 +141,10 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
 
           if (possibleNext.done) {
             operatorState.currentOutputIterator = undefined;
+            if (operatorState.isLastOutputIterator) {
+              operatorState.done = true;
+              return { done: true, value: undefined };
+            }
           } else {
             return possibleNext;
           }
@@ -147,7 +155,7 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
         if (isAsyncInput) {
           return generateNextReturnValAsync(false);
         }
-        const nextIn = nextInPromiseOrValue as IteratorResult<any>;
+        const nextIn = nextInPromiseOrValue as IteratorResult<TIn>;
         const curNextFnResult = nextFn(
           nextIn as IteratorResult<TIn>,
           operatorState.state
@@ -164,6 +172,7 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
           operatorState.done = true;
           return { done: true, value: undefined };
         } else if ("value" in curNextFnResult) {
+          if (curNextFnResult.isLast) operatorState.done = true;
           return { done: false, value: curNextFnResult.value };
         } else if ("iterable" in curNextFnResult) {
           if (operatorState.currentOutputIterator !== undefined)
@@ -173,6 +182,7 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
           operatorState.currentOutputIterator = itr8FromIterable(
             curNextFnResult.iterable
           );
+          operatorState.isLastOutputIterator = !!curNextFnResult.isLast;
           if (operatorState.currentOutputIterator?.next === undefined) {
             throw new Error(
               "Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)"
@@ -214,7 +224,7 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
             alreadyKnownCurrentOutputIteratorNext = undefined; // only the first time !!!
           } else {
             possibleNextValueOrPromise =
-              operatorState.currentOutputIterator.next() as any;
+              operatorState.currentOutputIterator.next();
           }
           const possibleNext = (
             isPromise(possibleNextValueOrPromise)
@@ -224,6 +234,10 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
 
           if (possibleNext.done) {
             operatorState.currentOutputIterator = undefined;
+            if (operatorState.isLastOutputIterator) {
+              operatorState.done = true;
+              return { done: true, value: undefined };
+            }
           } else {
             return possibleNext;
           }
@@ -260,6 +274,7 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
           operatorState.done = true; // make sure we keep returning done
           return { done: curNextFnResult.done, value: undefined };
         } else if ("value" in curNextFnResult) {
+          if (curNextFnResult.isLast) operatorState.done = true;
           return { done: false, value: curNextFnResult.value };
         } else if ("iterable" in curNextFnResult) {
           if (operatorState.currentOutputIterator !== undefined)
@@ -269,6 +284,7 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
           operatorState.currentOutputIterator = itr8FromIterable(
             curNextFnResult.iterable
           );
+          operatorState.isLastOutputIterator = !!curNextFnResult.isLast;
           if (operatorState.currentOutputIterator?.next === undefined) {
             throw new Error(
               "Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)"
@@ -350,6 +366,7 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
     const operatorState: TOperatorState = {
       state: initialStateFactory(),
       currentOutputIterator: undefined,
+      isLastOutputIterator: false,
       done: false,
     };
 
