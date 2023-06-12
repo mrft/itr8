@@ -52,8 +52,8 @@
     "// to 'release' things, we need to use npm version": "npm version patch || npm version minor || npm version major",
     "//": "In summary, you should use a patch version for bug fixes, a minor version for backward-compatible feature additions, and a major version for breaking changes.",
     "preversion": "if [ $(git symbolic-ref --short HEAD) != 'main' ]; then echo '[version] Bumping the version should only be done on the main branch.' && exit 1; fi && npm run build && npm run testOnDocker && npm run builddocs && git add -f dist/ docs/",
-    "version": "if [ $(git symbolic-ref --short HEAD) != 'main' ]; then echo '[version] Bumping the version should only be done on the main branch.' && exit 1; fi && git commit -m 'Bump version' && git tag -a v$(node -p 'require(\"./package.json\").version') -m 'Version v$(node -p \"require(\\\"./package.json\\\").version\")'",
-    "postversion": "if [ $(git symbolic-ref --short HEAD) != 'main' ]; then echo '[version] Bumping the version should only be done on the main branch.' && exit 1; fi && git push && git push --tags && rm -rf dist",
+    "version": "if [ $(git symbolic-ref --short HEAD) != 'main' ]; then echo '[version] Bumping the version should only be done on the main branch.' && exit 1; fi && git commit -m 'Bump version' && NEW_VERSION=$(node -p 'require(\"./package.json\").version') && git tag -a v${NEW_VERSION} -m \"Version v${NEW_VERSION}\"",
+    "postversion": "if [ $(git symbolic-ref --short HEAD) != 'main' ]; then echo '[version] Bumping the version should only be done on the main branch.' && exit 1; fi && git push && git push --tags # && rm -rf dist/ docs/",
     "experiment:version": "if [ $(git symbolic-ref --short HEAD) != 'main' ]; then echo '[version] Bumping the version should only be done on the main branch.' && exit 1; fi && echo 'Hello it works'"
   },
   "keywords": [],
