@@ -19,7 +19,14 @@ services:
     # expose:
     #   - "8081"
     # command: ls && ( rm -rf node_modules || echo 'No files to remove') && npm run test
-    command: npm run testInsideDocker
+    command:
+      > # > denotes a long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        rm -rf node_modules docs dist* package-lock.json &&
+        echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+        npm install --foreground-scripts=true &&
+        npm run testCjsInsideDocker
+      '
   itr8node14tests:
     image: itr8node14tests
     container_name: itr8node14tests
@@ -31,7 +38,14 @@ services:
     working_dir: /home/node/itr8
     # environment:
     #   - TEST_INSIDE_DOCKER_SLEEP=30
-    command: npm run testInsideDocker
+    command: > # long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        rm -rf node_modules docs dist* package-lock.json &&
+        echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+        npm install --foreground-scripts=true &&
+        npm run testInsideDocker &&
+        npm run testCjsInsideDocker
+      '
   itr8node16tests:
     image: itr8node16tests
     container_name: itr8node16tests
@@ -43,7 +57,14 @@ services:
     working_dir: /home/node/itr8
     # environment:
     #   - TEST_INSIDE_DOCKER_SLEEP=60
-    command: npm run testInsideDocker
+    command: > # long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        rm -rf node_modules docs dist* package-lock.json &&
+        echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+        npm install --foreground-scripts=true &&
+        npm run testInsideDocker &&
+        npm run testCjsInsideDocker
+      '
   itr8node18tests:
     image: itr8node18tests
     container_name: itr8node18tests
@@ -55,7 +76,14 @@ services:
     working_dir: /home/node/itr8
     # environment:
     #   - TEST_INSIDE_DOCKER_SLEEP=90
-    command: npm run testInsideDocker
+    command: > # long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        rm -rf node_modules docs dist* package-lock.json &&
+        echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+        npm install --foreground-scripts=true &&
+        npm run testInsideDocker &&
+        npm run testCjsInsideDocker
+      '
   itr8node19tests:
     image: itr8node19tests
     container_name: itr8node19tests
@@ -67,7 +95,14 @@ services:
     working_dir: /home/node/itr8
     # environment:
     #   - TEST_INSIDE_DOCKER_SLEEP=90
-    command: npm run testInsideDocker
+    command: > # long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        rm -rf node_modules docs dist* package-lock.json &&
+        echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+        npm install --foreground-scripts=true &&
+        npm run testInsideDocker &&
+        npm run testCjsInsideDocker
+      '
   itr8node20tests:
     image: itr8node20tests
     container_name: itr8node20tests
@@ -79,4 +114,11 @@ services:
     working_dir: /home/node/itr8
     # environment:
     #   - TEST_INSIDE_DOCKER_SLEEP=90
-    command: npm run testInsideDocker
+    command: > # long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        rm -rf node_modules docs dist* package-lock.json &&
+        echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+        npm install --foreground-scripts=true &&
+        npm run testInsideDocker &&
+        npm run testCjsInsideDocker
+      '

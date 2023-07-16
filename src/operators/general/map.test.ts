@@ -5,8 +5,8 @@ import {
   itr8FromArrayAsync,
   itr8Range,
   itr8RangeAsync,
-} from "../..";
-import { map } from "./map";
+} from "../../index.js";
+import { map } from "./map.js";
 
 describe("operators/general/map.ts", () => {
   it("map(...) operator works properly", async () => {

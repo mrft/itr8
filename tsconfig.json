@@ -1,23 +1,30 @@
 {
   "compilerOptions": {
-    "lib": ["es2018", "DOM"],
-    "target": "es2018",
+    "lib": ["ES2020", "DOM"],
+    "target": "ES2020",
     // "noImplicitAny": true,
     "strictNullChecks": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "module": "CommonJS", // ES2015
+    "module": "ES2020", // "CommonJS", // ES2015
     "sourceMap": true,
     "declaration": true,
-    "esModuleInterop": true
-    // "moduleResolution": "Classis",
+    "esModuleInterop": true,
+    "moduleResolution": "node"
     // "strict": true,
     // "isolatedModules": true,
   },
   "ts-node": {
     "compilerOptions": {
-      "module": "CommonJS"
+      // "lib": ["ES2020", "DOM"],
+      // "target": "ES2020",
+      // "strictNullChecks": true,
+      "module": "ES2020" // "CommonJS", // ES2015
+      // "sourceMap": true,
+      // "declaration": true,
+      // "esModuleInterop": true,
+      // "moduleResolution": "node"
     }
   },
-  "exclude": ["dist", "node_modules", "test"]
+  "exclude": ["dist", "dist_test", "dist_test_cjs", "node_modules", "test"]
 }

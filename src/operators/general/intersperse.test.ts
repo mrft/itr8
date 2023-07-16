@@ -1,6 +1,11 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8FromArray, itr8FromArrayAsync, pipe } from "../..";
-import { intersperse } from "./intersperse";
+import {
+  itr8ToArray,
+  itr8FromArray,
+  itr8FromArrayAsync,
+  pipe,
+} from "../../index.js";
+import { intersperse } from "./intersperse.js";
 
 describe("operators/general/intersperse.ts", () => {
   it("intersperse(...) operator works properly", async () => {

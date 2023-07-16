@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8Range } from "./itr8Range";
-import { itr8ToArray } from "./itr8ToArray";
+import { itr8Range } from "./itr8Range.js";
+import { itr8ToArray } from "./itr8ToArray.js";
 
 describe("interface/itr8Range.ts", () => {
   it("itr8Range(...) can generate a number producing iterator based on start and end indexes (and optionally a step value)", () => {

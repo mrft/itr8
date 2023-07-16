@@ -1,0 +1,18 @@
+{
+  // THIS IS THE CONFIG FOR BUILDING A COMMONJS MODULE TO THE ./dist/cjs FOLDER TO BE RELEASED
+  // (excludes all tests !!!)
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "CommonJS",
+    "outDir": "dist/cjs"
+  },
+  "exclude": [
+    "./dist*",
+    "node_modules",
+    "test",
+    "./src/**/*.test.ts",
+    "./src/**/*.mock.ts",
+    "./src/testUtils"
+  ]
+}

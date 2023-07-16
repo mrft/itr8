@@ -1,4 +1,4 @@
-import { powerMap } from "../general/powerMap";
+import { powerMap } from "../general/powerMap.js";
 
 /**
  * On every item, output the average so far

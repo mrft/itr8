@@ -1,4 +1,4 @@
-import { powerMap } from "./powerMap";
+import { powerMap } from "./powerMap.js";
 
 /**
  * The incoming elements are arrays, and send out each element of the array 1 by one.

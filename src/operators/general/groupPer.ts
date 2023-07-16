@@ -1,4 +1,4 @@
-import { powerMap } from "./powerMap";
+import { powerMap } from "./powerMap.js";
 
 /**
  * Group the incoming elements so the output iterator will return arrays/tuples of a certain size.

@@ -1,0 +1,7 @@
+{
+  "node-option": [
+    "max-old-space-size=150",
+    "experimental-specifier-resolution=node",
+    "loader=ts-node/esm"
+  ]
+}

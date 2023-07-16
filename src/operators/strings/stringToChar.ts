@@ -1,5 +1,5 @@
-import { itr8FromString } from "../../interface/itr8FromString";
-import { powerMap } from "../general/powerMap";
+import { itr8FromString } from "../../interface/itr8FromString.js";
+import { powerMap } from "../general/powerMap.js";
 
 /**
  * Takes all strings from the input and outputs them as single characters

@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8FromArray, itr8FromArrayAsync } from "../..";
-import { flatten } from "./flatten";
+import { itr8ToArray, itr8FromArray, itr8FromArrayAsync } from "../../index.js";
+import { flatten } from "./flatten.js";
 
 describe("operators/general/flatten.ts", () => {
   it("flatten(...) operator works properly", async () => {

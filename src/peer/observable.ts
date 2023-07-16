@@ -1,6 +1,6 @@
 import { Observable, from } from "rxjs";
-import { TPipeable } from "../types";
-import { itr8Pushable } from "../interface/itr8Pushable";
+import { TPipeable } from "../types.js";
+import { itr8Pushable } from "../interface/itr8Pushable.js";
 
 /**
  * Turns an Observable into an AsyncIterableIterator,

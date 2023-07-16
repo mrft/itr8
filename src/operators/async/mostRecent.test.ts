@@ -1,7 +1,7 @@
 import { assert } from "chai";
-import { itr8Pushable, pipe } from "../..";
+import { itr8Pushable, pipe } from "../../index.js";
 import { sleep } from "../../testUtils";
-import { mostRecent } from "./mostRecent";
+import { mostRecent } from "./mostRecent.js";
 
 describe("operators/async/mostRecent.ts", () => {
   it("mostRecent(...) operator works properly", async () => {

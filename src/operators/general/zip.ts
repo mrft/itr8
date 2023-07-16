@@ -1,5 +1,5 @@
-import { thenable } from "../../util";
-import { powerMap } from "./powerMap";
+import { thenable } from "../../util/index.js";
+import { powerMap } from "./powerMap.js";
 
 /**
  * The zip() operator outputs tuples containing 1 element from the first and

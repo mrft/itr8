@@ -1,4 +1,4 @@
-import { powerMap } from "./powerMap";
+import { powerMap } from "./powerMap.js";
 
 /**
  * Only returns unique elements by comparing the result of the mapping function applied

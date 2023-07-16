@@ -1,4 +1,4 @@
-import { powerMap } from "../general/powerMap";
+import { powerMap } from "../general/powerMap.js";
 
 /**
  * Output the average.

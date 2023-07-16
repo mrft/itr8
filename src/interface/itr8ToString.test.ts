@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8ToString } from "./itr8ToString";
+import { itr8ToString } from "./itr8ToString.js";
 
 describe("interface/itr8ToString.ts", () => {
   it("itr8ToString(...) can turn an iterator into a string with an optional join string", () => {

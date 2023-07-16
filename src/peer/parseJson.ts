@@ -1,5 +1,5 @@
 import { JSONParser, Tokenizer, TokenParser } from "@streamparser/json";
-import { powerMap } from "../operators/general/powerMap";
+import { powerMap } from "../operators/general/powerMap.js";
 
 /**
  * **REMARK**: based upon @streamparser/json, but added as a peer dependency,

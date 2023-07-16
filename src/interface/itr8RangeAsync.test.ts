@@ -1,7 +1,7 @@
 import { assert } from "chai";
-import { isPromise } from "../util";
-import { itr8RangeAsync } from "./itr8RangeAsync";
-import { itr8ToArray } from "./itr8ToArray";
+import { isPromise } from "../util/index.js";
+import { itr8RangeAsync } from "./itr8RangeAsync.js";
+import { itr8ToArray } from "./itr8ToArray.js";
 
 describe("interface/.ts", () => {
   it("itr8RangeAsync(...) can generate a number producing iterator based on start and end indexes (and optionally a step value)", async () => {

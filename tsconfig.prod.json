@@ -1,7 +1,12 @@
 {
+  // THIS IS THE CONFIG FOR BUILDING AN ESM MODULE TO THE ./dist FOLDER TO BE RELEASED
+  // (excludes all tests !!!)
   "extends": "./tsconfig",
+  "compilerOptions": {
+    "module": "ES2020"
+  },
   "exclude": [
-    "dist",
+    "./dist*",
     "node_modules",
     "test",
     "./src/**/*.test.ts",

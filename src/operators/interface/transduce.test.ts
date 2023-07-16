@@ -8,14 +8,14 @@ import {
   pipe,
   skip,
   take,
-} from "../..";
-import { transduce } from "./transduce";
+} from "../../index.js";
+import { transduce } from "./transduce.js";
 
-import * as transducersJs from "transducers-js";
+import transducersJs from "transducers-js";
 import { hrtime } from "process";
 import { hrtimeToMilliseconds } from "../../testUtils";
-import { count } from "../numeric/count";
-import { powerMap } from "../general/powerMap";
+import { count } from "../numeric/count.js";
+import { powerMap } from "../general/powerMap.js";
 
 function isReduced(x) {
   return x?.["@@transducer/reduced"]; // (x instanceof Reduced) || (x && x['@@transducer/reduced']);
@@ -75,7 +75,7 @@ describe("operators/interface/transduce.ts", () => {
       [0, 2, 4, 6]
     );
 
-    const startItr8 = hrtime();
+    const startItr8 = hrtime.bigint();
     const [totalItr8] = pipe(
       itr8Range(-50_000, 50_000),
       filter(isEven),
@@ -86,7 +86,7 @@ describe("operators/interface/transduce.ts", () => {
       count(),
       itr8ToArray
     ) as Iterable<number>;
-    const durationItr8 = hrtimeToMilliseconds(hrtime(startItr8));
+    const durationItr8 = Number(hrtime.bigint() - startItr8) / 1_000_000;
 
     console.log(
       "[transduce]       transIterators take",
@@ -95,7 +95,7 @@ describe("operators/interface/transduce.ts", () => {
       totalItr8
     );
 
-    const startTransduce = hrtime();
+    const startTransduce = hrtime.bigint();
     const [totalTransduce] = pipe(
       itr8Range(-50_000, 50_000),
       transduce(
@@ -110,7 +110,8 @@ describe("operators/interface/transduce.ts", () => {
       count(),
       itr8ToArray
     ) as Array<number>;
-    const durationTransduce = hrtimeToMilliseconds(hrtime(startTransduce));
+    const durationTransduce =
+      Number(hrtime.bigint() - startTransduce) / 1_000_000;
 
     console.log(
       "[transduce] TRANSDUCERS          take",
@@ -119,7 +120,7 @@ describe("operators/interface/transduce.ts", () => {
       totalTransduce
     );
 
-    const startItr8Async = hrtime();
+    const startItr8Async = hrtime.bigint();
     const [totalItr8Async] = await pipe(
       itr8RangeAsync(-50_000, 50_000),
       filter(isEven),
@@ -130,7 +131,8 @@ describe("operators/interface/transduce.ts", () => {
       count(),
       itr8ToArray
     );
-    const durationItr8Async = hrtimeToMilliseconds(hrtime(startItr8Async));
+    const durationItr8Async =
+      Number(hrtime.bigint() - startItr8Async) / 1_000_000;
 
     console.log(
       "[transduce] async transIterators take",
@@ -139,7 +141,7 @@ describe("operators/interface/transduce.ts", () => {
       totalItr8Async
     );
 
-    const startTransduceAsync = hrtime();
+    const startTransduceAsync = hrtime.bigint();
     const [totalTransduceAsync] = await pipe(
       itr8RangeAsync(-50_000, 50_000),
       transduce(
@@ -154,9 +156,8 @@ describe("operators/interface/transduce.ts", () => {
       count(),
       itr8ToArray
     );
-    const durationTransduceAsync = hrtimeToMilliseconds(
-      hrtime(startTransduceAsync)
-    );
+    const durationTransduceAsync =
+      Number(hrtime.bigint() - startTransduceAsync) / 1_000_000;
 
     console.log(
       "[transduce] TRANSDUCERS async    take",

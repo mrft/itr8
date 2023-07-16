@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8Range, itr8RangeAsync, itr8ToArray } from "../..";
-import { max } from "./max";
+import { itr8Range, itr8RangeAsync, itr8ToArray } from "../../index.js";
+import { max } from "./max.js";
 
 describe("operators/numeric/max.ts", () => {
   it("max(...) operator works properly", async () => {

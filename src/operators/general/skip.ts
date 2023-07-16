@@ -1,4 +1,4 @@
-import { powerMap } from "./powerMap";
+import { powerMap } from "./powerMap.js";
 
 /**
  * Skip the 'amount' first elements and return all the others unchanged.

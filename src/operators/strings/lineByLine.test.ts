@@ -1,6 +1,11 @@
 import { assert } from "chai";
-import { itr8FromArray, itr8FromArrayAsync, itr8ToArray, pipe } from "../..";
-import { lineByLine } from "./lineByLine";
+import {
+  itr8FromArray,
+  itr8FromArrayAsync,
+  itr8ToArray,
+  pipe,
+} from "../../index.js";
+import { lineByLine } from "./lineByLine.js";
 
 describe("operators/strings/lineByLine.ts", () => {
   it("lineByLine(...) operator works properly", async () => {

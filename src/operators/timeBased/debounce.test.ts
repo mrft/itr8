@@ -1,8 +1,8 @@
 import { assert } from "chai";
-import * as FakeTimers from "@sinonjs/fake-timers";
-import { itr8Pushable, itr8ToArray, pipe } from "../..";
+import FakeTimers from "@sinonjs/fake-timers";
+import { itr8Pushable, itr8ToArray, pipe } from "../../index.js";
 import { sleep } from "../../testUtils";
-import { debounce } from "./debounce";
+import { debounce } from "./debounce.js";
 
 describe("operators/timeBased/debounce.ts", () => {
   it("debounce(...) operator works properly", async () => {

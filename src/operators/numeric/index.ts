@@ -1,15 +1,15 @@
-export * from "./average";
+export * from "./average.js";
 
-export * from "./max";
+export * from "./max.js";
 
-export * from "./min";
+export * from "./min.js";
 
-export * from "./percentile";
+export * from "./percentile.js";
 
-export * from "./runningAverage";
+export * from "./runningAverage.js";
 
-export * from "./runningPercentile";
+export * from "./runningPercentile.js";
 
-export * from "./runningTotal";
+export * from "./runningTotal.js";
 
-export * from "./total";
+export * from "./total.js";

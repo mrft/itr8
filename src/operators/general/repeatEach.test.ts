@@ -5,8 +5,8 @@ import {
   itr8FromArrayAsync,
   itr8Range,
   pipe,
-} from "../..";
-import { repeatEach } from "./repeatEach";
+} from "../../index.js";
+import { repeatEach } from "./repeatEach.js";
 
 describe("operators/general/repeatEach.ts", () => {
   it("repeatEach(...) operator works properly", async () => {

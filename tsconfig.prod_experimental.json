@@ -1,0 +1,18 @@
+{
+  // experiment: override some options in tsconfig in order to make it output
+  // ESM modules
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "module": "es2020",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true
+  },
+  "exclude": [
+    "dist",
+    "node_modules",
+    "test",
+    "./src/**/*.test.ts",
+    "./src/**/*.mock.ts",
+    "./src/testUtils"
+  ]
+}

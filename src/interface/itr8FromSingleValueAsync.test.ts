@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8FromSingleValueAsync } from "./itr8FromSingleValueAsync";
+import { itr8FromSingleValueAsync } from "./itr8FromSingleValueAsync.js";
 
 describe("interface/.ts", () => {
   it("itr8FromSingleValueAsync(...)can turn a single value into an async iterator", async () => {

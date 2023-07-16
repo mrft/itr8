@@ -1,10 +1,15 @@
 import { assert } from "chai";
 import * as Stream from "stream";
 
-import { itr8ToArray, itr8Range, itr8RangeAsync, itr8FromArray } from "../";
-import { itr8FromObservable, itr8ToObservable } from "./observable";
+import {
+  itr8ToArray,
+  itr8Range,
+  itr8RangeAsync,
+  itr8FromArray,
+} from "../index.js";
+import { itr8FromObservable, itr8ToObservable } from "./observable.js";
 import { concatMap, from, of, delay as rxjsDelay } from "rxjs";
-import { itr8ToReadableStream } from "./stream";
+import { itr8ToReadableStream } from "./stream.js";
 
 const a: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const b: string[] = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];

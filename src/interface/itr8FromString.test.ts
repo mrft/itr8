@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8FromString } from "./itr8FromString";
+import { itr8FromString } from "./itr8FromString.js";
 
 describe("interface/itr8FromString.ts", () => {
   it("itr8FromString(...) can turn a string into a sync iterator", () => {

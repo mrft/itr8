@@ -5,5 +5,5 @@ npm-debug.log
 env.js
 .vscode
 # only add these on a version bump (npm run version)
-dist/
+dist*/
 docs/

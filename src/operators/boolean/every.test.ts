@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8Range, itr8RangeAsync, itr8ToArray, pipe } from "../..";
-import { every } from "./every";
+import { itr8Range, itr8RangeAsync, itr8ToArray, pipe } from "../../index.js";
+import { every } from "./every.js";
 
 describe("operators/boolean/every.ts", () => {
   it("every(...) operator works properly", async () => {

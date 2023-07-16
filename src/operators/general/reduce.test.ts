@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8Range, itr8RangeAsync, pipe } from "../..";
-import { reduce } from "./reduce";
+import { itr8ToArray, itr8Range, itr8RangeAsync, pipe } from "../../index.js";
+import { reduce } from "./reduce.js";
 import { sleep } from "../../testUtils";
 
 describe("operators/general/reduce.ts", () => {

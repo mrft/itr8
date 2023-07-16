@@ -1,5 +1,5 @@
-import { TPipeable, TPushable } from "../types";
-import { itr8Pushable } from "./itr8Pushable";
+import { TPipeable, TPushable } from "../types.js";
+import { itr8Pushable } from "./itr8Pushable.js";
 
 /**
  * Returns a (pushable async) iterator that will automatically fire with the Date.now() value

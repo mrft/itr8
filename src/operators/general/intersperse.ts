@@ -1,4 +1,4 @@
-import { powerMap } from "./powerMap";
+import { powerMap } from "./powerMap.js";
 
 /**
  * Intersperse the the argument bewteen each element of the iterator.

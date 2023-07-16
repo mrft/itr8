@@ -2,6 +2,55 @@
 
 This is a bunch of ideas of things to add or change.
 
+## Support the full iterator protocol
+
+### Cleanup methods (return and throw)
+
+The  return(value) method indicates that the caller does not intend to make any more next calls.
+This way the iterator can run any cleanup methods.
+
+The throw(exception) indicates the caller detects an error condition, which also indicates that
+no more next calls will follow.
+
+My first intuition says that we'd need to improve the powerMap operator, catching any errors in the
+handler, in order to call throw() on the input iterator, and we also need to add calls to the
+incomoing iterator's return() when we detect that the output oterator is done (if the output
+iterator is done, the input iterator can clean up as well).
+
+We'll also need to propagate these calls to the incoming iterator.
+
+If we create a generic test to check if these functions are called, we can add tests for all
+operators.
+
+### Error handling
+
+It's not clear to me how iterators are supposed to behave on errors.
+Some informaton about it might be found in some gituhub issues online:
+[Info about rejected promises in the async iterator protocol](https://github.com/mdn/content/issues/27636)
+[about error handling](https://github.com/tc39/proposal-async-iterator-helpers/issues/5)
+
+I wanted to create a retry() operator, naively assuming that if the next call's promise is rejected
+we could call next again, but every next call is supposed to return an actual next promise,
+never the same thing twice. Actually, you can call next() a few times without waiting for the
+promises to resolve. This makes a generic retry mechanism in the form of a transIterator impossible.
+
+## Make it usable both in NodeJS and in the browser
+
+Currently we use module: "CommonJS" in tsconfig.json, but ideally it should be ES2015
+or something (an Ecmascript module instead of a CommonJS module),
+so that the compiled typescript code can be used unmodified both in NodeJS and in the
+browser without forcing users to have build tools like webpack or browserify in between.
+
+We could release a 'dual' module, by building the CJS files into a cjs subdirectory, and adding
+another package.json file in there, in order to make sure .js files under this folder are
+interpreted by NodeJS as CommonJS module,instead of Ecmascript Modules. Then, someone who is still
+using CommonJS modules could `require("itr8/cjs")`, whereas everyone else would simply
+`import { ... } from "itr8"`.
+
+TODO: either move the gzip-related operators to the "peer" folder
+(because they are currently NodeJS specific), or use a JS-only implementation of gzip (I remeber finding one).
+I could also drop support for NodeJS < 18 and older browsers and use the more modern [Compression Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API). So maybe it would always be better to keep it out of the core and put it in 'peer'.
+
 ## Entirely remove all OO-style stuff (especially .pipe)
 
 I first implemented a .pipe function on every iterator that the library would return,
@@ -10,7 +59,7 @@ but that makes the iterators returned by the lib 'special' instead of being simp
 This does not make sense if we state that we want to embrace this standard.
 It is also not necessary, because we only need a generic pipe(...) function instead of an object
 method. That way, we can pipe everything (not just things related to this library), and it will
-be easy to replace once the pipe syntax is fanally added to javascript (possibly '|>').
+be easy to replace once the pipe syntax is finally added to javascript (possibly '|>').
 
 So instead of writing.
 
@@ -28,13 +77,39 @@ const timesThree = (x) => x * 3;
 pipe(4, plusOne, timesThree) === timesThree(plusOne(4)); // returns the actual result (15)
 ```
 
-and and a compose function wil also be added to easily create (without executing it) a new function
+and a compose function wil also be added to easily create (without executing it) a new function
 that is the result of applying the second one to the output of the first one.
 
 ```typescript
 const plusOneTimesThree = compose(plusOne, timesThree); // returns a function!
 plusOneTimesThree(4) === 15;
 ```
+
+The current situation of the proposal about the
+[pipe operator in Javascript](https://github.com/tc39/proposal-pipeline-operator), suggests that
+the same thing would become:
+
+```typescript
+4 |> plusOne(%) |> timesThree(%) === timesThree(plusOne(4));
+```
+
+This is unfortunate, as I was hoping that the proposal would gravitate towards the F# pipe operator
+that does not use the underscore to indicate where the value should be passed in.
+
+```typescript
+4 |> plusOne |> timesThree === timesThree(plusOne(4));
+```
+
+It will make using itr8 a lot uglier than with the F# pipe operator...
+
+```typescript
+# Hack pipes
+itr8Range(0,10) |> map(plusOne)(%) |> map(timesThree)(%) |> filter(x => x > 10)(%);
+# F# pipes
+itr8Range(0,10) |> map(plusOne) |> map(timesThree) |> filter(x => x > 10);
+```
+
+but if that bothers anyone, they can keep using the current pipe(...) function.
 
 ## Provide a cli-tool?
 
@@ -56,12 +131,6 @@ zcat "$FILE" | itr8 --filter "a.length" --map "JSON.parse(a)" --map "a.key"
 ## Maybe we can use asciiflow to add some schema's to the documentation?
 
 https://asciiflow.com
-
-## Make it usable both in NodeJS and in the browser
-
-Currently we use modeul: "CommonJS" in tsconfig.json, but ideally it should be ES2015
-so that the compiled typescript code can be used unmodified both in NodeJS and in the
-browser without forcing users to have build tools like webpack or browserify in between.
 
 ## Support the 'official' transducer/transformer spec?
 

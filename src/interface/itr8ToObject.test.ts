@@ -1,6 +1,5 @@
 import { assert } from "chai";
-import { itr8FromArray } from "./itr8FromArray";
-import { itr8ToObject } from "./itr8ToObject";
+import { itr8ToObject } from "./itr8ToObject.js";
 
 describe("interface/itr8ToObject.ts", () => {
   it("itr8ToObject(...) can turn an iterator into an object like Object.fromEntries(...)", async () => {

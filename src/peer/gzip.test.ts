@@ -1,11 +1,9 @@
 import { assert } from "chai";
 import * as fs from "fs";
-import { forEach, pipe } from "../..";
-import { itr8FromStream } from "../../peer/stream";
-import { flatten } from "../general/flatten";
-import { zip } from "../general/zip";
-import { gunzip } from "./gunzip";
-import { gzip } from "./gzip";
+import { forEach, pipe, flatten, zip } from "../index.js";
+import { itr8FromStream } from "./stream.js";
+import { gzip } from "./gzip.js";
+import { gunzip } from "./gunzip.js";
 
 describe("operators/coding_decoding/gzip.ts", () => {
   it("gzip(...) operator works properly", async () => {

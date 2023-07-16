@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8FromStringAsync } from "./itr8FromStringAsync";
+import { itr8FromStringAsync } from "./itr8FromStringAsync.js";
 
 describe("interface/itr8FromStringAsync.ts", () => {
   it("itr8FromStringAsync(...) can turn a string into an async iterator", async () => {

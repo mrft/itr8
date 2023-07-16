@@ -1,8 +1,8 @@
 import { assert } from "chai";
-import * as FakeTimers from "@sinonjs/fake-timers";
-import { itr8Pushable, itr8ToArray, pipe } from "../..";
+import FakeTimers from "@sinonjs/fake-timers";
+import { itr8Pushable, itr8ToArray, pipe } from "../../index.js";
 import { sleep } from "../../testUtils";
-import { throttle } from "./throttle";
+import { throttle } from "./throttle.js";
 
 describe("operators/timeBased/throttle.ts", () => {
   it("throttle(...) operator works properly", async () => {

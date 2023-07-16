@@ -1,4 +1,4 @@
-import { powerMap } from "../general/powerMap";
+import { powerMap } from "../general/powerMap.js";
 
 /**
  * The input must be a stream of characters or strings,

@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8FromSingleValue } from "./itr8FromSingleValue";
+import { itr8FromSingleValue } from "./itr8FromSingleValue.js";
 
 describe("interface/.ts", () => {
   it("itr8FromSingleValue(...) can turn a single value into a sync iterator", () => {

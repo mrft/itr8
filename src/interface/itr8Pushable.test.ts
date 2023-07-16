@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { sleep } from "../testUtils";
-import { itr8Pushable } from "./itr8Pushable";
-import { itr8ToArray } from "./itr8ToArray";
+import { itr8Pushable } from "./itr8Pushable.js";
+import { itr8ToArray } from "./itr8ToArray.js";
 
 describe("interface/itr8Pushable.ts", () => {
   it("itr8Pushable(...) works properly", async () => {

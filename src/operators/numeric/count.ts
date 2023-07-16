@@ -1,4 +1,4 @@
-import { powerMap } from "../general/powerMap";
+import { powerMap } from "../general/powerMap.js";
 
 /**
  * Output a single thing which is the number of elements returned by the incoming iterator.

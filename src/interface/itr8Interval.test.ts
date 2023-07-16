@@ -1,8 +1,8 @@
 import { assert } from "chai";
-import { awaitPromiseWithFakeTimers, sleep } from "../testUtils";
-import { itr8Interval } from "./itr8Interval";
-import { itr8ToArray } from "./itr8ToArray";
-import * as FakeTimers from "@sinonjs/fake-timers";
+import { awaitPromiseWithFakeTimers, sleep } from "../testUtils/index.js";
+import { itr8Interval } from "./itr8Interval.js";
+import { itr8ToArray } from "./itr8ToArray.js";
+import FakeTimers from "@sinonjs/fake-timers";
 
 describe("interface/itr8Interval.ts", () => {
   it("itr8Interval(...) works properly", async () => {

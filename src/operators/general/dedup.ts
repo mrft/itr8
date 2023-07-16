@@ -1,5 +1,5 @@
-import { thenable } from "../../util/index";
-import { powerMap } from "./powerMap";
+import { thenable } from "../../util/index.js";
+import { powerMap } from "./powerMap.js";
 
 /**
  * Removes consecutive doubles.

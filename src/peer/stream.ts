@@ -1,10 +1,10 @@
 import * as Stream from "stream";
-import { isPromise } from "../util";
-import { itr8FromIterator, itr8FromIterable } from "../index";
-import { map } from "../operators/general/map";
-import { stringToChar } from "../operators/strings/stringToChar";
+import { isPromise } from "../util/index.js";
+import { itr8FromIterator, itr8FromIterable } from "../index.js";
+import { map } from "../operators/general/map.js";
+import { stringToChar } from "../operators/strings/stringToChar.js";
 
-import { TPipeable } from "../types";
+import { TPipeable } from "../types.js";
 
 /**
  * Transforms a readable stream into an async itr8.

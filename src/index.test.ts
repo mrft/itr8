@@ -11,7 +11,7 @@ import {
   map,
   filter,
   pipe,
-} from "./";
+} from "./index.js";
 import { hrtime } from "process";
 
 /**
@@ -34,19 +34,6 @@ const arrayToStream = (arr: any[], timeBetweenChunks = 10) => {
 
   return readable;
 };
-
-/**
- * process.hrtime() method can be used to measure execution time, but returns an array
- *
- * @param {Array<Integer>} hrtime tuple [seconds, nanoseconds]
- * @returns the input translated to milliseconds
- */
-function hrtimeToMilliseconds([seconds, nanoseconds]: [
-  number,
-  number
-]): number {
-  return seconds * 1000 + nanoseconds / 1000000;
-}
 
 /**
  * @param n the prime number you want (the 1st is 2, the 2nd is 3, the 3rd is 5 etc.)
@@ -111,7 +98,7 @@ describe("itr8 test suite", () => {
         const avgDurationIt = pipe(
           itr8Range(1, 10),
           map((_x) => {
-            const start = hrtime();
+            const start = hrtime.bigint();
             resultIt = pipe(
               itr8Range(1, rangeMax),
               map((x) => {
@@ -123,7 +110,7 @@ describe("itr8 test suite", () => {
               take(myLimit),
               itr8ToArray
             ) as number[];
-            const duration = hrtimeToMilliseconds(hrtime(start));
+            const duration = Number(hrtime.bigint() - start) / 1_000_000;
             return duration;
           }),
           average(),
@@ -135,7 +122,7 @@ describe("itr8 test suite", () => {
         const avgDurationArr = pipe(
           itr8Range(1, 10),
           map((_x) => {
-            const start = hrtime();
+            const start = hrtime.bigint();
             resultArr = (itr8ToArray(itr8Range(1, rangeMax)) as number[])
               .map((x) => {
                 nthPrimeCallsArr.push(x);
@@ -144,7 +131,7 @@ describe("itr8 test suite", () => {
               .filter((x) => x % 10 === 3) // only keep the ones ending with 3
               .slice(5)
               .slice(0, myLimit);
-            const duration = hrtimeToMilliseconds(hrtime(start));
+            const duration = Number(hrtime.bigint() - start) / 1_000_000;
             return duration;
           }),
           average(),
@@ -165,8 +152,8 @@ describe("itr8 test suite", () => {
           "itr8 called nthPrime",
           nthPrimeCallsIt.length,
           "times",
-          "- array called nthPrime",
-          "itr8 called nthPrime",
+          "-",
+          "array called nthPrime",
           nthPrimeCallsArr.length,
           "times"
         );
@@ -213,7 +200,7 @@ describe("itr8 test suite", () => {
           }
         }
 
-        const startIt = hrtime();
+        const startIt = hrtime.bigint();
         const itSync = pipe(
           syncGen(),
           take(1_000_000),
@@ -224,7 +211,7 @@ describe("itr8 test suite", () => {
         for (let x = itSync.next(); !x.done; x = await itSync.next()) {
           syncCounter++;
         }
-        const durationIt = hrtimeToMilliseconds(hrtime(startIt));
+        const durationIt = Number(hrtime.bigint() - startIt) / 1_000_000;
 
         console.log(
           "        - [mem usage for really large set]",
@@ -234,7 +221,7 @@ describe("itr8 test suite", () => {
 
         assert.equal(syncCounter, 100_000);
 
-        const startItAsync = hrtime();
+        const startItAsync = hrtime.bigint();
         const itAsync = pipe(
           asyncGen(),
           take(1_000_000),
@@ -245,7 +232,8 @@ describe("itr8 test suite", () => {
         for (let x = await itAsync.next(); !x.done; x = await itAsync.next()) {
           asyncCounter++;
         }
-        const durationItAsync = hrtimeToMilliseconds(hrtime(startItAsync));
+        const durationItAsync =
+          Number(hrtime.bigint() - startItAsync) / 1_000_000;
 
         console.log(
           "      - [mem usage for really large set]",

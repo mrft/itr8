@@ -1,39 +1,39 @@
-export * from "./dedup";
+export * from "./dedup.js";
 
-export * from "./filter";
+export * from "./filter.js";
 
-export * from "./flatten";
+export * from "./flatten.js";
 
-export * from "./groupPer";
+export * from "./groupPer.js";
 
-export * from "./intersperse";
+export * from "./intersperse.js";
 
-export * from "./peek";
+export * from "./peek.js";
 
-export * from "./map";
+export * from "./map.js";
 
-export * from "./reduce";
+export * from "./reduce.js";
 
-export * from "./repeat";
+export * from "./repeat.js";
 
-export * from "./repeatEach";
+export * from "./repeatEach.js";
 
-export * from "./runningReduce";
+export * from "./runningReduce.js";
 
-export * from "./skip";
+export * from "./skip.js";
 
-export * from "./sort";
+export * from "./sort.js";
 
-export * from "./split";
+export * from "./split.js";
 
-export * from "./take";
+export * from "./take.js";
 
-export * from "./takeWhile";
+export * from "./takeWhile.js";
 
-export * from "./tap";
+export * from "./tap.js";
 
-export * from "./uniq";
+export * from "./uniq.js";
 
-export * from "./uniqBy";
+export * from "./uniqBy.js";
 
-export * from "./zip";
+export * from "./zip.js";

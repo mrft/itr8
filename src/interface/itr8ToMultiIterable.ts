@@ -1,8 +1,7 @@
-import { takeWhile } from "../operators/general/takeWhile";
-import { pipe } from "../util";
-import { forEach } from "./forEach";
-import { itr8FromIterable } from "./itr8FromIterable";
-import { itr8FromIterator } from "./itr8FromIterator";
+import { takeWhile } from "../operators/general/takeWhile.js";
+import { pipe } from "../util/index.js";
+import { forEach } from "./forEach.js";
+import { itr8FromIterator } from "./itr8FromIterator.js";
 
 /**
  * When you want to process the same iterator mutltiple times in different ways
@@ -29,60 +28,71 @@ import { itr8FromIterator } from "./itr8FromIterator";
  */
 function itr8ToMultiIterable<
   T
->(/* abandonedTimeoutMilliseconds = Infinity */): (
-  it: Iterator<T> | AsyncIterator<T>
-) => AsyncIterable<T> {
-  return (it: Iterator<T> | AsyncIterator<T>) => {
-    const subscriberMap: Map<AsyncIterableIterator<T>, number> = new Map();
-    const buffer: Map<number, IteratorResult<T> | Promise<IteratorResult<T>>> =
-      new Map();
+>(it: Iterator<T> | AsyncIterator<T> /*, abandonedTimeoutMilliseconds = Infinity */): AsyncIterable<T> {
+  const subscriberMap: Map<AsyncIterableIterator<T>, number> = new Map();
+  const buffer: Map<number, IteratorResult<T> | Promise<IteratorResult<T>>> =
+    new Map();
 
-    const retVal: AsyncIterable<T> = {
-      [Symbol.asyncIterator]: () => {
-        const outIt: AsyncIterableIterator<T> = {
-          [Symbol.asyncIterator]: () => outIt,
-          next: async () => {
-            const index = subscriberMap.get(outIt) as number;
-            if (!buffer.has(index)) {
-              buffer.set(index, it.next());
-            }
-            // remove old stuff in buffer
-            const minIndex = Math.min(...subscriberMap.values());
-            // Maps are iterated in insertion order !
-            // ['IMPERATIVE' VERSION]
-            // for (const i of buffer.keys()) {
-            //   if (i < minIndex) {
-            //     buffer.delete(i);
-            //   } else {
-            //     break;
-            //   }
-            // }
-            // ['DECLARATIVE' VERSION]
-            pipe(
-              buffer.keys(),
-              takeWhile((i) => i < minIndex),
-              forEach((i) => {
-                buffer.delete(i);
-              })
-            );
-
-            subscriberMap.set(outIt, index + 1);
-            return buffer.get(index) as Promise<IteratorResult<T>>;
-          },
-        };
-
-        // add the new iterator to the subscriberMap
-        subscriberMap.set(
-          outIt,
-          buffer.size === 0 ? 0 : Math.min(...buffer.keys())
+  const retVal: AsyncIterable<T> = {
+    [Symbol.asyncIterator]: () => {
+      /** Helper to remove old elements from buffer that all current subscribers have read */
+      const cleanBuffer = () => {
+        const minIndex = Math.min(...subscriberMap.values());
+        // Maps are iterated in insertion order !
+        // ['IMPERATIVE' VERSION]
+        // for (const i of buffer.keys()) {
+        //   if (i < minIndex) {
+        //     buffer.delete(i);
+        //   } else {
+        //     break;
+        //   }
+        // }
+        // ['DECLARATIVE' VERSION]
+        pipe(
+          buffer.keys(),
+          takeWhile((i) => i < minIndex),
+          forEach((i) => {
+            buffer.delete(i);
+          })
         );
-        // TODO: set a disconnect timeout (we'll need to store the last get time, or the timeout id)
-        return itr8FromIterator(outIt) as AsyncIterator<T>;
-      },
-    };
-    // subscriberMap.set(outIt, buffer.size > 0 ? buffer.values.next().value : 0);
-    return retVal as AsyncIterableIterator<T>;
+      }
+
+      const outIt: AsyncIterableIterator<T> = {
+        [Symbol.asyncIterator]: () => outIt,
+        next: async () => {
+          const index = subscriberMap.get(outIt) as number;
+          if (!buffer.has(index)) {
+            buffer.set(index, it.next());
+          }
+          // remove old stuff in buffer
+          cleanBuffer();
+
+          subscriberMap.set(outIt, index + 1);
+          return buffer.get(index) as Promise<IteratorResult<T>>;
+        },
+        "return": async (value?:T) => {
+          subscriberMap.delete(outIt);
+          cleanBuffer();
+          return { done: true, value };
+        },
+        "throw": async (error?) => {
+          subscriberMap.delete(outIt);
+          cleanBuffer();
+          return { done: true, value: undefined };
+        },
+      };
+
+      // add the new iterator to the subscriberMap
+      subscriberMap.set(
+        outIt,
+        buffer.size === 0 ? 0 : Math.min(...buffer.keys())
+      );
+      // TODO: set a disconnect timeout (we'll need to store the last get time, or the timeout id)
+      return itr8FromIterator(outIt) as AsyncIterator<T>;
+    },
   };
+  // subscriberMap.set(outIt, buffer.size > 0 ? buffer.values.next().value : 0);
+  return retVal as AsyncIterableIterator<T>;
 }
 
 export { itr8ToMultiIterable };

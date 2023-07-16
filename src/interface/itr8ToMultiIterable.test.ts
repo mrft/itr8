@@ -1,11 +1,18 @@
 import { assert } from "chai";
-import { pipe } from "../util";
-import { itr8Range } from "./itr8Range";
-import { itr8ToMultiIterable } from "./itr8ToMultiIterable";
+import { pipe } from "../util/index.js";
+import { itr8Range } from "./itr8Range.js";
+import { itr8ToMultiIterable } from "./itr8ToMultiIterable.js";
+import sinon from "sinon";
 
 describe("interface/itr8ToMultiIterable.ts", () => {
   it("itr8ToMultiIterable(...) works properly", async () => {
-    const subscribeable = pipe(itr8Range(1, 10_000), itr8ToMultiIterable());
+    const it = itr8Range(1, 10_000);
+    it.return = (value?) => ({ done: true, value });
+    it.throw = (error?) => ({ done: true, value: undefined });
+    const returnSpy = sinon.spy(it, "return");
+    const throwSpy = sinon.spy(it, "throw");
+
+    const subscribeable = pipe(it, itr8ToMultiIterable);
 
     const subscriberA = subscribeable[Symbol.asyncIterator]();
     const subscriberB = subscribeable[Symbol.asyncIterator]();
@@ -27,5 +34,6 @@ describe("interface/itr8ToMultiIterable.ts", () => {
     // values that have been served to every subscriber
     const subscriberC = subscribeable[Symbol.asyncIterator](); // should start at 3
     assert.equal((await subscriberC.next()).value, 3);
+
   });
 });

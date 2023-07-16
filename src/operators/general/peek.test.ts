@@ -1,9 +1,13 @@
 import { assert } from "chai";
 import { hrtime } from "process";
 import { hrtimeToMilliseconds, sleep } from "../../testUtils";
-import { peek } from "./peek";
-import { itr8Range, itr8RangeAsync, itr8ToArray } from "../../interface";
-import { pipe } from "../../util";
+import { peek } from "./peek.js";
+import {
+  itr8Range,
+  itr8RangeAsync,
+  itr8ToArray,
+} from "../../interface/index.js";
+import { pipe } from "../../util/index.js";
 
 describe("operators/general/peek.ts", () => {
   it("peek(...) operator works properly", async () => {

@@ -1,5 +1,5 @@
-import { TPipeable } from "../types";
-import { itr8FromIterator } from "./itr8FromIterator";
+import { TPipeable } from "../types.js";
+import { itr8FromIterator } from "./itr8FromIterator.js";
 
 /**
  * Turns a single value into an Iterator that will produce 1 result.

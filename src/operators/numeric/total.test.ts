@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8Range, itr8RangeAsync, itr8ToArray } from "../..";
-import { total } from "./total";
+import { itr8Range, itr8RangeAsync, itr8ToArray } from "../../index.js";
+import { total } from "./total.js";
 
 describe("operators/numeric/total.ts", () => {
   it("total(...) operator works properly", async () => {

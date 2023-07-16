@@ -1,6 +1,11 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8FromArray, itr8FromArrayAsync, pipe } from "../..";
-import { sort } from "./sort";
+import {
+  itr8ToArray,
+  itr8FromArray,
+  itr8FromArrayAsync,
+  pipe,
+} from "../../index.js";
+import { sort } from "./sort.js";
 
 describe("operators/general/sort.ts", () => {
   it("sort(...) operator works properly", async () => {

@@ -1,10 +1,10 @@
-import { itr8FromIterable, itr8FromIterator } from "../../interface";
+import { itr8FromIterable, itr8FromIterator } from "../../interface/index.js";
 import {
   TNextFnResult,
   TPipeable,
   TTransIteratorSyncOrAsync,
-} from "../../types";
-import { forLoop, isPromise, thenable } from "../../util";
+} from "../../types.js";
+import { forLoop, isPromise, thenable } from "../../util/index.js";
 
 /**
  * The powerMap can be used as the base for many many other operators.
@@ -304,9 +304,11 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
      * This method will replace itself with the right method once we know
      * in which case we are (sync, async)
      *
-     * @returns
+     * @returns {IteratorResult<TOut> | Promise<IteratorResult<TOut>>}
      */
-    let generateNextReturnVal = () => {
+    let generateNextReturnVal = ():
+      | IteratorResult<TOut>
+      | Promise<IteratorResult<TOut>> => {
       if (isAsyncInput || isAsyncNextFn) {
         generateNextReturnVal = generateNextReturnValAsync;
       } else {

@@ -69,11 +69,11 @@ export {
   TThenable,
 } from "./types";
 
-export * from "./util/index";
+export * from "./util/index.js";
 
-export * from "./interface/index";
+export * from "./interface/index.js";
 
-export * from "./operators/index";
+export * from "./operators/index.js";
 
 // this file contains only re-exports, no own exports
 export {};

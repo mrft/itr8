@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8Range, itr8RangeAsync, itr8ToArray, pipe } from "../..";
-import { some } from "./some";
+import { itr8Range, itr8RangeAsync, itr8ToArray, pipe } from "../../index.js";
+import { some } from "./some.js";
 
 describe("operators/boolean/some.ts", () => {
   it("some(...) operator works properly", async () => {

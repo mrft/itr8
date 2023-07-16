@@ -1,5 +1,5 @@
-import { TPipeable } from "../types";
-import { itr8FromIterator } from "./itr8FromIterator";
+import { TPipeable } from "../types.js";
+import { itr8FromIterator } from "./itr8FromIterator.js";
 
 /**
  * Gets a wrapped instance of the iterator OR the async iterator from any iterable (including arrays)

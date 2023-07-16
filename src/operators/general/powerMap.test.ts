@@ -1,15 +1,15 @@
 import { assert } from "chai";
-import { hrtime } from "process";
-import { powerMap } from "./powerMap";
-import { forEach } from "../../interface/forEach";
-import { itr8Range, itr8RangeAsync, itr8ToArray } from "../../interface/index";
+import { powerMap } from "./powerMap.js";
+import { forEach } from "../../interface/forEach.js";
 import {
-  awaitPromiseWithFakeTimers,
-  hrtimeToMilliseconds,
-} from "../../testUtils";
+  itr8Range,
+  itr8RangeAsync,
+  itr8ToArray,
+} from "../../interface/index.js";
+import { awaitPromiseWithFakeTimers } from "../../testUtils";
 import { TNextFnResult } from "../../types";
-import { pipe } from "../../util";
-import * as FakeTimers from "@sinonjs/fake-timers";
+import { pipe } from "../../util/index.js";
+import FakeTimers from "@sinonjs/fake-timers";
 
 /**
  * A bunch of operators created with the operator factory in order to test multiple
@@ -732,7 +732,7 @@ describe("./operators/general/powerMap.ts", () => {
           [8, 10]
         );
 
-        const startTransIt = hrtime();
+        const startTransIt = Date.now();
         const maxAndCountTransIt = { max: 0, count: 0 };
         pipe(
           itr8Range(1, 100_000),
@@ -743,9 +743,9 @@ describe("./operators/general/powerMap.ts", () => {
             maxAndCountTransIt.count += 1;
           })
         );
-        const durationTransIt = hrtimeToMilliseconds(hrtime(startTransIt));
+        const durationTransIt = Date.now() - startTransIt;
 
-        const startTransNext = hrtime();
+        const startTransNext = Date.now();
         const maxAndCountTransNext = { max: 0, count: 0 };
         pipe(
           itr8Range(1, 100_000),
@@ -755,7 +755,7 @@ describe("./operators/general/powerMap.ts", () => {
             maxAndCountTransNext.count += 1;
           })
         );
-        const durationTransNext = hrtimeToMilliseconds(hrtime(startTransNext));
+        const durationTransNext = Date.now() - startTransNext;
         assert.deepEqual(maxAndCountTransIt, {
           max: 200_000,
           count: 100_000 - 3,

@@ -1,7 +1,7 @@
 import { assert } from "chai";
-import * as FakeTimers from "@sinonjs/fake-timers";
-import { itr8Range, itr8RangeAsync, itr8ToArray } from "../..";
-import { delay } from "./delay";
+import FakeTimers from "@sinonjs/fake-timers";
+import { itr8Range, itr8RangeAsync, itr8ToArray } from "../../index.js";
+import { delay } from "./delay.js";
 
 describe("operators/timeBased/delay.ts", () => {
   it("delay(...) operator works properly (async operator created with an async nextFn function)", async () => {

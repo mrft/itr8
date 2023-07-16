@@ -1,7 +1,12 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8FromArray, itr8FromArrayAsync, pipe } from "../..";
-import { map } from "./map";
-import { uniqBy } from "./uniqBy";
+import {
+  itr8ToArray,
+  itr8FromArray,
+  itr8FromArrayAsync,
+  pipe,
+} from "../../index.js";
+import { map } from "./map.js";
+import { uniqBy } from "./uniqBy.js";
 
 describe("operators/general/uniqBy.ts", () => {
   it("uniqBy(...) operator works properly", async () => {

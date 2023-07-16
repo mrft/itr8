@@ -1,1 +1,1 @@
-export * from "./transduce";
+export * from "./transduce.js";

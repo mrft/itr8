@@ -1,5 +1,5 @@
-import { thenable } from "../../util/index";
-import { powerMap } from "./powerMap";
+import { thenable } from "../../util/index.js";
+import { powerMap } from "./powerMap.js";
 
 /**
  * Only keep elements where the filter function returns true.
@@ -9,7 +9,7 @@ import { powerMap } from "./powerMap";
  *
  * @category operators/general
  */
-const filter = <TIn>(filterFn: (v: TIn) => boolean) =>
+const filter = <TIn>(filterFn: (v: TIn) => boolean | Promise<boolean>) =>
   powerMap<TIn, TIn, void>(
     (nextIn, _state) => {
       if (nextIn.done) return { done: true };

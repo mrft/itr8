@@ -1,5 +1,5 @@
-import { thenable } from "../../util/index";
-import { powerMap } from "./powerMap";
+import { thenable } from "../../util/index.js";
+import { powerMap } from "./powerMap.js";
 
 /**
  * Translate each element into something else by applying the supplied mapping function

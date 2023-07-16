@@ -1,16 +1,8 @@
 import { assert } from "chai";
-import { hrtime } from "process";
-import {
-  awaitPromiseWithFakeTimers,
-  hrtimeToMilliseconds,
-  sleep,
-} from "../testUtils";
-import { map } from "../operators/general/map";
-import { forEach } from "./forEach";
-import { itr8Range } from "./itr8Range";
-import { itr8RangeAsync } from "./itr8RangeAsync";
-import { pipe } from "../util";
-import * as FakeTimers from "@sinonjs/fake-timers";
+import { awaitPromiseWithFakeTimers, sleep } from "../testUtils/index.js";
+import { map, forEach, itr8Range, itr8RangeAsync, pipe } from "../index.js";
+import FakeTimers from "@sinonjs/fake-timers";
+import sinon from "sinon";
 
 describe("operators/general/forEach.ts", () => {
   describe("forEach(...) method works properly", () => {
@@ -159,13 +151,13 @@ describe("operators/general/forEach.ts", () => {
       const forEachFactory = (resultName: string, sleepTime: number) => {
         const r: any = { values: [], times: [] };
         results[resultName] = r;
-        let start = hrtime();
+        let start = Date.now();
         return async (v) => {
           r.values.push(v);
-          r.times.push(hrtimeToMilliseconds(hrtime(start)));
+          r.times.push(Date.now() - start);
           // simulate our own processing time
           await sleep(sleepTime);
-          start = hrtime();
+          start = Date.now();
         };
       };
 
@@ -194,6 +186,87 @@ describe("operators/general/forEach.ts", () => {
         );
       } finally {
         clock.uninstall();
+      }
+    });
+
+    it("forEach(...) method calls return at the end", async () => {
+      const createItWithReturnAndThrowSpies = (asyncIterator:boolean) => {
+        const it = asyncIterator ? itr8RangeAsync(1, 10) : itr8Range(1, 10);
+        assert.isDefined(it.return);
+        assert.isDefined(it.throw);
+
+        // it.return = (value?) => ({ done: true, value });
+        // it.throw = (error?) => ({ done: true, value: undefined });
+        const returnSpy = sinon.spy(it, "return");
+        const throwSpy = sinon.spy(it, "throw");
+        return { it, returnSpy, throwSpy };
+      };
+
+      /**
+       * Quick helper function to check for all sync/async combinations, whether return
+       * gets called correctly (and throw does not) when the handler is working without
+       * exceptions.
+       * @param asyncIterator 
+       * @param asyncHandler 
+       */
+      const testReturn = async (asyncIterator: boolean, asyncHandler: boolean) => {
+        const flagToWord = new Map([[false, 'Sync'],[true, 'Async']])
+        const msgPrefix = `${flagToWord.get(asyncIterator)} iterator with ${flagToWord.get(asyncHandler)} handler`;
+        const spiedIt = createItWithReturnAndThrowSpies(asyncIterator);
+        await pipe(
+          spiedIt.it,
+          forEach((x) => {
+            const y = x * 3;
+          })
+        );
+        assert.equal(
+          spiedIt.returnSpy.callCount,
+          1,
+          `${msgPrefix}: return() has not been called exactly once`
+        );
+        assert.equal(
+          spiedIt.throwSpy.callCount,
+          0,
+          `${msgPrefix}: throw() has been called while it shouldn't have been`
+        );
+      }
+
+      /**
+       * Quick helper function to check for all sync/async combinations, whether throw
+       * gets called correctly (and return does not) when the handler is throwing an
+       * exception somewhere.
+       * @param asyncIterator 
+       * @param asyncHandler 
+       */
+      const testThrow = async (asyncIterator: boolean, asyncHandler: boolean) => {
+        const flagToWord = new Map([[false, 'Sync'],[true, 'Async']])
+        const msgPrefix = `${flagToWord.get(asyncIterator)} iterator with ${flagToWord.get(asyncHandler)} handler`;
+        const spiedIt = createItWithReturnAndThrowSpies(asyncIterator);
+        try {
+          await pipe(
+            spiedIt.it,
+            forEach((x) => {
+              if (x > 5)
+                throw new Error("I happily crash when the value is > 5");
+            })
+          );
+          assert.fail(`${msgPrefix}: forEach should have thrown an exception`);
+        } catch (e) {}
+        assert.equal(
+          spiedIt.throwSpy.callCount,
+          1,
+          `${msgPrefix}: throw() has not been called exactly once`
+        );
+        assert.equal(
+          spiedIt.returnSpy.callCount,
+          0,
+          `${msgPrefix}: return() has been called while it shouldn't have been`
+        );
+      }
+
+      for (const [flagIt, flagHnd] of [[false, false], [false, true], [true, false], [true, true]]) {
+        await testReturn(flagIt, flagHnd);
+        await testThrow(flagIt, flagHnd);
       }
     });
   });

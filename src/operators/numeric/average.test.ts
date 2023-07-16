@@ -1,6 +1,11 @@
 import { assert } from "chai";
-import { itr8FromArrayAsync, itr8Range, itr8ToArray, pipe } from "../..";
-import { average } from "./average";
+import {
+  itr8FromArrayAsync,
+  itr8Range,
+  itr8ToArray,
+  pipe,
+} from "../../index.js";
+import { average } from "./average.js";
 
 describe("operators/numeric/average.ts", () => {
   it("average(...) operator works properly", async () => {

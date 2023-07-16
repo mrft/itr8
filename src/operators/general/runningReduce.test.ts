@@ -1,7 +1,7 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8Range, itr8RangeAsync, pipe } from "../..";
+import { itr8ToArray, itr8Range, itr8RangeAsync, pipe } from "../../index.js";
 import { sleep } from "../../testUtils";
-import { runningReduce } from "./runningReduce";
+import { runningReduce } from "./runningReduce.js";
 
 describe("operators/general/runningReduce.ts", () => {
   it("runningReduce(...) operator works properly", async () => {

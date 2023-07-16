@@ -6,8 +6,8 @@ import {
   itr8FromArray,
   itr8FromArrayAsync,
   pipe,
-} from "../..";
-import { tap } from "./tap";
+} from "../../index.js";
+import { tap } from "./tap.js";
 
 describe("operators/general/tap.ts", () => {
   it("tap(...) operator works properly", async () => {

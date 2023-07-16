@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8FromArray } from "./itr8FromArray";
+import { itr8FromArray } from "./itr8FromArray.js";
 
 describe("operators/general/itr8FromArray.ts", () => {
   it("itr8FromArray(...) can turn an array into a sync iterator", () => {

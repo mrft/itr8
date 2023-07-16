@@ -1,5 +1,5 @@
-export * from "./debounce";
+export * from "./debounce.js";
 
-export * from "./delay";
+export * from "./delay.js";
 
-export * from "./throttle";
+export * from "./throttle.js";

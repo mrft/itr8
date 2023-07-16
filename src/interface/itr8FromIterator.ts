@@ -1,5 +1,4 @@
-import { TPipeable } from "../types";
-import { pipe } from "../util/index";
+import { TPipeable } from "../types.js";
 
 /**
  * @deprecated Use the pipe(...) and compose(...) functions, so we can leave the

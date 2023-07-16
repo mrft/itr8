@@ -1,11 +1,11 @@
-import { pipe } from "../..";
+import { pipe } from "../../util/index.js";
 import {
   forEach,
   itr8FromIterator,
   itr8FromSingleValue,
   itr8Pushable,
   itr8ToArray,
-} from "../../interface";
+} from "../../interface/index.js";
 import { TPipeable, TPushable, TTransIteratorSyncOrAsync } from "../../types";
 
 /**

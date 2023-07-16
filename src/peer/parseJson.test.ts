@@ -6,8 +6,8 @@ import {
   itr8RangeAsync,
   itr8Pushable,
   itr8FromIterable,
-} from "../interface";
-import { parseJson } from "./parseJson";
+} from "../interface/index.js";
+import { parseJson } from "./parseJson.js";
 import { pipe } from "..";
 
 const a: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];

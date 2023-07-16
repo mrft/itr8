@@ -1,5 +1,5 @@
-import { TPipeable } from "../types";
-import { itr8FromIterable } from "./itr8FromIterable";
+import { TPipeable } from "../types.js";
+import { itr8FromIterable } from "./itr8FromIterable.js";
 
 /**
  * Turns a string into an Iterator that outputs every character of the string separately.

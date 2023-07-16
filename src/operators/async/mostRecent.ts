@@ -1,5 +1,5 @@
-import { isPromise } from "../../util";
-import { itr8FromIterator } from "../../index";
+import { isPromise } from "../../util/index.js";
+import { itr8FromIterator } from "../../index.js";
 
 /**
  * Probably only useful on async iterators.

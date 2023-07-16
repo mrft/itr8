@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8FromArray, itr8FromArrayAsync, itr8ToArray } from "../..";
-import { min } from "./min";
+import { itr8FromArray, itr8FromArrayAsync, itr8ToArray } from "../../index.js";
+import { min } from "./min.js";
 
 describe("operators/numeric/min.ts", () => {
   it("min(...) operator works properly", async () => {

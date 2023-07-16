@@ -1,5 +1,5 @@
-import { isPromise } from "../util";
-import { forEach } from "./forEach";
+import { isPromise } from "../util/index.js";
+import { forEach } from "./forEach.js";
 
 /**
  * Turns an iterator into a single string.

@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8FromArray, itr8FromArrayAsync, itr8ToArray } from "../..";
-import { stringToChar } from "./stringToChar";
+import { itr8FromArray, itr8FromArrayAsync, itr8ToArray } from "../../index.js";
+import { stringToChar } from "./stringToChar.js";
 
 describe("operators/strings/stringToChar.ts", () => {
   it("stringToChar(...) operator works properly", async () => {

@@ -1,25 +1,25 @@
 import { promisify } from "util";
-import { map } from "../general/map";
 import * as zlib from "zlib";
+import { map } from "../operators/general/map.js";
 
 /**
- * GUNZIP the incoming data
+ * GZIP the incoming data
  *
- * @returns a transiterator
+ * @returns a transIterator
  *
  * @category operators/coding_decoding
  */
-const gunzip = () =>
+const gzip = () =>
   map(
     (
       data: Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string | number
     ) => {
       if (typeof data === "number") {
-        return promisify(zlib.gunzip)(Buffer.from([data]));
+        return promisify(zlib.gzip)(Buffer.from([data]));
       } else {
-        return promisify(zlib.gunzip)(data);
+        return promisify(zlib.gzip)(data);
       }
     }
   );
 
-export { gunzip };
+export { gzip };

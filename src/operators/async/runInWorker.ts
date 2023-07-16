@@ -1,4 +1,4 @@
-import { itr8Pushable } from "../../interface";
+import { itr8Pushable } from "../../interface/index.js";
 
 /**
  * Can help with writing worker threads in typescript,

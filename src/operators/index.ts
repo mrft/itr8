@@ -23,18 +23,18 @@
  * @module
  */
 
-export * from "./async/index";
+export * from "./async/index.js";
 
-export * from "./boolean/index";
+export * from "./boolean/index.js";
 
-export * from "./coding_decoding/index";
+export * from "./coding_decoding/index.js";
 
-export * from "./general/index";
+export * from "./general/index.js";
 
-export * from "./numeric/index";
+export * from "./numeric/index.js";
 
 // export * from './parse/index';
 
-export * from "./strings/index";
+export * from "./strings/index.js";
 
-export * from "./timeBased/index";
+export * from "./timeBased/index.js";

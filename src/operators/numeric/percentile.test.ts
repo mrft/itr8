@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8Range, itr8RangeAsync, itr8ToArray, pipe } from "../..";
-import { percentile } from "./percentile";
+import { itr8Range, itr8RangeAsync, itr8ToArray, pipe } from "../../index.js";
+import { percentile } from "./percentile.js";
 
 describe("operators/numeric/percentile.ts", () => {
   it("percentile(...) operator works properly", async () => {

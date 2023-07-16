@@ -1,13 +1,8 @@
 import { assert } from "chai";
-import * as FakeTimers from "@sinonjs/fake-timers";
-import { hrtime } from "process";
-import {
-  awaitPromiseWithFakeTimers,
-  hrtimeToMilliseconds,
-  sleep,
-} from "../../testUtils";
-import { prefetch } from "./prefetch";
-import { pipe } from "../../util";
+import FakeTimers from "@sinonjs/fake-timers";
+import { awaitPromiseWithFakeTimers, sleep } from "../../testUtils";
+import { prefetch } from "./prefetch.js";
+import { pipe } from "../../util/index.js";
 
 describe("operators/async/prefetch.ts", () => {
   it("prefetch(...) operator works properly", async () => {
@@ -34,13 +29,13 @@ describe("operators/async/prefetch.ts", () => {
       ) => {
         const r: any = results[resultName] || { values: [], times: [] };
         results[resultName] = r;
-        let start = hrtime();
+        let start = Date.now();
         return async (v, sleepTime2?: number) => {
           r.values.push(v);
-          r.times.push(hrtimeToMilliseconds(hrtime(start)));
+          r.times.push(Date.now() - start);
           // simulate our own processing time
           await sleep(sleepTime2 !== undefined ? sleepTime2 : sleepTime);
-          start = hrtime();
+          start = Date.now();
         };
       };
 

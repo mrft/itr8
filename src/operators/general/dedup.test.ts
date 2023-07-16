@@ -1,7 +1,12 @@
 import { assert } from "chai";
-import { itr8FromArray, itr8FromArrayAsync, itr8ToArray, pipe } from "../..";
-import { dedup } from "./dedup";
-import { map } from "./map";
+import {
+  itr8FromArray,
+  itr8FromArrayAsync,
+  itr8ToArray,
+  pipe,
+} from "../../index.js";
+import { dedup } from "./dedup.js";
+import { map } from "./map.js";
 
 describe("operators/general/dedup.ts", () => {
   it("dedup(...) operator works properly", async () => {

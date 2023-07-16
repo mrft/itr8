@@ -1,23 +1,17 @@
 import { assert } from "chai";
-import * as FakeTimers from "@sinonjs/fake-timers";
-import { hrtime } from "process";
-import {
-  awaitPromiseWithFakeTimers,
-  hrtimeToMilliseconds,
-  sleep,
-} from "../../testUtils";
-import { parallel } from "./parallel";
-import { pipe } from "../../util";
-import { map } from "../general/map";
-import { tap } from "../general/tap";
+import FakeTimers from "@sinonjs/fake-timers";
+import { awaitPromiseWithFakeTimers, sleep } from "../../testUtils";
+import { parallel } from "./parallel.js";
+import { pipe } from "../../util/index.js";
+import { map } from "../general/map.js";
 import {
   itr8FromArray,
   itr8FromIterable,
   itr8Range,
   itr8ToArray,
-} from "../../interface";
-import { filter } from "../general/filter";
-import { powerMap } from "../general/powerMap";
+} from "../../interface/index.js";
+import { filter } from "../general/filter.js";
+import { powerMap } from "../general/powerMap.js";
 
 /**
  * Produces an iterator that will return 1, 2, 3, 4
@@ -56,17 +50,18 @@ const fnThatStoresResultsFactory = (
   sleepTime: number,
   resultsToBeModified: Record<
     string,
-    { values: any[]; times: number[]; startTime?: [number, number] }
-  >
+    { values: any[]; times: number[]; startTime?: number }
+  >,
+  _clock: FakeTimers.InstalledClock
 ): ((value: number, sleepTime?: number) => Promise<void>) => {
   const r = resultsToBeModified[resultName] || { values: [], times: [] };
   resultsToBeModified[resultName] = r;
   return async (v, sleepTime2: number = sleepTime) => {
-    r.startTime = r.startTime || hrtime(); // startTime is only set on the first call
+    r.startTime = r.startTime || Date.now(); // startTime is only set on the first call
     // simulate our own processing time
-    await sleep(sleepTime2);
+    await sleep(sleepTime2); // clock.tick(sleepTime2);
     r.values.push(v);
-    r.times.push(hrtimeToMilliseconds(hrtime(r.startTime)));
+    r.times.push(Date.now() - r.startTime);
   };
 };
 
@@ -101,15 +96,15 @@ describe("operators/async/parallel.ts", () => {
       let descr: string;
       let f: (value: number, sleepTime?: number) => Promise<void>;
       let iterator;
-      let resultPromise: Promise<any>;
+      // let resultPromise: Promise<any>;
       let result: any;
-      let sleepPromise: Promise<void>;
+      // let sleepPromise: Promise<void>;
 
       // parallel of 4 and processing time of 10
       // should bring the waiting time to 0 after the first one
       descr = "parallel 4 & processing time = 10";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         iteratorFactory(),
         parallel(
@@ -154,7 +149,7 @@ describe("operators/async/parallel.ts", () => {
       // should bring the waiting time to 0 after the first one, but again 10 on the third
       descr = "parallel 3 & processing time = 10";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         iteratorFactory(),
         parallel(
@@ -197,7 +192,7 @@ describe("operators/async/parallel.ts", () => {
       // should change the order of the results, but not the order of the output!
       descr = "parallel 4 & processing times = 10, 30, 50";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         itr8Range(50, 10, 20),
         parallel(
@@ -308,7 +303,7 @@ describe("operators/async/parallel.ts", () => {
       // should bring the waiting time to 0 after the first one
       descr = "parallel 4 & processing time = 10 & repeatEach = 2";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         iteratorFactory(),
         parallel(
@@ -353,7 +348,7 @@ describe("operators/async/parallel.ts", () => {
       // should bring the waiting time to 0 after the first one, but again 10 on the third
       descr = "parallel 3 & processing time = 10";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         iteratorFactory(),
         parallel(
@@ -395,7 +390,7 @@ describe("operators/async/parallel.ts", () => {
       // should change the order of the results, but not the order of the output!
       descr = "parallel 4 & processing times = 10, 30, 50";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         itr8Range(50, 10, 20),
         parallel(
@@ -451,7 +446,7 @@ describe("operators/async/parallel.ts", () => {
       // the last ones (having a shorter processing time) may not overtake the first elements
       descr = "parallel 4 & processing time = a multiple of 10";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         itr8FromArray([35, 30, 25, 20, 15, 10, 5, 0]),
         parallel(
@@ -495,7 +490,7 @@ describe("operators/async/parallel.ts", () => {
       // should bring the waiting time to 0 after the first one, but again 10 on the third
       descr = "parallel 3 & processing time = 10";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         iteratorFactory(),
         parallel(
@@ -537,7 +532,7 @@ describe("operators/async/parallel.ts", () => {
       // should change the order of the results, but not the order of the output!
       descr = "parallel 4 & processing times = 10, 30, 50";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         itr8Range(50, 10, 20),
         parallel(
@@ -598,7 +593,7 @@ describe("operators/async/parallel.ts", () => {
       // bacause the faster ones will overtake the slower ones
       descr = "parallel 4 & processing times = 10, 30, 50";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         itr8FromIterable([50, 30, 10]),
         parallel(
@@ -641,7 +636,7 @@ describe("operators/async/parallel.ts", () => {
       // bacause the faster ones will overtake the slower ones (but the nr of lanes is limited!)
       descr = "parallel 2 & processing times = 50, 30, 30 & keepOrder = false";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         itr8FromIterable([50, 30, 30]),
         parallel(
@@ -697,7 +692,7 @@ describe("operators/async/parallel.ts", () => {
       // the last ones (having a shorter processing time) will overtake the first elements
       descr = "parallel 4 & processing time = a multiple of 10";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         itr8FromArray([35, 30, 25, 20, 15, 10, 5, 0]),
         parallel(
@@ -739,7 +734,7 @@ describe("operators/async/parallel.ts", () => {
       // the last ones (having a shorter processing time) will overtake the first elements
       descr = "parallel 2 & A,B,C,.. with specified processing times";
       // console.log(descr);
-      f = fnThatStoresResultsFactory(descr, 10, results);
+      f = fnThatStoresResultsFactory(descr, 10, results, clock);
       iterator = pipe(
         itr8FromArray<[string, number]>([
           ["A", 30],

@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8FromArrayAsync } from "./itr8FromArrayAsync";
+import { itr8FromArrayAsync } from "./itr8FromArrayAsync.js";
 
 describe("interface/itr8FromArrayAsync.ts", () => {
   it("itr8FromArrayAsync(...) can turn an array into an async iterator", async () => {

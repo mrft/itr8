@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "CommonJS",
+    "rootDir": ".",
+    "outDir": "dist_test_cjs"
+  },
+  "exclude": ["dist", "dist_test", "dist_test_cjs", "node_modules"]
+}

@@ -6,8 +6,8 @@ import {
   itr8FromArray,
   itr8FromArrayAsync,
   pipe,
-} from "../..";
-import { uniq } from "./uniq";
+} from "../../index.js";
+import { uniq } from "./uniq.js";
 
 describe("operators/general/uniq.ts", () => {
   it("uniq(...) operator works properly", async () => {

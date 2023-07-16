@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8FromArray, itr8FromArrayAsync } from "../..";
-import { split } from "./split";
+import { itr8ToArray, itr8FromArray, itr8FromArrayAsync } from "../../index.js";
+import { split } from "./split.js";
 
 describe("operators/general/split.ts", () => {
   it("split(...) operator works properly", async () => {

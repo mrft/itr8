@@ -1,5 +1,5 @@
-export * from "./mostRecent";
+export * from "./mostRecent.js";
 
-export * from "./prefetch";
+export * from "./prefetch.js";
 
-export * from "./parallel";
+export * from "./parallel.js";

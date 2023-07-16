@@ -1,5 +1,5 @@
-import { TPipeable, TPushable } from "../types";
-import { itr8FromIterator } from "./itr8FromIterator";
+import { TPipeable, TPushable } from "../types.js";
+import { itr8FromIterator } from "./itr8FromIterator.js";
 
 /**
  * Creates an AsyncIterableIterator, that also exposes

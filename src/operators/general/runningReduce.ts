@@ -1,5 +1,5 @@
-import { thenable } from "../../util/index";
-import { powerMap } from "./powerMap";
+import { thenable } from "../../util/index.js";
+import { powerMap } from "./powerMap.js";
 
 /**
  * The runnigReduce() method executes a user-supplied "reducer" callback function on each element of

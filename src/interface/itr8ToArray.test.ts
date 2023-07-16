@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { itr8ToArray } from "./itr8ToArray";
+import { itr8ToArray } from "./itr8ToArray.js";
 
 describe("interface/itr8ToArray.ts", () => {
   it("itr8ToArray(...) can turn an iterator into an array", () => {

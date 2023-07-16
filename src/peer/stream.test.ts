@@ -8,9 +8,9 @@ import {
   itr8FromArray,
   lineByLine,
   pipe,
-} from "../";
-import { count } from "../operators/numeric/count";
-import { itr8ToReadableStream, itr8FromStdin } from "./stream";
+} from "../index.js";
+import { count } from "../operators/numeric/count.js";
+import { itr8ToReadableStream, itr8FromStdin } from "./stream.js";
 
 const a: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const b: string[] = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];

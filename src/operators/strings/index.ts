@@ -1,3 +1,3 @@
-export * from "./lineByLine";
+export * from "./lineByLine.js";
 
-export * from "./stringToChar";
+export * from "./stringToChar.js";

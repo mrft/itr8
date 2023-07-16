@@ -1,7 +1,12 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8Range, itr8FromStringAsync, pipe } from "../..";
-import { takeWhile } from "./takeWhile";
-import { tap } from "./tap";
+import {
+  itr8ToArray,
+  itr8Range,
+  itr8FromStringAsync,
+  pipe,
+} from "../../index.js";
+import { takeWhile } from "./takeWhile.js";
+import { tap } from "./tap.js";
 
 describe("operators/general/takeWhile.ts", () => {
   it("takeWhile(...) operator works properly", async () => {

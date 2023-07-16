@@ -1,8 +1,8 @@
 import { assert } from "chai";
 import { hrtime } from "process";
 import { forLoop, thenable, isPromise, compose, pipe } from ".";
-import { forEach } from "../interface/forEach";
-import { itr8Range, itr8ToArray } from "../interface/index";
+import { forEach } from "../interface/forEach.js";
+import { itr8Range, itr8ToArray } from "../interface/index.js";
 import { map, skip, take } from "../operators";
 
 describe("./util/index.ts", () => {

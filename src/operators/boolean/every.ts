@@ -1,5 +1,5 @@
-import { thenable } from "../../util/index";
-import { powerMap } from "../general/powerMap";
+import { thenable } from "../../util/index.js";
+import { powerMap } from "../general/powerMap.js";
 
 /**
  * Return true if every item returns true on the test function.

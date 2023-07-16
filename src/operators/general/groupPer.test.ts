@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8Range, itr8RangeAsync } from "../..";
-import { groupPer } from "./groupPer";
+import { itr8ToArray, itr8Range, itr8RangeAsync } from "../../index.js";
+import { groupPer } from "./groupPer.js";
 
 describe("operators/general/groupPer.ts", () => {
   it("groupPer(...) operator works properly", async () => {

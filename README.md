@@ -130,7 +130,7 @@ pipe(
 );
 
 // So now that we know that we can easily apply any operator to any iterator
-// You just need to be awre of the various ways to create an iterator
+// You just need to be aware of the various ways to create an iterator
 // 1) create an iterator to start from with a utility function
 const myIterator = () => itr8Range(0, 10_000_000);
 // 2) OR create your own Iterator or AsyncIterator (for example with a generator function)
@@ -139,7 +139,7 @@ function* myGeneratorFunction() {
     yield i;
   }
 }
-// 3) 'itr8FromIterable' is an easy way to get an iterator from many buikt-in data structures
+// 3) 'itr8FromIterable' is an easy way to get an iterator from many built-in data structures
 const myOwnIterator = () => itr8FromIterable(myGeneratorFunction());
 
 // we can use standard JS 'for ... of' to loop over an iterable, which works because every operator
@@ -179,10 +179,10 @@ as transforming one set of data into another set (which might be longer or short
     - Some kind of debounce or throttle, would also be easy and if someone already wrote that (in any context, doesn't have to be related to redux at all), you could use that existing code.
   - Can you see how the redux reducer is simply the mapping function we have to pass into the 'map' operator, that translates [action, currentState] tuples into newState?
 
-I think the library can also be used as a base for CSP (Communicating Simple Processes). By sharing
+The library can also be used as a base for CSP (Communicating Simple Processes). By sharing
 the itr8Pushable iterator between 2 processes, one process could use it to push information onto the
 channel, and the other one can use the (async) next() call to pull the next message from
-the channel.
+the channel. I have added an [example about CSP](#what-about-csp) below.
 
 So unlike OO, where a new interface has to be invented for every new problem encountered, we basically agree on a simple protocol on how data will be delivered to and returned by all processing units, so we can focus on functionality rather than the interface.
 
@@ -214,6 +214,44 @@ If you ever found yourself in one of these situations, this library might be use
 
 So, while all these libraries have their merit, none of them covered my needs well enough, so at a certain point things became clear enough in my head to write my own library.
 
+### What about CSP?
+
+To quickly show that async iterators can easily be used for CSP in javascript, and that this combines nicely with itr8, I have rewritten an example I found in the README of [jfet97/csp library](https://github.com/jfet97/csp) using itr8.
+This way we don't need the while loop (forEach will take care of that), we don't modify the message but create a new one to send to the other side. itr8Pushable is used as the 'channel', and map, tap and delay transIterators implement the same functionality as is in the other example.
+Also, there are no awaits in the code, because all the async plumbing is handled by the itr8 library so you can focus on the functionality.
+
+```typescript
+type TBall = { hits: number; status: string };
+
+const wiff = itr8Pushable<TBall>();
+const waff = itr8Pushable<TBall>();
+
+const createBall = (): TBall => ({ hits: 0, status: "" });
+
+const createBat = async (
+  inbound: AsyncIterableIterator<TBall> & TPushable,
+  outbound: AsyncIterableIterator<TBall> & TPushable
+) => {
+  pipe(
+    inbound,
+    map(({ hits, status }) => ({
+      hits: hits + 1,
+      status: status === "wiff!" ? "waff!" : "wiff!",
+    })),
+    tap(({ hits, status }) => {
+      console.log(`🎾  Ball hit ${hits} time(s), ${status}`);
+    }),
+    delay(500), // assume it's going to take a bit to hit the ball
+    forEach((b) => outbound.push(b)) // smash the ball back
+  );
+};
+
+createBat(waff, wiff); // create a bat that will wiff waffs
+createBat(wiff, waff); // create a bat that will waff wiffs
+
+waff.push(createBall());
+```
+
 ## Roadmap
 
 The ROADMAP.md contains various ideas about possible additions to the library and how this
@@ -224,7 +262,7 @@ library could evolve in the future.
 
 ## API documentation
 
-Check http://localhost:8080/docs/modules/ to find developer documentation about all operators, interface functions and utility functions.
+Check https://mrft.github.io/itr8/modules.html to find developer documentation about all operators, interface functions and utility functions.
 
 ## What is a transIterator?
 

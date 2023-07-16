@@ -1,6 +1,12 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8RangeAsync, itr8Range, pipe, forEach } from "../..";
-import { take } from "./take";
+import {
+  itr8ToArray,
+  itr8RangeAsync,
+  itr8Range,
+  pipe,
+  forEach,
+} from "../../index.js";
+import { take } from "./take.js";
 
 describe("operators/general/take.ts", () => {
   it("take(...) operator works properly", async () => {

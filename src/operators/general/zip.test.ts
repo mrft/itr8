@@ -1,6 +1,11 @@
 import { assert } from "chai";
-import { itr8ToArray, itr8FromArray, itr8FromArrayAsync, pipe } from "../..";
-import { zip } from "./zip";
+import {
+  itr8ToArray,
+  itr8FromArray,
+  itr8FromArrayAsync,
+  pipe,
+} from "../../index.js";
+import { zip } from "./zip.js";
 
 describe("operators/general/zip.ts", () => {
   it("zip(...) operator works properly", async () => {
