@@ -36,7 +36,7 @@
     "//postbuild_old": "npm run builddocs",
     "clean": "rm -rf ./dist ./dist_test ./dist_test_cjs ./docs",
     "builddocs": "typedoc --options typedoc.cjs",
-    "postbuilddocs": "./optimize_generated_docs_for_git.sh; ./generate_sitemap_for_docs.sh; echo -e 'google-site-verification: google5ae8f564354feaad.html' > ./docs/google5ae8f564354feaad.html",
+    "postbuilddocs": "./optimize_generated_docs_for_git.sh; ./generate_sitemap_for_docs.sh; printf 'google-site-verification: google5ae8f564354feaad.html' > ./docs/google5ae8f564354feaad.html",
     "echoForTest": "echo \"01 this is stdin\n02 So we can do some stream tests in the program\n03\n04\"",
     "testOld": "npm run echoForTest --silent | ./node_modules/.bin/mocha --exit --timeout 200 --node-option max-old-space-size=200 --require ts-node/register ./test/*.ts",
     "testDebug": "npm run echoForTest --silent | ./node_modules/.bin/mocha --exit --timeout 1000 --node-option max-old-space-size=300 --require ts-node/register $( find ./test ./src -iname '*.test.ts' -type f | sort )",
