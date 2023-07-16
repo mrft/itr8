@@ -1,5 +1,7 @@
 # itr8 (pronounced "iterate")
 
+[![Node.js CI](https://github.com/mrft/itr8/actions/workflows/node.js.yml/badge.svg)](https://github.com/mrft/itr8/actions/workflows/node.js.yml)
+
 > **_"because programming should not be about solving the same problems over and over again"_**
 
 **Installation**
