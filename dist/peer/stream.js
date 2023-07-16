@@ -1,32 +1,6 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.itr8FromStdin = exports.itr8ToReadableStream = exports.itr8FromStream = void 0;
-const Stream = __importStar(require("stream"));
-const util_1 = require("../util");
-const index_1 = require("../index");
+import * as Stream from "stream";
+import { isPromise } from "../util/index.js";
+import { itr8FromIterator, itr8FromIterable } from "../index.js";
 /**
  * Transforms a readable stream into an async itr8.
  *
@@ -50,7 +24,7 @@ const index_1 = require("../index");
  * @category peer/stream
  */
 const itr8FromStream = (stream) => {
-    return (0, index_1.itr8FromIterator)(stream[Symbol.asyncIterator]());
+    return itr8FromIterator(stream[Symbol.asyncIterator]());
     // let buffer:any[] = [];
     // let currentResolve;
     // let currentReject;
@@ -90,7 +64,6 @@ const itr8FromStream = (stream) => {
     // };
     // return itr8FromIterator(retVal);
 };
-exports.itr8FromStream = itr8FromStream;
 /**
  * This will produce an AsyncIterableIterator where each value is a string
  * from the stdin stream.
@@ -114,7 +87,6 @@ const itr8FromStdin = () => {
     //   // stringToChar(),
     // );
 };
-exports.itr8FromStdin = itr8FromStdin;
 /**
  * Creates a readable (object-mode) stream from a (sync or async) iterator.
  *
@@ -124,13 +96,13 @@ exports.itr8FromStdin = itr8FromStdin;
  * @category peer/stream
  */
 const itr8ToReadableStream = (iterable) => {
-    const itr = (0, index_1.itr8FromIterable)(iterable);
+    const itr = itr8FromIterable(iterable);
     return new Stream.Readable({
         objectMode: true,
         read(size) {
             const nextFromIt = itr.next();
             // console.log('reading from stream', size, 'data', nextFromIt);
-            if ((0, util_1.isPromise)(nextFromIt)) {
+            if (isPromise(nextFromIt)) {
                 return (async () => {
                     let n = (await nextFromIt);
                     for (let i = 1; i <= size; i++) {
@@ -168,5 +140,5 @@ const itr8ToReadableStream = (iterable) => {
     // rs.push(edad);
     // rs.push(null);
 };
-exports.itr8ToReadableStream = itr8ToReadableStream;
+export { itr8FromStream, itr8ToReadableStream, itr8FromStdin };
 //# sourceMappingURL=stream.js.map

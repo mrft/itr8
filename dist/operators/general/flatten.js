@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.flatten = void 0;
-const powerMap_1 = require("./powerMap");
+import { powerMap } from "./powerMap.js";
 /**
  * The incoming elements are arrays, and send out each element of the array 1 by one.
  * @example
@@ -14,10 +11,10 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const flatten = () => (0, powerMap_1.powerMap)((nextIn, _state) => {
+const flatten = () => powerMap((nextIn, _state) => {
     if (nextIn.done)
         return { done: true };
     return { done: false, iterable: nextIn.value };
 }, () => undefined);
-exports.flatten = flatten;
+export { flatten };
 //# sourceMappingURL=flatten.js.map

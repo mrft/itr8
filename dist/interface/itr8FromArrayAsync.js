@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.itr8FromArrayAsync = void 0;
-const itr8FromIterator_1 = require("./itr8FromIterator");
+import { itr8FromIterator } from "./itr8FromIterator.js";
 /**
  * Turns an array into an (async) Iterator. Mainly useful for testing.
  *
@@ -11,11 +8,11 @@ const itr8FromIterator_1 = require("./itr8FromIterator");
  * @category interface/standard
  */
 function itr8FromArrayAsync(a) {
-    return (0, itr8FromIterator_1.itr8FromIterator)((async function* () {
+    return itr8FromIterator((async function* () {
         for (const x of a) {
             yield x;
         }
     })());
 }
-exports.itr8FromArrayAsync = itr8FromArrayAsync;
+export { itr8FromArrayAsync };
 //# sourceMappingURL=itr8FromArrayAsync.js.map

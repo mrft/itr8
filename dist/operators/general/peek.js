@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.peek = void 0;
-const powerMap_1 = require("./powerMap");
+import { powerMap } from "./powerMap.js";
 /**
  * To solve some problems you need to know what the next element(s) is (are) going
  * to be, or look back at the previous value(s).
@@ -114,7 +111,7 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const peek = (peekForward = 1, peekBackward = 1) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const peek = (peekForward = 1, peekBackward = 1) => powerMap((nextIn, state) => {
     if (nextIn.done) {
         // drain what's left of the next elements
         if (state.next.length === 0 || peekForward === 0) {
@@ -184,5 +181,48 @@ const peek = (peekForward = 1, peekBackward = 1) => (0, powerMap_1.powerMap)((ne
     next: [],
     // hasNext
 }));
-exports.peek = peek;
+// const peek = (amountNext: number, amountPrevious: number = 0) => {
+//   // return <T>(it: Iterator<T> | AsyncIterator<T>):Iterator<T> | AsyncIterator<T> => {
+//   //   let inputs:Array<Promise<IteratorResult<T>> | IteratorResult<T>> = [];
+//   //   let isAsyncInput:boolean;
+//   //   const addInputIfNeeded = async () => {
+//   //     if (inputs.length < amount) {
+//   //       if (isAsyncInput && inputs.length > 0) await inputs[0];
+//   //       const next = it.next();
+//   //       if (isPromise(next)) {
+//   //         // console.log('     add another (async) input, current nr of inputs = ', inputs.length, ' < ', amount);
+//   //         isAsyncInput = true;
+//   //         next.then((n) => {
+//   //           if (!n.done) {
+//   //             // console.log('  then: call addInputIfNeeded(), current nr of inputs = ', inputs.length, ' < ', amount);
+//   //             addInputIfNeeded();
+//   //           }
+//   //         });
+//   //       }
+//   //       inputs.push(next);
+//   //     }
+//   //   }
+//   //   const retVal = {
+//   //     [Symbol.asyncIterator]: () => retVal as AsyncIterableIterator<T>,
+//   //     [Symbol.iterator]: () => retVal as IterableIterator<T>,
+//   //     next: () => {
+//   //       // console.log('  next: call addInputIfNeeded(), current nr of inputs = ', inputs.length, ' < ', amount);
+//   //       addInputIfNeeded();
+//   //       if (inputs.length > 0) {
+//   //         const [firstInput, ...remainingInputs] = inputs;
+//   //         inputs = remainingInputs;
+//   //         // console.log('  next: call 2 to addInputIfNeeded(), current nr of inputs = ', inputs.length, ' < ', amount);
+//   //         addInputIfNeeded();
+//   //         // console.log('  next: return ', firstInput);
+//   //         return firstInput;
+//   //       }
+//   //       return isAsyncInput
+//   //         ? Promise.resolve({ done: true, value: undefined }) as Promise<IteratorResult<T>>
+//   //         : { done: true, value: undefined } as IteratorResult<T>;
+//   //     }
+//   //   };
+//   //   return itr8FromIterator(retVal as any);
+//   // }
+// };
+export { peek };
 //# sourceMappingURL=peek.js.map

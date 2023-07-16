@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.tap = void 0;
-const powerMap_1 = require("./powerMap");
+import { powerMap } from "./powerMap.js";
 /**
  * Tap will run a function 'on the side' without while passing the iterator
  * unchanged to the next.
@@ -10,7 +7,7 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const tap = (tapFn) => (0, powerMap_1.powerMap)((nextIn, _state) => {
+const tap = (tapFn) => powerMap((nextIn, _state) => {
     if (nextIn.done) {
         return { done: true };
     }
@@ -24,5 +21,5 @@ const tap = (tapFn) => (0, powerMap_1.powerMap)((nextIn, _state) => {
         return { done: false, value: nextIn.value };
     }
 }, () => undefined);
-exports.tap = tap;
+export { tap };
 //# sourceMappingURL=tap.js.map

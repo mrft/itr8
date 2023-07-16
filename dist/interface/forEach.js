@@ -1,13 +1,10 @@
-"use strict";
 /**
  * forEach is the one that will actually start 'draining' the iterator.
  * (itr8ToArray and most other itr8To... methods as well)
  *
  * @module
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.forEach = void 0;
-const util_1 = require("../util");
+import { isPromise } from "../util/index.js";
 /**
  * produces a function that can be applied to an iterator and that will execute
  * the handler on each value.
@@ -23,24 +20,20 @@ const util_1 = require("../util");
  * processing things in the expected order!
  *
  * @param handler
- * @param options: ```{ concurrency: number }``` will control how many async handler are alowed to run in parallel. Default: 1
+ * @param options: ```{ concurrency: number }``` will control how many async handler are allowed to run in parallel. Default: 1
  * @returns
  *
  * @category interface/standard
  */
 const forEach = function (handler, options) {
     return (it) => {
-        const maxRunningHandlers = (options === null || options === void 0 ? void 0 : options.concurrency) || 1;
+        let throwCount = 0;
+        const maxRunningHandlers = options?.concurrency || 1;
         const runningHandlers = new Set();
         const waitForOpenSpot = async () => {
             // wait for an open spot if the max amount of running handlers is reached
             if (runningHandlers.size >= maxRunningHandlers) {
-                try {
-                    await Promise.race(runningHandlers);
-                }
-                catch (e) {
-                    // ignore this we only want to know there is an open spot again
-                }
+                await Promise.race(runningHandlers);
             }
         };
         const addToRunningHandlersList = (handlerPossiblePromise) => {
@@ -50,15 +43,47 @@ const forEach = function (handler, options) {
                 runningHandlers.delete(handlerPossiblePromise);
             });
         };
+        /** Make sure the handler is wrapped in try/catch in order to send the right signals to the
+         * input iterator in case something goes wrong!
+         */
+        const tryHandler = (v) => {
+            try {
+                const handlerPossiblePromise = handler(v);
+                if (isPromise(handlerPossiblePromise)) {
+                    handlerPossiblePromise.catch((e) => {
+                        if (throwCount < 1) {
+                            try {
+                                it.throw?.(e);
+                            }
+                            catch (throwErr) { // native implementation crashes?
+                                // console.log(v, 'ERROR WHILE THROWING', throwErr);
+                            }
+                            throwCount += 1;
+                        }
+                    });
+                }
+                return handlerPossiblePromise;
+            }
+            catch (e) {
+                if (throwCount < 1) {
+                    try {
+                        it.throw?.(e);
+                    }
+                    catch (throwErr) { // native implementation crashes?
+                        // console.log(v, 'ERROR WHILE THROWING', throwErr);
+                    }
+                    throwCount += 1;
+                }
+                throw e;
+            }
+        };
         const nextPromiseOrValue = it.next();
-        if ((0, util_1.isPromise)(nextPromiseOrValue)) {
+        if (isPromise(nextPromiseOrValue)) {
             const nextPromise = nextPromiseOrValue;
             const handleNext = async (nextValue) => {
                 await waitForOpenSpot();
-                // TODO: add a try catch so errors can be handled properly?
-                // or maybe we should leave it to the user???
-                const handlerPossiblePromise = handler(nextValue);
-                if ((0, util_1.isPromise)(handlerPossiblePromise)) {
+                const handlerPossiblePromise = tryHandler(nextValue);
+                if (isPromise(handlerPossiblePromise)) {
                     addToRunningHandlersList(handlerPossiblePromise);
                 }
             };
@@ -70,40 +95,44 @@ const forEach = function (handler, options) {
                 }
                 // wait until all remaining handlers are done before resolving the current promise!
                 await Promise.all(runningHandlers);
+                it.return?.(next.value);
             })();
         }
         else {
             let next = nextPromiseOrValue;
-            if (!next.done) {
-                const handlerPossiblePromise = handler(next.value);
-                if ((0, util_1.isPromise)(handlerPossiblePromise)) {
+            if (next.done) {
+                it.return?.(next.value);
+            }
+            else {
+                const handlerPossiblePromise = tryHandler(next.value);
+                if (isPromise(handlerPossiblePromise)) {
                     return (async () => {
                         let handlerPossiblePromiseIn = handlerPossiblePromise;
                         while (!next.done) {
-                            await waitForOpenSpot();
-                            // TODO: add a try catch so errors can be handled properly?
-                            // or maybe we should leave it to the user???
-                            const handlerPromise = handlerPossiblePromiseIn ||
-                                handler(next.value);
+                            const handlerPromise = handlerPossiblePromiseIn /* only the very first time */ ||
+                                tryHandler(next.value);
                             handlerPossiblePromiseIn = undefined;
                             addToRunningHandlersList(handlerPromise);
                             next = it.next();
+                            await waitForOpenSpot();
                         }
                         // wait until all remaining handlers are done before resolving the current promise!
                         await Promise.all(runningHandlers);
+                        it.return?.(next.value);
                     })();
                 }
                 else {
                     next = it.next();
                     while (!next.done) {
-                        handler(next.value);
+                        tryHandler(next.value);
                         next = it.next();
                         // console.log('[forEach] next', next);
                     }
+                    it.return?.(next.value);
                 }
             }
         }
     };
 };
-exports.forEach = forEach;
+export { forEach };
 //# sourceMappingURL=forEach.js.map

@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.max = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * Output a single thing which is the highest of all values.
  * @example
@@ -16,7 +13,7 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/numeric
  */
-const max = () => (0, powerMap_1.powerMap)((nextIn, state) => {
+const max = () => powerMap((nextIn, state) => {
     if (state.done) {
         return { done: true };
     }
@@ -32,5 +29,5 @@ const max = () => (0, powerMap_1.powerMap)((nextIn, state) => {
         state: { ...state, max: Math.max(state.max, nextIn.value) },
     };
 }, () => ({ done: false, max: -Infinity }));
-exports.max = max;
+export { max };
 //# sourceMappingURL=max.js.map

@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.stringToChar = void 0;
-const itr8FromString_1 = require("../../interface/itr8FromString");
-const powerMap_1 = require("../general/powerMap");
+import { itr8FromString } from "../../interface/itr8FromString.js";
+import { powerMap } from "../general/powerMap.js";
 /**
  * Takes all strings from the input and outputs them as single characters
  * @example
@@ -15,14 +12,14 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/strings
  */
-const stringToChar = () => (0, powerMap_1.powerMap)((nextIn, _state) => {
+const stringToChar = () => powerMap((nextIn, _state) => {
     if (nextIn.done) {
         return { done: true };
     }
     return {
         done: false,
-        iterable: (0, itr8FromString_1.itr8FromString)(nextIn.value),
+        iterable: itr8FromString(nextIn.value),
     };
 }, () => undefined);
-exports.stringToChar = stringToChar;
+export { stringToChar };
 //# sourceMappingURL=stringToChar.js.map

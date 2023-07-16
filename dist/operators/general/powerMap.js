@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.powerMap = void 0;
-const interface_1 = require("../../interface");
-const util_1 = require("../../util");
+import { itr8FromIterable, itr8FromIterator } from "../../interface/index.js";
+import { forLoop, isPromise, thenable } from "../../util/index.js";
 /**
  * The powerMap can be used as the base for many many other operators.
  *
@@ -65,7 +62,7 @@ const powerMap = function (nextFn, initialStateFactory) {
         function updateNextInPromiseOrValue() {
             nextInPromiseOrValue = itIn.next();
             if (isAsyncInput === undefined)
-                isAsyncInput = (0, util_1.isPromise)(nextInPromiseOrValue);
+                isAsyncInput = isPromise(nextInPromiseOrValue);
         }
         let isAsyncNextFn = undefined;
         // let state = pState;
@@ -86,7 +83,6 @@ const powerMap = function (nextFn, initialStateFactory) {
          * @returns
          */
         const generateNextReturnValSync = () => {
-            var _a;
             // while loop instead of calling this function recursively (call stack can become too large)
             // eslint-disable-next-line no-constant-condition
             while (true) {
@@ -97,7 +93,7 @@ const powerMap = function (nextFn, initialStateFactory) {
                 if (operatorState.currentOutputIterator) {
                     const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
                     if (isAsyncCurrentOutputIterator ||
-                        (0, util_1.isPromise)(possibleNextValueOrPromise)) {
+                        isPromise(possibleNextValueOrPromise)) {
                         isAsyncCurrentOutputIterator = true;
                         return generateNextReturnValAsync(true, undefined, possibleNextValueOrPromise);
                     }
@@ -121,7 +117,7 @@ const powerMap = function (nextFn, initialStateFactory) {
                 const nextIn = nextInPromiseOrValue;
                 const curNextFnResult = nextFn(nextIn, operatorState.state);
                 if (isAsyncNextFn === undefined)
-                    isAsyncNextFn = (0, util_1.isPromise)(curNextFnResult);
+                    isAsyncNextFn = isPromise(curNextFnResult);
                 if (isAsyncNextFn) {
                     return generateNextReturnValAsync(false, curNextFnResult);
                 }
@@ -139,9 +135,9 @@ const powerMap = function (nextFn, initialStateFactory) {
                 else if ("iterable" in curNextFnResult) {
                     if (operatorState.currentOutputIterator !== undefined)
                         throw new Error("currentOutputIterator should be undefined at this point");
-                    operatorState.currentOutputIterator = (0, interface_1.itr8FromIterable)(curNextFnResult.iterable);
+                    operatorState.currentOutputIterator = itr8FromIterable(curNextFnResult.iterable);
                     operatorState.isLastOutputIterator = !!curNextFnResult.isLast;
-                    if (((_a = operatorState.currentOutputIterator) === null || _a === void 0 ? void 0 : _a.next) === undefined) {
+                    if (operatorState.currentOutputIterator?.next === undefined) {
                         throw new Error("Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)");
                     }
                     // goto next round of while loop
@@ -159,7 +155,6 @@ const powerMap = function (nextFn, initialStateFactory) {
          * @returns
          */
         const generateNextReturnValAsync = async (callUpdateNextInPromiseOrValue = true, nextFnResponse, currentOutputIteratorNext) => {
-            var _a;
             let doUpdateNextInPromiseOrValue = callUpdateNextInPromiseOrValue;
             let alreadyKnownNextFnResponse = nextFnResponse;
             let alreadyKnownCurrentOutputIteratorNext = currentOutputIteratorNext;
@@ -180,7 +175,7 @@ const powerMap = function (nextFn, initialStateFactory) {
                         possibleNextValueOrPromise =
                             operatorState.currentOutputIterator.next();
                     }
-                    const possibleNext = ((0, util_1.isPromise)(possibleNextValueOrPromise)
+                    const possibleNext = (isPromise(possibleNextValueOrPromise)
                         ? await possibleNextValueOrPromise
                         : possibleNextValueOrPromise);
                     if (possibleNext.done) {
@@ -211,7 +206,7 @@ const powerMap = function (nextFn, initialStateFactory) {
                     curNextFnResultPromiseOrValue = nextFn(nextIn, operatorState.state);
                 }
                 if (isAsyncNextFn === undefined)
-                    isAsyncNextFn = (0, util_1.isPromise)(curNextFnResultPromiseOrValue);
+                    isAsyncNextFn = isPromise(curNextFnResultPromiseOrValue);
                 const curNextFnResult = (isAsyncNextFn
                     ? await curNextFnResultPromiseOrValue
                     : curNextFnResultPromiseOrValue);
@@ -229,9 +224,9 @@ const powerMap = function (nextFn, initialStateFactory) {
                 else if ("iterable" in curNextFnResult) {
                     if (operatorState.currentOutputIterator !== undefined)
                         throw new Error("currentOutputIterator should be undefined at this point");
-                    operatorState.currentOutputIterator = (0, interface_1.itr8FromIterable)(curNextFnResult.iterable);
+                    operatorState.currentOutputIterator = itr8FromIterable(curNextFnResult.iterable);
                     operatorState.isLastOutputIterator = !!curNextFnResult.isLast;
-                    if (((_a = operatorState.currentOutputIterator) === null || _a === void 0 ? void 0 : _a.next) === undefined) {
+                    if (operatorState.currentOutputIterator?.next === undefined) {
                         throw new Error("Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)");
                     }
                     // goto next round of while loop
@@ -248,7 +243,7 @@ const powerMap = function (nextFn, initialStateFactory) {
          * This method will replace itself with the right method once we know
          * in which case we are (sync, async)
          *
-         * @returns
+         * @returns {IteratorResult<TOut> | Promise<IteratorResult<TOut>>}
          */
         let generateNextReturnVal = () => {
             if (isAsyncInput || isAsyncNextFn) {
@@ -273,7 +268,7 @@ const powerMap = function (nextFn, initialStateFactory) {
                 return generateNextReturnVal();
             },
         };
-        return (0, interface_1.itr8FromIterator)(retVal);
+        return itr8FromIterator(retVal);
     };
     const transIt = (itIn) => operatorFunction(itIn, initialStateFactory());
     /**
@@ -303,8 +298,8 @@ const powerMap = function (nextFn, initialStateFactory) {
         else if ( /* input.done === false && */"iterable" in input) {
             const iterator = input.iterable[Symbol.iterator] || input.iterable[Symbol.asyncIterator];
             const iterable = [];
-            const f = (0, util_1.forLoop)(() => iterator.next(), (n) => n.done !== true, (n) => iterator.next(), (nextIn) => {
-                (0, util_1.thenable)(nextFn(nextIn, operatorState.state)).then((curNextFnResult) => {
+            const f = forLoop(() => iterator.next(), (n) => n.done !== true, (n) => iterator.next(), (nextIn) => {
+                thenable(nextFn(nextIn, operatorState.state)).then((curNextFnResult) => {
                     // store the new state
                     operatorState.state = curNextFnResult.state;
                     // if it contains an iterable => iterate over it, otherwise add the value to the output array
@@ -317,12 +312,12 @@ const powerMap = function (nextFn, initialStateFactory) {
                     }
                 }).src;
             });
-            return (0, util_1.thenable)(f).then((_forLoopResult) => {
+            return thenable(f).then((_forLoopResult) => {
                 return { done: false, iterable };
             }).src;
         }
         else if ( /* input.done === false && */"value" in input) {
-            return (0, util_1.thenable)(nextFn(input, operatorState.state)).then((curNextFnResult) => {
+            return thenable(nextFn(input, operatorState.state)).then((curNextFnResult) => {
                 const { newState, ...retVal } = curNextFnResult;
                 // store the new state
                 operatorState.state = curNextFnResult.state;
@@ -346,7 +341,6 @@ const powerMap = function (nextFn, initialStateFactory) {
     };
     return transIt;
 };
-exports.powerMap = powerMap;
 /**
  * EXPERIMENTAL VERSION OF THIS FUNCTION written with forLoop and thenable, which might be easier
  * to read or maintain, and could be faster...
@@ -675,7 +669,7 @@ const itr8OperatorFactoryExperimental = function (nextFn, initialStateFactory) {
             function updateNextInPromiseOrValue() {
                 nextInPromiseOrValue = itIn.next();
                 if (isAsyncInput === undefined)
-                    isAsyncInput = (0, util_1.isPromise)(nextInPromiseOrValue);
+                    isAsyncInput = isPromise(nextInPromiseOrValue);
             }
             let isAsyncNextFn = undefined;
             // let state = pState !== undefined ? pState : initialState;
@@ -697,9 +691,8 @@ const itr8OperatorFactoryExperimental = function (nextFn, initialStateFactory) {
              * @returns
              */
             let generateNextReturnVal = () => {
-                const nextReturnVal = (0, util_1.thenable)(itIn.next()).then((nextIn, isSyncInput) => {
-                    return (0, util_1.thenable)(nextFn(nextIn, operatorState.state, param1, param2, param3, param4, ...otherParams)).then((nextFnResult, isSyncNextFn) => {
-                        var _a;
+                const nextReturnVal = thenable(itIn.next()).then((nextIn, isSyncInput) => {
+                    return thenable(nextFn(nextIn, operatorState.state, param1, param2, param3, param4, ...otherParams)).then((nextFnResult, isSyncNextFn) => {
                         // nextFnResult as TNextFnResult<TOut, TState>
                         if ("state" in nextFnResult)
                             operatorState.state = nextFnResult.state;
@@ -715,8 +708,8 @@ const itr8OperatorFactoryExperimental = function (nextFn, initialStateFactory) {
                         else if ("iterable" in nextFnResult) {
                             if (operatorState.currentOutputIterator !== undefined)
                                 throw new Error("currentOutputIterator should be undefined at this point");
-                            operatorState.currentOutputIterator = (0, interface_1.itr8FromIterable)(nextFnResult.iterable);
-                            if (((_a = operatorState.currentOutputIterator) === null || _a === void 0 ? void 0 : _a.next) === undefined) {
+                            operatorState.currentOutputIterator = itr8FromIterable(nextFnResult.iterable);
+                            if (operatorState.currentOutputIterator?.next === undefined) {
                                 throw new Error("Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)");
                             }
                             // goto next round of while loop
@@ -994,9 +987,10 @@ const itr8OperatorFactoryExperimental = function (nextFn, initialStateFactory) {
                     return generateNextReturnVal(); // generateNextReturnVal(itIn, nextFn, operatorState, param1, param2, param3, param4, ...otherParams);
                 },
             };
-            return (0, interface_1.itr8FromIterator)(retVal);
+            return itr8FromIterator(retVal);
         };
         return (itIn) => operatorFunction(itIn, initialStateFactory(param1, param2, param3, param4, ...otherParams));
     };
 };
+export { powerMap };
 //# sourceMappingURL=powerMap.js.map

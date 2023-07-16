@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.repeatEach = void 0;
-const powerMap_1 = require("./powerMap");
+import { powerMap } from "./powerMap.js";
 /**
  * Repeat each element of the iterator for the given amount.
  * If the amount is zero (or negative), you'll end up with an empty iterator.
@@ -33,7 +30,7 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const repeatEach = (count = 2) => (0, powerMap_1.powerMap)((nextIn, _state) => {
+const repeatEach = (count = 2) => powerMap((nextIn, _state) => {
     if (nextIn.done) {
         return { done: true };
     }
@@ -46,5 +43,5 @@ const repeatEach = (count = 2) => (0, powerMap_1.powerMap)((nextIn, _state) => {
         })(),
     };
 }, () => undefined);
-exports.repeatEach = repeatEach;
+export { repeatEach };
 //# sourceMappingURL=repeatEach.js.map

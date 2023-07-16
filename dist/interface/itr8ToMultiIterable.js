@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.itr8ToMultiIterable = void 0;
-const takeWhile_1 = require("../operators/general/takeWhile");
-const util_1 = require("../util");
-const forEach_1 = require("./forEach");
-const itr8FromIterator_1 = require("./itr8FromIterator");
+import { takeWhile } from "../operators/general/takeWhile.js";
+import { pipe } from "../util/index.js";
+import { forEach } from "./forEach.js";
+import { itr8FromIterator } from "./itr8FromIterator.js";
 /**
  * When you want to process the same iterator mutltiple times in different ways
  * (you can think of it as 'splitting the stream'),
@@ -28,47 +25,59 @@ const itr8FromIterator_1 = require("./itr8FromIterator");
  *
  * @category interface/standard
  */
-function itr8ToMultiIterable( /* abandonedTimeoutMilliseconds = Infinity */) {
-    return (it) => {
-        const subscriberMap = new Map();
-        const buffer = new Map();
-        const retVal = {
-            [Symbol.asyncIterator]: () => {
-                const outIt = {
-                    [Symbol.asyncIterator]: () => outIt,
-                    next: async () => {
-                        const index = subscriberMap.get(outIt);
-                        if (!buffer.has(index)) {
-                            buffer.set(index, it.next());
-                        }
-                        // remove old stuff in buffer
-                        const minIndex = Math.min(...subscriberMap.values());
-                        // Maps are iterated in insertion order !
-                        // ['IMPERATIVE' VERSION]
-                        // for (const i of buffer.keys()) {
-                        //   if (i < minIndex) {
-                        //     buffer.delete(i);
-                        //   } else {
-                        //     break;
-                        //   }
-                        // }
-                        // ['DECLARATIVE' VERSION]
-                        (0, util_1.pipe)(buffer.keys(), (0, takeWhile_1.takeWhile)((i) => i < minIndex), (0, forEach_1.forEach)((i) => {
-                            buffer.delete(i);
-                        }));
-                        subscriberMap.set(outIt, index + 1);
-                        return buffer.get(index);
-                    },
-                };
-                // add the new iterator to the subscriberMap
-                subscriberMap.set(outIt, buffer.size === 0 ? 0 : Math.min(...buffer.keys()));
-                // TODO: set a disconnect timeout (we'll need to store the last get time, or the timeout id)
-                return (0, itr8FromIterator_1.itr8FromIterator)(outIt);
-            },
-        };
-        // subscriberMap.set(outIt, buffer.size > 0 ? buffer.values.next().value : 0);
-        return retVal;
+function itr8ToMultiIterable(it /*, abandonedTimeoutMilliseconds = Infinity */) {
+    const subscriberMap = new Map();
+    const buffer = new Map();
+    const retVal = {
+        [Symbol.asyncIterator]: () => {
+            /** Helper to remove old elements from buffer that all current subscribers have read */
+            const cleanBuffer = () => {
+                const minIndex = Math.min(...subscriberMap.values());
+                // Maps are iterated in insertion order !
+                // ['IMPERATIVE' VERSION]
+                // for (const i of buffer.keys()) {
+                //   if (i < minIndex) {
+                //     buffer.delete(i);
+                //   } else {
+                //     break;
+                //   }
+                // }
+                // ['DECLARATIVE' VERSION]
+                pipe(buffer.keys(), takeWhile((i) => i < minIndex), forEach((i) => {
+                    buffer.delete(i);
+                }));
+            };
+            const outIt = {
+                [Symbol.asyncIterator]: () => outIt,
+                next: async () => {
+                    const index = subscriberMap.get(outIt);
+                    if (!buffer.has(index)) {
+                        buffer.set(index, it.next());
+                    }
+                    // remove old stuff in buffer
+                    cleanBuffer();
+                    subscriberMap.set(outIt, index + 1);
+                    return buffer.get(index);
+                },
+                "return": async (value) => {
+                    subscriberMap.delete(outIt);
+                    cleanBuffer();
+                    return { done: true, value };
+                },
+                "throw": async (error) => {
+                    subscriberMap.delete(outIt);
+                    cleanBuffer();
+                    return { done: true, value: undefined };
+                },
+            };
+            // add the new iterator to the subscriberMap
+            subscriberMap.set(outIt, buffer.size === 0 ? 0 : Math.min(...buffer.keys()));
+            // TODO: set a disconnect timeout (we'll need to store the last get time, or the timeout id)
+            return itr8FromIterator(outIt);
+        },
     };
+    // subscriberMap.set(outIt, buffer.size > 0 ? buffer.values.next().value : 0);
+    return retVal;
 }
-exports.itr8ToMultiIterable = itr8ToMultiIterable;
+export { itr8ToMultiIterable };
 //# sourceMappingURL=itr8ToMultiIterable.js.map

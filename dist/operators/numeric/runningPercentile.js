@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.runningPercentile = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * On every item, output the percentile(x) so far
  * @example
@@ -16,7 +13,7 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/numeric
  */
-const runningPercentile = (percentage) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const runningPercentile = (percentage) => powerMap((nextIn, state) => {
     if (nextIn.done)
         return { done: true };
     const newCount = state.count + 1;
@@ -33,5 +30,5 @@ const runningPercentile = (percentage) => (0, powerMap_1.powerMap)((nextIn, stat
         value: newTopArray[0],
     };
 }, () => ({ count: 0, topArray: [] }));
-exports.runningPercentile = runningPercentile;
+export { runningPercentile };
 //# sourceMappingURL=runningPercentile.js.map

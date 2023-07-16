@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Utility functions that are used internally, but that can be used by anyone to
  * help create operators that support both synchronous and asynchronous parameters
@@ -6,8 +5,6 @@
  *
  * @module
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.forLoop = exports.thenable = exports.AsyncFunction = exports.isPromise = exports.pipe = exports.compose = exports.itr8Pipe = void 0;
 // THIS MIGHT BE AN ALTERNATIVE TO REMOVE THE DEPENDENCY to Node's uil/types
 ////////////////////////////////////////////////////////////////////////////
 /**
@@ -23,7 +20,6 @@ const isPromise = function isPromise(p) {
         p !== null &&
         Object.prototype.toString.call(p) === "[object Promise]");
 };
-exports.isPromise = isPromise;
 // import { isPromise } from 'util/types'
 // try {
 //   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -44,7 +40,6 @@ exports.isPromise = isPromise;
 const AsyncFunction = Object.getPrototypeOf(async function () {
     /* empty */
 }).constructor;
-exports.AsyncFunction = AsyncFunction;
 /**
  * (Word play on then-able an th-enable)
  *
@@ -103,14 +98,14 @@ const thenable = (x) => {
         return newX;
     }
     else {
-        if (typeof (x === null || x === void 0 ? void 0 : x.then) === "function") {
+        if (typeof x?.then === "function") {
             return x;
         }
         else {
             // needed, because in strict mode it is impossble to set a property
             // on a string primitive (and in non-strict mode the set value cannot be read again)
             const newX = {
-                src: (x === null || x === void 0 ? void 0 : x.src) !== undefined ? x.src : x,
+                src: x?.src !== undefined ? x.src : x,
                 then: (okHandler) => {
                     const retVal = thenable(okHandler(x, true));
                     retVal["value"] = retVal.src;
@@ -122,7 +117,6 @@ const thenable = (x) => {
         }
     }
 };
-exports.thenable = thenable;
 /**
  * This utility function will do a for loop, synchronously if all the parts are synchronous,
  * and asynchronously otherwise.
@@ -192,7 +186,6 @@ const forLoop = (initialStateFactory, testBeforeEach, afterEach, codeToExecute) 
         });
     });
 };
-exports.forLoop = forLoop;
 /*export*/ function itr8Pipe(first, ...params) {
     if (params.length === 0) {
         return first;
@@ -213,8 +206,6 @@ function compose(first, ...params) {
         }, first);
     }
 }
-exports.itr8Pipe = compose;
-exports.compose = compose;
 function pipe(input, fn1, ...functionsToApply) {
     if (functionsToApply.length === 0) {
         return fn1(input);
@@ -226,5 +217,11 @@ function pipe(input, fn1, ...functionsToApply) {
         return composedFn(input);
     }
 }
-exports.pipe = pipe;
+export { 
+/**
+ * @deprecated Use compose(...) instead!
+ */
+compose as itr8Pipe, compose, pipe, isPromise, AsyncFunction, thenable, forLoop,
+// itr8OperatorFactory,
+ };
 //# sourceMappingURL=index.js.map

@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.itr8ToObject = void 0;
-const util_1 = require("../util");
+import { isPromise } from "../util/index.js";
 /**
  * Turns an itr8 into an object. It is like Object.fromEntries,
  * but it will work both for synchronous and asynchronous iterators
@@ -37,7 +34,7 @@ const util_1 = require("../util");
  */
 function itr8ToObject(iterator) {
     let n = iterator.next();
-    if ((0, util_1.isPromise)(n)) {
+    if (isPromise(n)) {
         return (async () => {
             const asyncResult = {};
             while (!(await n).done) {
@@ -60,5 +57,5 @@ function itr8ToObject(iterator) {
         return result;
     }
 }
-exports.itr8ToObject = itr8ToObject;
+export { itr8ToObject };
 //# sourceMappingURL=itr8ToObject.js.map

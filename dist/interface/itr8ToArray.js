@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.itr8ToArray = void 0;
-const util_1 = require("../util");
+import { isPromise } from "../util/index.js";
 /**
  * Turns an itr8 into an array.
  *
@@ -12,7 +9,7 @@ const util_1 = require("../util");
  */
 function itr8ToArray(iterator) {
     let n = iterator.next();
-    if ((0, util_1.isPromise)(n)) {
+    if (isPromise(n)) {
         return (async () => {
             const asyncResult = [];
             while (!(await n).done) {
@@ -33,5 +30,5 @@ function itr8ToArray(iterator) {
         return result;
     }
 }
-exports.itr8ToArray = itr8ToArray;
+export { itr8ToArray };
 //# sourceMappingURL=itr8ToArray.js.map

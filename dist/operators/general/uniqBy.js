@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.uniqBy = void 0;
-const powerMap_1 = require("./powerMap");
+import { powerMap } from "./powerMap.js";
 /**
  * Only returns unique elements by comparing the result of the mapping function applied
  * to the element.
@@ -20,7 +17,7 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const uniqBy = (mapFn) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const uniqBy = (mapFn) => powerMap((nextIn, state) => {
     if (nextIn.done) {
         return { done: true };
     }
@@ -32,5 +29,5 @@ const uniqBy = (mapFn) => (0, powerMap_1.powerMap)((nextIn, state) => {
     newState.add(hash);
     return { done: false, value: nextIn.value, state: newState };
 }, () => new Set([]));
-exports.uniqBy = uniqBy;
+export { uniqBy };
 //# sourceMappingURL=uniqBy.js.map

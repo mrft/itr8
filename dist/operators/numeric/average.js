@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.average = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * Output the average.
  * @example
@@ -17,7 +14,7 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/numeric
  */
-const average = () => (0, powerMap_1.powerMap)((nextIn, state) => {
+const average = () => powerMap((nextIn, state) => {
     if (state.done)
         return { done: true };
     if (nextIn.done)
@@ -30,5 +27,5 @@ const average = () => (0, powerMap_1.powerMap)((nextIn, state) => {
     const newSum = state.sum + nextIn.value;
     return { done: false, state: { ...state, count: newCount, sum: newSum } };
 }, () => ({ done: false, count: 0, sum: 0 }));
-exports.average = average;
+export { average };
 //# sourceMappingURL=average.js.map

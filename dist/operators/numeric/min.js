@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.min = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * Output a single thing which is the lowest of all values.
  * @example
@@ -15,7 +12,7 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/numeric
  */
-const min = () => (0, powerMap_1.powerMap)((nextIn, state) => {
+const min = () => powerMap((nextIn, state) => {
     if (state.done) {
         return { done: true };
     }
@@ -31,5 +28,5 @@ const min = () => (0, powerMap_1.powerMap)((nextIn, state) => {
         state: { ...state, min: Math.min(state.min, nextIn.value) },
     };
 }, () => ({ done: false, min: Infinity }));
-exports.min = min;
+export { min };
 //# sourceMappingURL=min.js.map

@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.sort = void 0;
-const powerMap_1 = require("./powerMap");
+import { powerMap } from "./powerMap.js";
 /**
  * Sorts the elements (using the given sort function if provided).
  * Beware: all elements need to fit in memory before they can be sorted!
@@ -25,7 +22,7 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const sort = (sortFn) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const sort = (sortFn) => powerMap((nextIn, state) => {
     if (state.done) {
         return { done: true };
     }
@@ -45,5 +42,5 @@ const sort = (sortFn) => (0, powerMap_1.powerMap)((nextIn, state) => {
     // state.list.push(nextIn.value);
     // return { done: false, state: { ...state, list: state.list /* [...state.list, nextIn.value] */ } };
 }, () => ({ done: false, list: [] }));
-exports.sort = sort;
+export { sort };
 //# sourceMappingURL=sort.js.map

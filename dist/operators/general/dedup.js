@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.dedup = void 0;
-const index_1 = require("../../util/index");
-const powerMap_1 = require("./powerMap");
+import { thenable } from "../../util/index.js";
+import { powerMap } from "./powerMap.js";
 /**
  * Removes consecutive doubles.
  * If no argument is provided, standard !== will be used to compare both values.
@@ -31,17 +28,17 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const dedup = (mapFn) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const dedup = (mapFn) => powerMap((nextIn, state) => {
     if (nextIn.done) {
         return { done: true };
     }
     // promise if mapFn is async!
     const valueToCompare = mapFn ? mapFn(nextIn.value) : nextIn.value;
-    return (0, index_1.thenable)(valueToCompare).then((v) => {
+    return thenable(valueToCompare).then((v) => {
         return v !== state
             ? { done: false, value: nextIn.value, state: v }
             : { done: false, state: v };
     }).src;
 }, () => undefined);
-exports.dedup = dedup;
+export { dedup };
 //# sourceMappingURL=dedup.js.map

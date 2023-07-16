@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.lineByLine = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * The input must be a stream of characters or strings,
  * and the output will be 1 string for each line.
@@ -31,7 +28,7 @@ const powerMap_1 = require("../general/powerMap");
  * @param {string} separator: the string that will be considered the newline sequence
  * @category operators/strings
  */
-const lineByLine = (splitBy = "\n") => (0, powerMap_1.powerMap)((nextIn, { done, buffer }) => {
+const lineByLine = (splitBy = "\n") => powerMap((nextIn, { done, buffer }) => {
     if (nextIn.done) {
         if (done) {
             return { done: true, state: { done: true, buffer: "" } };
@@ -68,5 +65,11 @@ const lineByLine = (splitBy = "\n") => (0, powerMap_1.powerMap)((nextIn, { done,
         }
     }
 }, () => ({ done: false, buffer: "" }));
-exports.lineByLine = lineByLine;
+// Original implementation by combining other operators
+// const lineByLine = () => compose(
+//   stringToChar(),
+//   split('\n'),
+//   map(x => x.reduce((acc, cur) => acc + cur, '')),
+// );
+export { lineByLine };
 //# sourceMappingURL=lineByLine.js.map

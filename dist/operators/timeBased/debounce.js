@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.debounce = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * Only useful on async iterators.
  *
@@ -11,7 +8,7 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/timeBased
  */
-const debounce = (cooldownMilliseconds) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const debounce = (cooldownMilliseconds) => powerMap((nextIn, state) => {
     if (nextIn.done)
         return { done: true };
     const newState = Date.now();
@@ -21,5 +18,5 @@ const debounce = (cooldownMilliseconds) => (0, powerMap_1.powerMap)((nextIn, sta
     }
     return { done: false, state: newState };
 }, () => -Infinity);
-exports.debounce = debounce;
+export { debounce };
 //# sourceMappingURL=debounce.js.map

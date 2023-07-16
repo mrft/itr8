@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.take = void 0;
-const powerMap_1 = require("./powerMap");
+import { powerMap } from "./powerMap.js";
 /**
  * Only take 'amount' elements and then stop.
  *
@@ -12,7 +9,7 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const take = (count = Infinity) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const take = (count = Infinity) => powerMap((nextIn, state) => {
     if (nextIn.done)
         return { done: true };
     if (state < count) {
@@ -26,5 +23,5 @@ const take = (count = Infinity) => (0, powerMap_1.powerMap)((nextIn, state) => {
     }
     return { done: true };
 }, () => 0);
-exports.take = take;
+export { take };
 //# sourceMappingURL=take.js.map

@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Can help with writing worker threads in typescript,
  * by checking if it's being run from ts-node or not.
@@ -19,6 +17,7 @@ const fileResolver = function (filename) {
     }
     return filename;
 };
+export {};
 /**
  * I'd like to create an operator that will take another transIterator as input,
  * and that will run that transIterator in another thread without any hassle.

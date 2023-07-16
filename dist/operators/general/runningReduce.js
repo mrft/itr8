@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.runningReduce = void 0;
-const index_1 = require("../../util/index");
-const powerMap_1 = require("./powerMap");
+import { thenable } from "../../util/index.js";
+import { powerMap } from "./powerMap.js";
 /**
  * The runnigReduce() method executes a user-supplied "reducer" callback function on each element of
  * the iterator, in order, passing in the return value from the calculation on the preceding
@@ -26,7 +23,7 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const runningReduce = (reducer, initialValue) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const runningReduce = (reducer, initialValue) => powerMap((nextIn, state) => {
     if (state.done) {
         return { done: true };
     }
@@ -34,7 +31,7 @@ const runningReduce = (reducer, initialValue) => (0, powerMap_1.powerMap)((nextI
     if (nextIn.done) {
         return { done: true, value: acc, state };
     }
-    return (0, index_1.thenable)(reducer(acc, nextIn.value, state.index)).then((reduced) => ({
+    return thenable(reducer(acc, nextIn.value, state.index)).then((reduced) => ({
         done: false,
         value: reduced,
         state: {
@@ -44,5 +41,5 @@ const runningReduce = (reducer, initialValue) => (0, powerMap_1.powerMap)((nextI
         },
     })).src;
 }, () => ({ index: 0, accumulator: initialValue }));
-exports.runningReduce = runningReduce;
+export { runningReduce };
 //# sourceMappingURL=runningReduce.js.map

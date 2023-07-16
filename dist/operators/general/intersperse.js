@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.intersperse = void 0;
-const powerMap_1 = require("./powerMap");
+import { powerMap } from "./powerMap.js";
 /**
  * Intersperse the the argument bewteen each element of the iterator.
  * @example
@@ -21,7 +18,7 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const intersperse = (intersperseThing) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const intersperse = (intersperseThing) => powerMap((nextIn, state) => {
     if (nextIn.done) {
         return { done: true };
     }
@@ -35,5 +32,5 @@ const intersperse = (intersperseThing) => (0, powerMap_1.powerMap)((nextIn, stat
     // first time, just return the first element
     return { done: false, iterable: [nextIn.value], state: true };
 }, () => false);
-exports.intersperse = intersperse;
+export { intersperse };
 //# sourceMappingURL=intersperse.js.map

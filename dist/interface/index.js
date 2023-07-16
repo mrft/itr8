@@ -1,4 +1,3 @@
-"use strict";
 /**
  * The interface module contains all helper functions to interface from or to
  * other representations.
@@ -33,36 +32,21 @@
  *
  * @module
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./forEach"), exports);
-__exportStar(require("./itr8FromArray"), exports);
-__exportStar(require("./itr8FromArrayAsync"), exports);
-__exportStar(require("./itr8FromIterable"), exports);
-__exportStar(require("./itr8FromIterator"), exports);
-__exportStar(require("./itr8FromSingleValue"), exports);
-__exportStar(require("./itr8FromSingleValueAsync"), exports);
-__exportStar(require("./itr8FromString"), exports);
-__exportStar(require("./itr8FromStringAsync"), exports);
-__exportStar(require("./itr8Interval"), exports);
-__exportStar(require("./itr8Pushable"), exports);
-__exportStar(require("./itr8Range"), exports);
-__exportStar(require("./itr8RangeAsync"), exports);
-__exportStar(require("./itr8ToArray"), exports);
-__exportStar(require("./itr8ToObject"), exports);
-__exportStar(require("./itr8ToString"), exports);
-__exportStar(require("./itr8ToMultiIterable"), exports);
+export * from "./forEach.js";
+export * from "./itr8FromArray.js";
+export * from "./itr8FromArrayAsync.js";
+export * from "./itr8FromIterable.js";
+export * from "./itr8FromIterator.js";
+export * from "./itr8FromSingleValue.js";
+export * from "./itr8FromSingleValueAsync.js";
+export * from "./itr8FromString.js";
+export * from "./itr8FromStringAsync.js";
+export * from "./itr8Interval.js";
+export * from "./itr8Pushable.js";
+export * from "./itr8Range.js";
+export * from "./itr8RangeAsync.js";
+export * from "./itr8ToArray.js";
+export * from "./itr8ToObject.js";
+export * from "./itr8ToString.js";
+export * from "./itr8ToMultiIterable.js";
 //# sourceMappingURL=index.js.map

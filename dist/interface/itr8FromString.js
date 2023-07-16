@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.itr8FromString = void 0;
-const itr8FromIterable_1 = require("./itr8FromIterable");
+import { itr8FromIterable } from "./itr8FromIterable.js";
 /**
  * Turns a string into an Iterator that outputs every character of the string separately.
  *
@@ -13,7 +10,7 @@ const itr8FromIterable_1 = require("./itr8FromIterable");
  * @category interface/standard
  */
 function itr8FromString(s) {
-    return (0, itr8FromIterable_1.itr8FromIterable)(s);
+    return itr8FromIterable(s);
 }
-exports.itr8FromString = itr8FromString;
+export { itr8FromString };
 //# sourceMappingURL=itr8FromString.js.map

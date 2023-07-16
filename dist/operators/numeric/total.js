@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.total = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * Output a single thing containing the sum of all values.
  * @example
@@ -16,7 +13,7 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/numeric
  */
-const total = () => (0, powerMap_1.powerMap)((nextIn, state) => {
+const total = () => powerMap((nextIn, state) => {
     if (state.done) {
         return { done: true };
     }
@@ -32,5 +29,5 @@ const total = () => (0, powerMap_1.powerMap)((nextIn, state) => {
         state: { ...state, total: state.total + nextIn.value },
     };
 }, () => ({ done: false, total: 0 }));
-exports.total = total;
+export { total };
 //# sourceMappingURL=total.js.map

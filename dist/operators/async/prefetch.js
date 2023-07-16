@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.prefetch = void 0;
-const util_1 = require("../../util");
-const index_1 = require("../../index");
+import { isPromise } from "../../util/index.js";
+import { itr8FromIterator } from "../../index.js";
 /**
  * Probably only useful on async iterators.
  *
@@ -39,7 +36,7 @@ const prefetch = (amount) => {
                 if (isAsyncInput && inputs.length > 0)
                     await inputs[0];
                 const next = it.next();
-                if ((0, util_1.isPromise)(next)) {
+                if (isPromise(next)) {
                     // console.log('     add another (async) input, current nr of inputs = ', inputs.length, ' < ', amount);
                     isAsyncInput = true;
                     next.then((n) => {
@@ -71,8 +68,8 @@ const prefetch = (amount) => {
                     : { done: true, value: undefined };
             },
         };
-        return (0, index_1.itr8FromIterator)(retVal);
+        return itr8FromIterator(retVal);
     };
 };
-exports.prefetch = prefetch;
+export { prefetch };
 //# sourceMappingURL=prefetch.js.map

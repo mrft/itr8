@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.zip = void 0;
-const util_1 = require("../../util");
-const powerMap_1 = require("./powerMap");
+import { thenable } from "../../util/index.js";
+import { powerMap } from "./powerMap.js";
 /**
  * The zip() operator outputs tuples containing 1 element from the first and
  * one element from the second iterator. The first iterator is leading, so when
@@ -21,11 +18,11 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const zip = (secondIterator) => (0, powerMap_1.powerMap)((nextIn, _state) => {
+const zip = (secondIterator) => powerMap((nextIn, _state) => {
     if (nextIn.done) {
         return { done: true };
     }
-    return (0, util_1.thenable)(secondIterator.next()).then((secondNext) => ({
+    return thenable(secondIterator.next()).then((secondNext) => ({
         done: false,
         value: [nextIn.value, secondNext.value],
     })).src;
@@ -42,5 +39,5 @@ const zip = (secondIterator) => (0, powerMap_1.powerMap)((nextIn, _state) => {
     //   value: [nextIn.value, (secondNext as IteratorResult<any>).value],
     // };
 }, () => undefined);
-exports.zip = zip;
+export { zip };
 //# sourceMappingURL=zip.js.map

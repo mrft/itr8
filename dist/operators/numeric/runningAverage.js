@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.runningAverage = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * On every item, output the average so far
  * @example
@@ -17,7 +14,7 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/numeric
  */
-const runningAverage = () => (0, powerMap_1.powerMap)((nextIn, state) => {
+const runningAverage = () => powerMap((nextIn, state) => {
     if (nextIn.done)
         return { done: true };
     const newCount = state.count + 1;
@@ -28,5 +25,5 @@ const runningAverage = () => (0, powerMap_1.powerMap)((nextIn, state) => {
         value: newSum / newCount,
     };
 }, () => ({ done: false, count: 0, sum: 0 }));
-exports.runningAverage = runningAverage;
+export { runningAverage };
 //# sourceMappingURL=runningAverage.js.map

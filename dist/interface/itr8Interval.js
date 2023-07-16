@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.itr8Interval = void 0;
-const itr8Pushable_1 = require("./itr8Pushable");
+import { itr8Pushable } from "./itr8Pushable.js";
 /**
  * Returns a (pushable async) iterator that will automatically fire with the Date.now() value
  * of when it fired (= the number of milliseconds elapsed since January 1, 1970 00:00:00 UTC).
@@ -15,7 +12,7 @@ const itr8Pushable_1 = require("./itr8Pushable");
  * @category interface/standard
  */
 function itr8Interval(intervalMilliseconds) {
-    const it = (0, itr8Pushable_1.itr8Pushable)(Infinity); // infinite buffer !!!
+    const it = itr8Pushable(Infinity); // infinite buffer !!!
     const interval = setInterval(() => {
         it.push(Date.now());
     }, intervalMilliseconds);
@@ -26,5 +23,5 @@ function itr8Interval(intervalMilliseconds) {
     };
     return it;
 }
-exports.itr8Interval = itr8Interval;
+export { itr8Interval };
 //# sourceMappingURL=itr8Interval.js.map

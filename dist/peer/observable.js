@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.itr8ToObservable = exports.itr8FromObservable = void 0;
-const rxjs_1 = require("rxjs");
-const itr8Pushable_1 = require("../interface/itr8Pushable");
+import { from } from "rxjs";
+import { itr8Pushable } from "../interface/itr8Pushable.js";
 /**
  * Turns an Observable into an AsyncIterableIterator,
  * so we can use all itr8 operators on it.
@@ -13,7 +10,7 @@ const itr8Pushable_1 = require("../interface/itr8Pushable");
  * @category peer/observable
  */
 function itr8FromObservable(observable) {
-    const retVal = (0, itr8Pushable_1.itr8Pushable)();
+    const retVal = itr8Pushable();
     observable.subscribe({
         next(data) {
             retVal.push(data);
@@ -65,7 +62,6 @@ function itr8FromObservable(observable) {
     // }
     // return itr8FromIterator(retVal);
 }
-exports.itr8FromObservable = itr8FromObservable;
 /**
  * Turns an AsyncIterableIterator into an Observable,
  * so we can use all RxJS operators on it.
@@ -81,7 +77,7 @@ function itr8ToObservable(iterator) {
     //   [Symbol.asyncIterator]: () => iterable,
     //   next: iterator.next,
     // } as AsyncIterableIterator<T>;
-    return (0, rxjs_1.from)(iterator);
+    return from(iterator);
 }
-exports.itr8ToObservable = itr8ToObservable;
+export { itr8FromObservable, itr8ToObservable };
 //# sourceMappingURL=observable.js.map

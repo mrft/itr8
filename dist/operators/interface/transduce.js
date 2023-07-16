@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.transduce = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * If you're a fan of transducers, this operator allows you to use any existing transducers
  * that adhere to the [Official spec for transformer protocol](https://github.com/cognitect-labs/transducers-js#transformer-protocol)
@@ -38,7 +35,7 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/interface
  */
-const transduce = (transducer) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const transduce = (transducer) => powerMap((nextIn, state) => {
     // state will hold the current transformer
     if (state.transformer["@@transducer/reduced"] === true)
         return { done: true, value: state.transformer["@@transducer/value"] };
@@ -68,5 +65,5 @@ const transduce = (transducer) => (0, powerMap_1.powerMap)((nextIn, state) => {
     };
     return state;
 });
-exports.transduce = transduce;
+export { transduce };
 //# sourceMappingURL=transduce.js.map

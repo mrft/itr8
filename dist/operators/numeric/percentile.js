@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.percentile = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * Output the percentile(x)
  * It is simply using the nearest-rank method,
@@ -24,7 +21,7 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/numeric
  */
-const percentile = (percentage) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const percentile = (percentage) => powerMap((nextIn, state) => {
     if (state.done)
         return { done: true };
     if (nextIn.done)
@@ -46,5 +43,5 @@ const percentile = (percentage) => (0, powerMap_1.powerMap)((nextIn, state) => {
         state: { ...state, count: newCount, topArray: newTopArray },
     };
 }, () => ({ done: false, count: 0, topArray: [] }));
-exports.percentile = percentile;
+export { percentile };
 //# sourceMappingURL=percentile.js.map

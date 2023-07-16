@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.itr8RangeAsync = void 0;
-const itr8FromIterator_1 = require("./itr8FromIterator");
+import { itr8FromIterator } from "./itr8FromIterator.js";
 /**
  * Utility function that produces an (async) iterator
  * producing integers starting and ending where you want,
@@ -20,7 +17,7 @@ const itr8FromIterator_1 = require("./itr8FromIterator");
 function itr8RangeAsync(from, to, step) {
     const stepValue = step !== undefined ? Math.abs(step) : 1;
     const upwards = from < to;
-    return (0, itr8FromIterator_1.itr8FromIterator)((async function* () {
+    return itr8FromIterator((async function* () {
         if (upwards) {
             for (let i = from; i <= to; i = i + stepValue) {
                 yield i;
@@ -33,5 +30,5 @@ function itr8RangeAsync(from, to, step) {
         }
     })());
 }
-exports.itr8RangeAsync = itr8RangeAsync;
+export { itr8RangeAsync };
 //# sourceMappingURL=itr8RangeAsync.js.map

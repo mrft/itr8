@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseJson = void 0;
-const json_1 = require("@streamparser/json");
-const powerMap_1 = require("../operators/general/powerMap");
+import { JSONParser } from "@streamparser/json";
+import { powerMap } from "../operators/general/powerMap.js";
 /**
  * **REMARK**: based upon @streamparser/json, but added as a peer dependency,
  * so if you want to use this don't forget to
@@ -37,7 +34,7 @@ const powerMap_1 = require("../operators/general/powerMap");
  *
  * @category peer/parseJson
  */
-const parseJson = (params) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const parseJson = (params) => powerMap((nextIn, state) => {
     if (nextIn.done || state.done) {
         return { done: true };
     }
@@ -48,7 +45,7 @@ const parseJson = (params) => (0, powerMap_1.powerMap)((nextIn, state) => {
     const newState = { ...state };
     newState.common.parsedObjects = []; // empty again !
     if (!newState.parser) {
-        const parser = new json_1.JSONParser({
+        const parser = new JSONParser({
             paths: params,
             // paths: ['$.*.key', '$.*.name'],
             // true seems to use too much memory, and we don't need to keep the parent
@@ -106,5 +103,5 @@ const parseJson = (params) => (0, powerMap_1.powerMap)((nextIn, state) => {
         return { done: false, state: newState };
     }
 }, () => ({ parser: null, done: false, common: {} }));
-exports.parseJson = parseJson;
+export { parseJson };
 //# sourceMappingURL=parseJson.js.map

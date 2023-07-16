@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.map = void 0;
-const index_1 = require("../../util/index");
-const powerMap_1 = require("./powerMap");
+import { thenable } from "../../util/index.js";
+import { powerMap } from "./powerMap.js";
 /**
  * Translate each element into something else by applying the supplied mapping function
  * to each element.
@@ -14,12 +11,12 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const map = (mapFn) => (0, powerMap_1.powerMap)((nextIn, _state) => {
+const map = (mapFn) => powerMap((nextIn, _state) => {
     if (nextIn.done) {
         return { done: true };
     }
     else {
-        return (0, index_1.thenable)(mapFn(nextIn.value)).then((value) => ({
+        return thenable(mapFn(nextIn.value)).then((value) => ({
             done: false,
             value,
         })).src; // return the 'raw' value or promise, not the 'wrapped' version
@@ -39,5 +36,5 @@ const map = (mapFn) => (0, powerMap_1.powerMap)((nextIn, _state) => {
         // }
     }
 }, () => undefined);
-exports.map = map;
+export { map };
 //# sourceMappingURL=map.js.map

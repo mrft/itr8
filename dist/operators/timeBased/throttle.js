@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.throttle = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * Only useful on async iterators.
  *
@@ -13,7 +10,7 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/timeBased
  */
-const throttle = (throttleMilliseconds) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const throttle = (throttleMilliseconds) => powerMap((nextIn, state) => {
     if (nextIn.done) {
         return { done: true };
     }
@@ -23,5 +20,5 @@ const throttle = (throttleMilliseconds) => (0, powerMap_1.powerMap)((nextIn, sta
     }
     return { done: false, state };
 }, () => -Infinity);
-exports.throttle = throttle;
+export { throttle };
 //# sourceMappingURL=throttle.js.map

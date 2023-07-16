@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.filter = void 0;
-const index_1 = require("../../util/index");
-const powerMap_1 = require("./powerMap");
+import { thenable } from "../../util/index.js";
+import { powerMap } from "./powerMap.js";
 /**
  * Only keep elements where the filter function returns true.
  *
@@ -11,10 +8,10 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const filter = (filterFn) => (0, powerMap_1.powerMap)((nextIn, _state) => {
+const filter = (filterFn) => powerMap((nextIn, _state) => {
     if (nextIn.done)
         return { done: true };
-    return (0, index_1.thenable)(filterFn(nextIn.value)).then((result) => {
+    return thenable(filterFn(nextIn.value)).then((result) => {
         if (result)
             return { done: false, value: nextIn.value };
         return { done: false };
@@ -30,5 +27,5 @@ const filter = (filterFn) => (0, powerMap_1.powerMap)((nextIn, _state) => {
     //   return { done: false };
     // }
 }, () => undefined);
-exports.filter = filter;
+export { filter };
 //# sourceMappingURL=filter.js.map

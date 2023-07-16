@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.itr8ToString = void 0;
-const util_1 = require("../util");
+import { isPromise } from "../util/index.js";
 /**
  * Turns an iterator into a single string.
  * The strings will simply be 'glued' together, so if you need a separator,
@@ -31,7 +28,7 @@ const util_1 = require("../util");
  */
 function itr8ToString(iterator) {
     let n = iterator.next();
-    if ((0, util_1.isPromise)(n)) {
+    if (isPromise(n)) {
         return (async () => {
             let asyncResult = "";
             while (!(await n).done) {
@@ -52,5 +49,5 @@ function itr8ToString(iterator) {
         return result;
     }
 }
-exports.itr8ToString = itr8ToString;
+export { itr8ToString };
 //# sourceMappingURL=itr8ToString.js.map

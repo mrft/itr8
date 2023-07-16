@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.groupPer = void 0;
-const powerMap_1 = require("./powerMap");
+import { powerMap } from "./powerMap.js";
 /**
  * Group the incoming elements so the output iterator will return arrays/tuples of a certain size.
  * @example
@@ -14,7 +11,7 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const groupPer = (groupSize) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const groupPer = (groupSize) => powerMap((nextIn, state) => {
     if (state.done || (nextIn.done && state.buffer.length === 0)) {
         return { done: true };
     }
@@ -37,5 +34,5 @@ const groupPer = (groupSize) => (0, powerMap_1.powerMap)((nextIn, state) => {
         state: { ...state, buffer: [...state.buffer, nextIn.value] },
     };
 }, () => ({ done: false, buffer: [] }));
-exports.groupPer = groupPer;
+export { groupPer };
 //# sourceMappingURL=groupPer.js.map

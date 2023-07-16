@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.count = void 0;
-const powerMap_1 = require("../general/powerMap");
+import { powerMap } from "../general/powerMap.js";
 /**
  * Output a single thing which is the number of elements returned by the incoming iterator.
  * @example
@@ -16,7 +13,7 @@ const powerMap_1 = require("../general/powerMap");
  *
  * @category operators/numeric
  */
-const count = () => (0, powerMap_1.powerMap)((nextIn, state) => {
+const count = () => powerMap((nextIn, state) => {
     if (state.done) {
         return { done: true };
     }
@@ -29,5 +26,5 @@ const count = () => (0, powerMap_1.powerMap)((nextIn, state) => {
     }
     return { done: false, state: { ...state, count: state.count + 1 } };
 }, () => ({ done: false, count: 0 }));
-exports.count = count;
+export { count };
 //# sourceMappingURL=count.js.map

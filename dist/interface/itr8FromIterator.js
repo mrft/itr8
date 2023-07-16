@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.itr8FromIterator = void 0;
 /**
  * @deprecated Use the pipe(...) and compose(...) functions, so we can leave the
  * iterators alone. No need to 'wrap' anything just to make it work with this library!
@@ -54,5 +51,6 @@ function itr8FromIterator(iterator) {
     };
     return retVal;
 }
-exports.itr8FromIterator = itr8FromIterator;
+export { itr8FromIterator, // used to be called 'itr8Proxy'
+ };
 //# sourceMappingURL=itr8FromIterator.js.map

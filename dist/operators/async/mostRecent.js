@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.mostRecent = void 0;
-const util_1 = require("../../util");
-const index_1 = require("../../index");
+import { isPromise } from "../../util/index.js";
+import { itr8FromIterator } from "../../index.js";
 /**
  * Probably only useful on async iterators.
  *
@@ -66,7 +63,7 @@ const mostRecent = (initalValue) => {
         const handleInputPromise = async () => {
             let nextOutRead = undefined;
             do {
-                if ((0, util_1.isPromise)(nextOutRead)) {
+                if (isPromise(nextOutRead)) {
                     await nextOutRead;
                 }
                 nextOut = await it.next();
@@ -88,8 +85,8 @@ const mostRecent = (initalValue) => {
                 return nextOut;
             },
         };
-        return (0, index_1.itr8FromIterator)(retVal);
+        return itr8FromIterator(retVal);
     };
 };
-exports.mostRecent = mostRecent;
+export { mostRecent };
 //# sourceMappingURL=mostRecent.js.map

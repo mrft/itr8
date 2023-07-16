@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.split = void 0;
-const powerMap_1 = require("./powerMap");
+import { powerMap } from "./powerMap.js";
 /**
  * like string.split => output arrays of elements and use the given parameter as a delimiter
  * @example
@@ -21,7 +18,7 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const split = (delimiter) => (0, powerMap_1.powerMap)((nextIn, state) => {
+const split = (delimiter) => powerMap((nextIn, state) => {
     if (nextIn.done) {
         if (state === null) {
             return { done: true };
@@ -36,5 +33,5 @@ const split = (delimiter) => (0, powerMap_1.powerMap)((nextIn, state) => {
         state: [...(state === null ? [] : state), nextIn.value],
     };
 }, () => null);
-exports.split = split;
+export { split };
 //# sourceMappingURL=split.js.map

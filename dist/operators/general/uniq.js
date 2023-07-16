@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.uniq = void 0;
-const powerMap_1 = require("./powerMap");
+import { powerMap } from "./powerMap.js";
 /**
  * Only returns unique elements. It works with a simple compare, so ok for simple types like
  * numbers and strings, but for objects it will work on the reference. If you need something
@@ -20,7 +17,7 @@ const powerMap_1 = require("./powerMap");
  *
  * @category operators/general
  */
-const uniq = () => (0, powerMap_1.powerMap)((nextIn, state) => {
+const uniq = () => powerMap((nextIn, state) => {
     if (nextIn.done) {
         return { done: true };
     }
@@ -31,5 +28,5 @@ const uniq = () => (0, powerMap_1.powerMap)((nextIn, state) => {
     newState.add(nextIn.value);
     return { done: false, value: nextIn.value, state: newState };
 }, () => new Set([]));
-exports.uniq = uniq;
+export { uniq };
 //# sourceMappingURL=uniq.js.map
