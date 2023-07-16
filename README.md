@@ -1,14 +1,29 @@
-# itr8
+# itr8 (pronounced "iterate")
 
 > **_"because programming should not be about solving the same problems over and over again"_**
 
-- pronounced "iterate"
-- [itr8 source code](https://github.com/mrft/itr8) can be found on github
-- [itr8 documentation](https://mrft.github.io/itr8) can be found at the itr8 github site.
+**Installation**
+```bash
+    # install from npmjs.com
+    npm install itr8
+    # install directly from github
+    npm install mrft/itr8
+```
+**Usage**
+```typescript
+// in an EcmaScript module - ESM (NodeJS or the browser)
+import { ... } from "itr8";
+// in a CommonJS module - CJS (NodeJS)
+const itr8 = require("itr8/cjs");
+```
+
+**[itr8 source code](https://github.com/mrft/itr8)** can be found on github
+
+**[itr8 documentation](https://mrft.github.io/itr8)** can be found at the itr8 github site.
 
 **Table of Contents**
 
-- [itr8](#itr8)
+- [itr8](#itr8-pronounced-iterate)
   - [Getting started](#getting-started)
   - [What is it](#what-is-itr8)
   - [Who is this library for](#who-is-this-library-for)
@@ -20,14 +35,6 @@
 - [Inspiration](#inspiration)
 
 ## Getting started
-
-Install the module using npm
-
-```bash
-    npm install mrft/itr8
-```
-
-And then import it in your source code file:
 
 ```typescript
 import {
