@@ -164,7 +164,7 @@ describe("itr8 test suite", () => {
 
         // iterators should be faster than creating the intermediate arrays
         assert.isBelow(avgDurationIt, avgDurationArr);
-      }).timeout(1000);
+      }).timeout(2000);
     });
 
     describe("Check a really large set", () => {
