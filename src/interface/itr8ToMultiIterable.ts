@@ -26,9 +26,11 @@ import { itr8FromIterator } from "./itr8FromIterator.js";
  *
  * @category interface/standard
  */
-function itr8ToMultiIterable<
-  T
->(it: Iterator<T> | AsyncIterator<T> /*, abandonedTimeoutMilliseconds = Infinity */): AsyncIterable<T> {
+function itr8ToMultiIterable<T>(
+  it:
+    | Iterator<T>
+    | AsyncIterator<T> /*, abandonedTimeoutMilliseconds = Infinity */
+): AsyncIterable<T> {
   const subscriberMap: Map<AsyncIterableIterator<T>, number> = new Map();
   const buffer: Map<number, IteratorResult<T> | Promise<IteratorResult<T>>> =
     new Map();
@@ -55,7 +57,7 @@ function itr8ToMultiIterable<
             buffer.delete(i);
           })
         );
-      }
+      };
 
       const outIt: AsyncIterableIterator<T> = {
         [Symbol.asyncIterator]: () => outIt,
@@ -70,12 +72,12 @@ function itr8ToMultiIterable<
           subscriberMap.set(outIt, index + 1);
           return buffer.get(index) as Promise<IteratorResult<T>>;
         },
-        "return": async (value?:T) => {
+        return: async (value?: T) => {
           subscriberMap.delete(outIt);
           cleanBuffer();
           return { done: true, value };
         },
-        "throw": async (error?) => {
+        throw: async (error?) => {
           subscriberMap.delete(outIt);
           cleanBuffer();
           return { done: true, value: undefined };

@@ -58,10 +58,11 @@ const forEach = function <T = any>(
         const handlerPossiblePromise = handler(v);
         if (isPromise(handlerPossiblePromise)) {
           handlerPossiblePromise.catch((e) => {
-            if (throwCount< 1) {
+            if (throwCount < 1) {
               try {
                 it.throw?.(e);
-              } catch (throwErr) { // native implementation crashes?
+              } catch (throwErr) {
+                // native implementation crashes?
                 // console.log(v, 'ERROR WHILE THROWING', throwErr);
               }
               throwCount += 1;
@@ -70,10 +71,11 @@ const forEach = function <T = any>(
         }
         return handlerPossiblePromise;
       } catch (e) {
-        if (throwCount< 1) {
+        if (throwCount < 1) {
           try {
             it.throw?.(e);
-          } catch (throwErr) { // native implementation crashes?
+          } catch (throwErr) {
+            // native implementation crashes?
             // console.log(v, 'ERROR WHILE THROWING', throwErr);
           }
           throwCount += 1;

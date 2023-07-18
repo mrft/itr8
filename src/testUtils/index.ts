@@ -145,7 +145,11 @@ async function checkIfOperatorRespectsIteratorProtocol(
   assert.isDefined(its1.itOut.return);
   if (its1.itOut.return) {
     const ret1 = await its1.itOut.return();
-    assert.hasAnyDeepKeys(ret1, ["done", "value"], "return() does not return an IteratorResult");
+    assert.hasAnyDeepKeys(
+      ret1,
+      ["done", "value"],
+      "return() does not return an IteratorResult"
+    );
     assert.equal(
       its1.spyReturnIn.callCount,
       1,
@@ -159,7 +163,11 @@ async function checkIfOperatorRespectsIteratorProtocol(
   delete its2.itIn.return;
   if (its2.itOut.return) {
     const ret2 = await its2.itOut.return();
-    assert.hasAnyDeepKeys(ret2, ["done", "value"], "return() does not return an IteratorResult");
+    assert.hasAnyDeepKeys(
+      ret2,
+      ["done", "value"],
+      "return() does not return an IteratorResult"
+    );
     assert.equal(
       its2.spyThrowIn.callCount,
       0,
@@ -172,7 +180,11 @@ async function checkIfOperatorRespectsIteratorProtocol(
   assert.isDefined(its3.itOut.throw);
   if (its3.itOut.throw) {
     const ret3 = await its3.itOut.throw();
-    assert.hasAnyDeepKeys(ret3, ["done", "value"], "throw() does not return an IteratorResult");
+    assert.hasAnyDeepKeys(
+      ret3,
+      ["done", "value"],
+      "throw() does not return an IteratorResult"
+    );
     assert.equal(
       its3.spyThrowIn.callCount,
       0,
@@ -187,7 +199,11 @@ async function checkIfOperatorRespectsIteratorProtocol(
   delete its4.itIn.throw;
   if (its4.itOut.throw) {
     const ret4 = await its4.itOut.throw();
-    assert.hasAnyDeepKeys(ret4, ["done", "value"], "throw() does not return an IteratorResult");
+    assert.hasAnyDeepKeys(
+      ret4,
+      ["done", "value"],
+      "throw() does not return an IteratorResult"
+    );
     assert.equal(
       its4.spyReturnIn.callCount,
       0,

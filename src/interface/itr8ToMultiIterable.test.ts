@@ -34,6 +34,5 @@ describe("interface/itr8ToMultiIterable.ts", () => {
     // values that have been served to every subscriber
     const subscriberC = subscribeable[Symbol.asyncIterator](); // should start at 3
     assert.equal((await subscriberC.next()).value, 3);
-
   });
 });

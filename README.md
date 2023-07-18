@@ -5,13 +5,16 @@
 > **_"because programming should not be about solving the same problems over and over again"_**
 
 **Installation**
+
 ```bash
     # install from npmjs.com
     npm install itr8
     # install directly from github
     npm install mrft/itr8
 ```
+
 **Usage**
+
 ```typescript
 // in an EcmaScript module - ESM (NodeJS or the browser)
 import { ... } from "itr8";

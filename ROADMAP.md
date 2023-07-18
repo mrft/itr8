@@ -6,7 +6,7 @@ This is a bunch of ideas of things to add or change.
 
 ### Cleanup methods (return and throw)
 
-The  return(value) method indicates that the caller does not intend to make any more next calls.
+The return(value) method indicates that the caller does not intend to make any more next calls.
 This way the iterator can run any cleanup methods.
 
 The throw(exception) indicates the caller detects an error condition, which also indicates that

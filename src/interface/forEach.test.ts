@@ -190,7 +190,7 @@ describe("operators/general/forEach.ts", () => {
     });
 
     it("forEach(...) method calls return at the end", async () => {
-      const createItWithReturnAndThrowSpies = (asyncIterator:boolean) => {
+      const createItWithReturnAndThrowSpies = (asyncIterator: boolean) => {
         const it = asyncIterator ? itr8RangeAsync(1, 10) : itr8Range(1, 10);
         assert.isDefined(it.return);
         assert.isDefined(it.throw);
@@ -206,12 +206,20 @@ describe("operators/general/forEach.ts", () => {
        * Quick helper function to check for all sync/async combinations, whether return
        * gets called correctly (and throw does not) when the handler is working without
        * exceptions.
-       * @param asyncIterator 
-       * @param asyncHandler 
+       * @param asyncIterator
+       * @param asyncHandler
        */
-      const testReturn = async (asyncIterator: boolean, asyncHandler: boolean) => {
-        const flagToWord = new Map([[false, 'Sync'],[true, 'Async']])
-        const msgPrefix = `${flagToWord.get(asyncIterator)} iterator with ${flagToWord.get(asyncHandler)} handler`;
+      const testReturn = async (
+        asyncIterator: boolean,
+        asyncHandler: boolean
+      ) => {
+        const flagToWord = new Map([
+          [false, "Sync"],
+          [true, "Async"],
+        ]);
+        const msgPrefix = `${flagToWord.get(
+          asyncIterator
+        )} iterator with ${flagToWord.get(asyncHandler)} handler`;
         const spiedIt = createItWithReturnAndThrowSpies(asyncIterator);
         await pipe(
           spiedIt.it,
@@ -229,18 +237,26 @@ describe("operators/general/forEach.ts", () => {
           0,
           `${msgPrefix}: throw() has been called while it shouldn't have been`
         );
-      }
+      };
 
       /**
        * Quick helper function to check for all sync/async combinations, whether throw
        * gets called correctly (and return does not) when the handler is throwing an
        * exception somewhere.
-       * @param asyncIterator 
-       * @param asyncHandler 
+       * @param asyncIterator
+       * @param asyncHandler
        */
-      const testThrow = async (asyncIterator: boolean, asyncHandler: boolean) => {
-        const flagToWord = new Map([[false, 'Sync'],[true, 'Async']])
-        const msgPrefix = `${flagToWord.get(asyncIterator)} iterator with ${flagToWord.get(asyncHandler)} handler`;
+      const testThrow = async (
+        asyncIterator: boolean,
+        asyncHandler: boolean
+      ) => {
+        const flagToWord = new Map([
+          [false, "Sync"],
+          [true, "Async"],
+        ]);
+        const msgPrefix = `${flagToWord.get(
+          asyncIterator
+        )} iterator with ${flagToWord.get(asyncHandler)} handler`;
         const spiedIt = createItWithReturnAndThrowSpies(asyncIterator);
         try {
           await pipe(
@@ -262,9 +278,14 @@ describe("operators/general/forEach.ts", () => {
           0,
           `${msgPrefix}: return() has been called while it shouldn't have been`
         );
-      }
+      };
 
-      for (const [flagIt, flagHnd] of [[false, false], [false, true], [true, false], [true, true]]) {
+      for (const [flagIt, flagHnd] of [
+        [false, false],
+        [false, true],
+        [true, false],
+        [true, true],
+      ]) {
         await testReturn(flagIt, flagHnd);
         await testThrow(flagIt, flagHnd);
       }
