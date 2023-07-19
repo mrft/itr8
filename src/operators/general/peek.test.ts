@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { hrtime } from "process";
-import { hrtimeToMilliseconds, sleep } from "../../testUtils";
+import { hrtimeToMilliseconds, sleep } from "../../testUtils/index.js";
 import { peek } from "./peek.js";
 import {
   itr8Range,

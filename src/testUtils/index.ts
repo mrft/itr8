@@ -7,9 +7,9 @@
 
 import { Stream } from "stream";
 import FakeTimers from "@sinonjs/fake-timers";
-import { TTransIteratorSyncOrAsync } from "../types";
-import { itr8ToMultiIterable } from "../interface";
-import { pipe } from "../util";
+import { TTransIteratorSyncOrAsync } from "../types.js";
+import { itr8ToMultiIterable } from "../interface/index.js";
+import { pipe } from "../util/index.js";
 import { assert } from "chai";
 import sinon from "sinon";
 

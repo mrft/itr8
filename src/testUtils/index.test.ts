@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { arrayToStream } from ".";
+import { arrayToStream } from "./index.js";
 
 describe("./test/utils.ts", () => {
   it("Check if arrayToStream really produces a readable nodejs stream", async () => {

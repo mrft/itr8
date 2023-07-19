@@ -1,9 +1,9 @@
 import { assert } from "chai";
 import { hrtime } from "process";
-import { forLoop, thenable, isPromise, compose, pipe } from ".";
+import { forLoop, thenable, isPromise, compose, pipe } from "./index.js";
 import { forEach } from "../interface/forEach.js";
 import { itr8Range, itr8ToArray } from "../interface/index.js";
-import { map, skip, take } from "../operators";
+import { map, skip, take } from "../operators/index.js";
 
 describe("./util/index.ts", () => {
   it("thenable(...) works properly", async () => {

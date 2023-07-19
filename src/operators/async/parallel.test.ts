@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import FakeTimers from "@sinonjs/fake-timers";
-import { awaitPromiseWithFakeTimers, sleep } from "../../testUtils";
+import { awaitPromiseWithFakeTimers, sleep } from "../../testUtils/index.js";
 import { parallel } from "./parallel.js";
 import { pipe } from "../../util/index.js";
 import { map } from "../general/map.js";

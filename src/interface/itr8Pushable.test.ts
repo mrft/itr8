@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { sleep } from "../testUtils";
+import { sleep } from "../testUtils/index.js";
 import { itr8Pushable } from "./itr8Pushable.js";
 import { itr8ToArray } from "./itr8ToArray.js";
 

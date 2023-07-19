@@ -1,5 +1,126 @@
 services:
+
   itr8node12tests:
+    image: node:12
+    container_name: itr8node12tests
+    user: "root"
+    working_dir: /home/node/itr8
+    volumes:
+      - ../:/home/node/source_app
+    command:
+      > # > denotes a long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        echo "Current user: $$(whoami)" && pwd &&
+        cp -r ../source_app/* . &&
+        chown -R node:node . &&
+        # ls &&
+        su node -c '\''
+          echo "Current user: $$(whoami)" &&
+          rm -rf node_modules docs dist* package-lock.json &&
+          echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+          npm install --foreground-scripts=true &&
+          echo "==== No ESM tests in Node12" &&
+          npm run testCjsInsideDocker
+        '\''
+      '
+
+  itr8node14tests:
+    image: node:14
+    container_name: itr8node12tests
+    user: "root"
+    working_dir: /home/node/itr8
+    volumes:
+      - ../:/home/node/source_app
+    command:
+      > # > denotes a long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        echo "Current user: $$(whoami)" && pwd &&
+        cp -r ../source_app/* . &&
+        chown -R node:node . &&
+        # ls &&
+        su node -c '\''
+          echo "Current user: $$(whoami)" &&
+          rm -rf node_modules docs dist* package-lock.json &&
+          echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+          npm install --foreground-scripts=true &&
+          echo "==== No ESM tests in Node12" &&
+          npm run testInsideDocker && npm run testCjsInsideDocker
+        '\''
+      '
+
+  itr8node16tests:
+    image: node:16
+    container_name: itr8node12tests
+    user: "root"
+    working_dir: /home/node/itr8
+    volumes:
+      - ../:/home/node/source_app
+    command:
+      > # > denotes a long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        echo "Current user: $$(whoami)" && pwd &&
+        cp -r ../source_app/* . &&
+        chown -R node:node . &&
+        # ls &&
+        su node -c '\''
+          echo "Current user: $$(whoami)" &&
+          rm -rf node_modules docs dist* package-lock.json &&
+          echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+          npm install --foreground-scripts=true &&
+          echo "==== No ESM tests in Node12" &&
+          npm run testInsideDocker && npm run testCjsInsideDocker
+        '\''
+      '
+
+  itr8node18tests:
+    image: node:18
+    container_name: itr8node12tests
+    user: "root"
+    working_dir: /home/node/itr8
+    volumes:
+      - ../:/home/node/source_app
+    command:
+      > # > denotes a long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        echo "Current user: $$(whoami)" && pwd &&
+        cp -r ../source_app/* . &&
+        chown -R node:node . &&
+        # ls &&
+        su node -c '\''
+          echo "Current user: $$(whoami)" &&
+          rm -rf node_modules docs dist* package-lock.json &&
+          echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+          npm install --foreground-scripts=true &&
+          echo "==== No ESM tests in Node12" &&
+          npm run testInsideDocker && npm run testCjsInsideDocker
+        '\''
+      '
+
+  itr8node20tests:
+    image: node:20
+    container_name: itr8node12tests
+    user: "root"
+    working_dir: /home/node/itr8
+    volumes:
+      - ../:/home/node/source_app
+    command:
+      > # > denotes a long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        echo "Current user: $$(whoami)" && pwd &&
+        cp -r ../source_app/* . &&
+        chown -R node:node . &&
+        # ls &&
+        su node -c '\''
+          echo "Current user: $$(whoami)" &&
+          rm -rf node_modules docs dist* package-lock.json &&
+          echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+          npm install --foreground-scripts=true &&
+          echo "==== No ESM tests in Node12" &&
+          npm run testInsideDocker && npm run testCjsInsideDocker
+        '\''
+      '
+
+  itr8node12tests_old:
     image: itr8node12tests
     container_name: itr8node12tests
     user: "node"
@@ -27,7 +148,8 @@ services:
         npm install --foreground-scripts=true &&
         npm run testCjsInsideDocker
       '
-  itr8node14tests:
+
+  itr8node14tests_old:
     image: itr8node14tests
     container_name: itr8node14tests
     user: "node"
@@ -46,7 +168,7 @@ services:
         npm run testInsideDocker &&
         npm run testCjsInsideDocker
       '
-  itr8node16tests:
+  itr8node16tests_old:
     image: itr8node16tests
     container_name: itr8node16tests
     user: "node"
@@ -65,7 +187,7 @@ services:
         npm run testInsideDocker &&
         npm run testCjsInsideDocker
       '
-  itr8node18tests:
+  itr8node18tests_old:
     image: itr8node18tests
     container_name: itr8node18tests
     user: "node"
@@ -84,7 +206,7 @@ services:
         npm run testInsideDocker &&
         npm run testCjsInsideDocker
       '
-  itr8node19tests:
+  itr8node19tests_old:
     image: itr8node19tests
     container_name: itr8node19tests
     user: "node"
@@ -103,7 +225,7 @@ services:
         npm run testInsideDocker &&
         npm run testCjsInsideDocker
       '
-  itr8node20tests:
+  itr8node20tests_old:
     image: itr8node20tests
     container_name: itr8node20tests
     user: "node"

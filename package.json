@@ -57,11 +57,11 @@
     "testInsideDocker": "echo \"==== start EcmaScript Module mocha tests on node $( node --version )\" &&\n  npm run testCompiled &&\n  echo \"==== Successfully finished EcmaScript Module mocha tests on node $( node --version )\"",
     "// pretestCjsInsideDocker": "rm -rf node_modules docs build package-lock.json && echo \"==== start npm install (using node $( node --version ) and npm $( npm --version ))\" && npm install --foreground-scripts=true",
     "testCjsInsideDocker": "echo \"==== start CommonJS mocha tests on node $( node --version )\" &&  \n  npm run testCjsCompiled &&\n  echo \"==== Successfully finished CommonJS mocha tests on node $( node --version )\"",
-    "testOnDocker": "( cd $( npm prefix )/test && ( docker compose down --rmi=all --remove-orphans || true ) && for NODEVERSION in 12 14 16 18 20; do echo && echo \"======== Running tests on node ${NODEVERSION} ========\" && echo; docker compose run itr8node${NODEVERSION}tests; EXITCODE=$?; echo; if [ ${EXITCODE} -eq 0 ]; then echo \"======== Tests on node ${NODEVERSION} were successful ========\"; else echo \"======== Tests on node ${NODEVERSION} FAILED with exit code $EXITCODE ========\"; echo; exit $EXITCODE; fi; done; )",
+    "testOnDocker": "testOnDocker() { local NODEVERSIONS=$@; if [ \"$NODEVERSIONS\" = \"\" ]; then echo 'Error: pass node versions as argument'; exit 1; fi\n ( cd $( npm prefix )/test && ( docker compose down --rmi=local --remove-orphans || true ) && for NODEVERSION in $NODEVERSIONS; do echo && echo \"======== Running tests on node ${NODEVERSION} ========\" && echo; docker compose run itr8node${NODEVERSION}tests; EXITCODE=$?; echo; if [ ${EXITCODE} -eq 0 ]; then echo \"======== Tests on node ${NODEVERSION} were successful ========\"; else echo \"======== Tests on node ${NODEVERSION} FAILED with exit code $EXITCODE ========\"; echo; exit $EXITCODE; fi; done; ) }\n testOnDocker",
     "prettier:fix": "npx prettier --write .",
     "prettier:check": "npx prettier --check .",
     "// to 'release' things, we need to use npm version": "npm version patch || npm version minor || npm version major",
-    "preversion": "if [ $( git symbolic-ref --short HEAD ) != 'main' ]; then echo '[version] Bumping the version should only be done on the main branch.' && exit 1; fi && npm run testOnDocker && npm run build && npm run builddocs && git add -f dist/ docs/",
+    "preversion": "if [ $( git symbolic-ref --short HEAD ) != 'main' ]; then echo '[version] Bumping the version should only be done on the main branch.' && exit 1; fi && npm run testOnDocker 12 14 16 18 20 && npm run build && npm run builddocs && git add -f dist/ docs/",
     "version": "if [ $( git symbolic-ref --short HEAD ) != 'main' ]; then echo '[version] Bumping the version should only be done on the main branch.' && exit 1; fi # && NEW_VERSION=$(node -p 'require(\"./package.json\").version') # && echo \"Commit a new version v${NEW_VERSION}\" && git commit -m \"Bump version to v${NEW_VERSION}\" && echo \"Tag the new version v${NEW_VERSION}\" && echo git tag --annotate '\"v${NEW_VERSION}\"' --message '\"Version v${NEW_VERSION}\"'",
     "postversion": "if [ $( git symbolic-ref --short HEAD ) != 'main' ]; then echo '[version] Bumping the version should only be done on the main branch.' && exit 1; fi && git push && git push --tags # && rm -rf dist/ docs/",
     "// release": "use this one when you want to do a new release (to increase the version, add a tag, etc. AND publish to npm)!!!",
@@ -75,7 +75,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@knodes/typedoc-plugin-pages": "^0.23.1",
+    "@knodes/typedoc-plugin-pages": "^0.23.4",
     "@sinonjs/fake-timers": "^11.0.0",
     "@streamparser/json": "^0.0.6",
     "@types/chai": "^4.3.1",
@@ -95,8 +95,8 @@
     "sinon": "^15.2.0",
     "transducers-js": "^0.4.174",
     "ts-node": "^10.9.1",
-    "typedoc": "^0.23.23",
-    "typescript": "^4.9.4"
+    "typedoc": "^0.23.28",
+    "typescript": "^4.9.5"
   },
   "peerDependencies": {
     "@streamparser/json": "^0.0.6"

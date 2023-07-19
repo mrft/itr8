@@ -6,7 +6,7 @@ import {
   itr8RangeAsync,
   itr8ToArray,
 } from "../../interface/index.js";
-import { awaitPromiseWithFakeTimers } from "../../testUtils";
+import { awaitPromiseWithFakeTimers } from "../../testUtils/index.js";
 import { TNextFnResult } from "../../types";
 import { pipe } from "../../util/index.js";
 import FakeTimers from "@sinonjs/fake-timers";

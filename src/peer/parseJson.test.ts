@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { intersperse, map, takeWhile, tap } from "../operators";
+import { intersperse, map, takeWhile, tap } from "../operators/index.js";
 import {
   forEach,
   itr8ToArray,
@@ -8,7 +8,7 @@ import {
   itr8FromIterable,
 } from "../interface/index.js";
 import { parseJson } from "./parseJson.js";
-import { pipe } from "..";
+import { pipe } from "../index.js";
 
 const a: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const b: string[] = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];

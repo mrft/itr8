@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import FakeTimers from "@sinonjs/fake-timers";
-import { awaitPromiseWithFakeTimers, sleep } from "../../testUtils";
+import { awaitPromiseWithFakeTimers, sleep } from "../../testUtils/index.js";
 import { prefetch } from "./prefetch.js";
 import { pipe } from "../../util/index.js";
 

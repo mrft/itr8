@@ -13,7 +13,7 @@ import { transduce } from "./transduce.js";
 
 import transducersJs from "transducers-js";
 import { hrtime } from "process";
-import { hrtimeToMilliseconds } from "../../testUtils";
+import { hrtimeToMilliseconds } from "../../testUtils/index.js";
 import { count } from "../numeric/count.js";
 import { powerMap } from "../general/powerMap.js";
 

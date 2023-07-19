@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { itr8ToArray, itr8Range, itr8RangeAsync, pipe } from "../../index.js";
-import { sleep } from "../../testUtils";
+import { sleep } from "../../testUtils/index.js";
 import { runningReduce } from "./runningReduce.js";
 
 describe("operators/general/runningReduce.ts", () => {

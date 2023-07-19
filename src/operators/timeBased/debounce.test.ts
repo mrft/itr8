@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import FakeTimers from "@sinonjs/fake-timers";
 import { itr8Pushable, itr8ToArray, pipe } from "../../index.js";
-import { sleep } from "../../testUtils";
+import { sleep } from "../../testUtils/index.js";
 import { debounce } from "./debounce.js";
 
 describe("operators/timeBased/debounce.ts", () => {
