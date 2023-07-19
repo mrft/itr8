@@ -62,12 +62,12 @@ function itr8ToMultiIterable(it /*, abandonedTimeoutMilliseconds = Infinity */) 
                     subscriberMap.set(outIt, index + 1);
                     return buffer.get(index);
                 },
-                "return": async (value) => {
+                return: async (value) => {
                     subscriberMap.delete(outIt);
                     cleanBuffer();
                     return { done: true, value };
                 },
-                "throw": async (error) => {
+                throw: async (error) => {
                     subscriberMap.delete(outIt);
                     cleanBuffer();
                     return { done: true, value: undefined };

@@ -26,6 +26,7 @@ __exportStar(require("./repeat.js"), exports);
 __exportStar(require("./repeatEach.js"), exports);
 __exportStar(require("./runningReduce.js"), exports);
 __exportStar(require("./skip.js"), exports);
+__exportStar(require("./skipWhile.js"), exports);
 __exportStar(require("./sort.js"), exports);
 __exportStar(require("./split.js"), exports);
 __exportStar(require("./take.js"), exports);

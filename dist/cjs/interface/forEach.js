@@ -61,7 +61,8 @@ const forEach = function (handler, options) {
                             try {
                                 (_a = it.throw) === null || _a === void 0 ? void 0 : _a.call(it, e);
                             }
-                            catch (throwErr) { // native implementation crashes?
+                            catch (throwErr) {
+                                // native implementation crashes?
                                 // console.log(v, 'ERROR WHILE THROWING', throwErr);
                             }
                             throwCount += 1;
@@ -75,7 +76,8 @@ const forEach = function (handler, options) {
                     try {
                         (_a = it.throw) === null || _a === void 0 ? void 0 : _a.call(it, e);
                     }
-                    catch (throwErr) { // native implementation crashes?
+                    catch (throwErr) {
+                        // native implementation crashes?
                         // console.log(v, 'ERROR WHILE THROWING', throwErr);
                     }
                     throwCount += 1;

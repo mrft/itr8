@@ -55,7 +55,8 @@ const forEach = function (handler, options) {
                             try {
                                 it.throw?.(e);
                             }
-                            catch (throwErr) { // native implementation crashes?
+                            catch (throwErr) {
+                                // native implementation crashes?
                                 // console.log(v, 'ERROR WHILE THROWING', throwErr);
                             }
                             throwCount += 1;
@@ -69,7 +70,8 @@ const forEach = function (handler, options) {
                     try {
                         it.throw?.(e);
                     }
-                    catch (throwErr) { // native implementation crashes?
+                    catch (throwErr) {
+                        // native implementation crashes?
                         // console.log(v, 'ERROR WHILE THROWING', throwErr);
                     }
                     throwCount += 1;

@@ -10,6 +10,7 @@ export * from "./repeat.js";
 export * from "./repeatEach.js";
 export * from "./runningReduce.js";
 export * from "./skip.js";
+export * from "./skipWhile.js";
 export * from "./sort.js";
 export * from "./split.js";
 export * from "./take.js";

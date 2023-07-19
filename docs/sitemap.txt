@@ -11,6 +11,7 @@ https://mrft.github.io/itr8/functions/interface.itr8ToObject.html
 https://mrft.github.io/itr8/functions/interface.forEach.html
 https://mrft.github.io/itr8/functions/operators.prefetch.html
 https://mrft.github.io/itr8/functions/util.itr8Pipe.html
+https://mrft.github.io/itr8/functions/operators.skipWhile.html
 https://mrft.github.io/itr8/functions/operators.runningAverage.html
 https://mrft.github.io/itr8/functions/operators.runningTotal.html
 https://mrft.github.io/itr8/functions/operators.total.html
