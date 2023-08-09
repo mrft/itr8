@@ -1,6 +1,5 @@
 /// <reference types="node" />
 import * as Stream from "stream";
-import { TPipeable } from "../types.js";
 /**
  * Transforms a readable stream into an async itr8.
  *
@@ -23,7 +22,7 @@ import { TPipeable } from "../types.js";
  *
  * @category peer/stream
  */
-declare const itr8FromStream: (stream: Stream.Readable) => TPipeable & AsyncIterableIterator<any>;
+declare const itr8FromStream: (stream: Stream.Readable) => AsyncIterableIterator<any>;
 /**
  * This will produce an AsyncIterableIterator where each value is a string
  * from the stdin stream.
@@ -37,7 +36,7 @@ declare const itr8FromStream: (stream: Stream.Readable) => TPipeable & AsyncIter
  *
  * @category peer/stream
  */
-declare const itr8FromStdin: () => TPipeable & AsyncIterableIterator<string>;
+declare const itr8FromStdin: () => AsyncIterableIterator<string>;
 /**
  * Creates a readable (object-mode) stream from a (sync or async) iterator.
  *

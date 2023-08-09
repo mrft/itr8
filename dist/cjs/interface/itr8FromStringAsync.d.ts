@@ -1,4 +1,3 @@
-import { TPipeable } from "../types.js";
 /**
  * Turns a string into an (async) Iterator that outputs every character of
  * the string separately.
@@ -8,5 +7,5 @@ import { TPipeable } from "../types.js";
  *
  * @category interface/standard
  */
-declare function itr8FromStringAsync(s: string): TPipeable & AsyncIterableIterator<string>;
+declare function itr8FromStringAsync(s: string): AsyncIterableIterator<string>;
 export { itr8FromStringAsync };

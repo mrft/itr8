@@ -1,5 +1,4 @@
 import { isPromise } from "../../util/index.js";
-import { itr8FromIterator } from "../../index.js";
 /**
  * Probably only useful on async iterators.
  *
@@ -68,7 +67,7 @@ const prefetch = (amount) => {
                     : { done: true, value: undefined };
             },
         };
-        return itr8FromIterator(retVal);
+        return retVal;
     };
 };
 export { prefetch };

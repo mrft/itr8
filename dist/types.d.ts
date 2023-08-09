@@ -1,10 +1,4 @@
 /**
- * Anything with a pipe method.
- */
-type TPipeable<TIn = any, TOut = any> = {
-    pipe: (...params: any) => any;
-};
-/**
  * Anything with a push and a done method, to support pushable async iterators.
  */
 type TPushable<TIn = any, TOut = any> = {
@@ -17,7 +11,7 @@ type TTransIteratorAsync<TIn, TOut> = (iterator: AsyncIterator<TIn>, ...params: 
  * A transIterator is a function that takes a (Sync or Async) Iterator as input and outputs
  * a (Pipeable, Sync or Async, Iterable) Iterator
  */
-type TTransIteratorSyncOrAsync<TIn = any, TOut = any> = (iterator: Iterator<TIn> | AsyncIterator<TIn>) => TPipeable & (IterableIterator<TOut> | AsyncIterableIterator<TOut>);
+type TTransIteratorSyncOrAsync<TIn = any, TOut = any> = (iterator: Iterator<TIn> | AsyncIterator<TIn>) => IterableIterator<TOut> | AsyncIterableIterator<TOut>;
 /**
  * The type that the the nextFn of the powerMap operator should output
  */
@@ -53,4 +47,4 @@ type TThenable<T = any> = {
     then: (okHandler: (value: any, isSync?: boolean) => any) => any;
     value?: T;
 };
-export { TTransIterator, TTransIteratorAsync, TTransIteratorSyncOrAsync, TPipeable, TPushable, TNextFnResult, TThenable, };
+export { TTransIterator, TTransIteratorAsync, TTransIteratorSyncOrAsync, TPushable, TNextFnResult, TThenable, };

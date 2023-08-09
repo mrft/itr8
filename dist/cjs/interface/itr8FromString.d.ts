@@ -1,4 +1,3 @@
-import { TPipeable } from "../types.js";
 /**
  * Turns a string into an Iterator that outputs every character of the string separately.
  *
@@ -9,5 +8,5 @@ import { TPipeable } from "../types.js";
  *
  * @category interface/standard
  */
-declare function itr8FromString(s: string): TPipeable & IterableIterator<string>;
+declare function itr8FromString(s: string): IterableIterator<string>;
 export { itr8FromString };

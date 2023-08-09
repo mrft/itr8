@@ -63,7 +63,7 @@ function itr8FromObservable(observable) {
     //     }
     //   },
     // }
-    // return itr8FromIterator(retVal);
+    // return retVal;
 }
 exports.itr8FromObservable = itr8FromObservable;
 /**

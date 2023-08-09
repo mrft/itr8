@@ -1,4 +1,4 @@
-import { TPipeable, TPushable } from "../types.js";
+import { TPushable } from "../types.js";
 /**
  * Creates an AsyncIterableIterator, that also exposes
  * * a push(...) method that can be used to push values into it (for example based on events).
@@ -15,5 +15,5 @@ import { TPipeable, TPushable } from "../types.js";
  *
  * @category interface/standard
  */
-declare function itr8Pushable<T>(bufferSize?: number): TPipeable & AsyncIterableIterator<T> & TPushable;
+declare function itr8Pushable<T>(bufferSize?: number): AsyncIterableIterator<T> & TPushable;
 export { itr8Pushable };

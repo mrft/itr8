@@ -260,7 +260,7 @@ const powerMap = function (nextFn, initialStateFactory) {
             return generateNextReturnVal();
         };
         ////////////////////////////////////////////////////////////////////////////////
-        // Here is the returned TPipeable & IterableIterator
+        // Here is the returned IterableIterator
         ////////////////////////////////////////////////////////////////////////////////
         const retVal = {
             // return the current (async?) iterator to make it an iterable iterator (so we can use for ... of)
@@ -273,7 +273,7 @@ const powerMap = function (nextFn, initialStateFactory) {
                 return generateNextReturnVal();
             },
         };
-        return (0, index_js_1.itr8FromIterator)(retVal);
+        return retVal;
     };
     const transIt = (itIn) => operatorFunction(itIn, initialStateFactory());
     /**
@@ -589,7 +589,7 @@ exports.powerMap = powerMap;
 //         }
 //       };
 //       ////////////////////////////////////////////////////////////////////////////////
-//       // Here is the returned TPipeable & IterableIterator
+//       // Here is the returned IterableIterator
 //       ////////////////////////////////////////////////////////////////////////////////
 //       const retVal = {
 //         // return the current (async?) iterator to make it an iterable iterator (so we can use for ... of)
@@ -605,7 +605,7 @@ exports.powerMap = powerMap;
 //           return generateNextReturnVal();
 //         },
 //       };
-//       return itr8FromIterator(retVal as any);
+//       return retVal as any;
 //     };
 //     return (itIn: Iterator<TIn> | AsyncIterator<TIn>) => operatorFunction(itIn, initialStateFactory());
 //   }
@@ -981,7 +981,7 @@ const itr8OperatorFactoryExperimental = function (nextFn, initialStateFactory) {
                 return nextReturnVal;
             };
             ////////////////////////////////////////////////////////////////////////////////
-            // Here is the returned TPipeable & IterableIterator
+            // Here is the returned IterableIterator
             ////////////////////////////////////////////////////////////////////////////////
             const retVal = {
                 // return the current (async?) iterator to make it an iterable iterator (so we can use for ... of)
@@ -994,7 +994,7 @@ const itr8OperatorFactoryExperimental = function (nextFn, initialStateFactory) {
                     return generateNextReturnVal(); // generateNextReturnVal(itIn, nextFn, operatorState, param1, param2, param3, param4, ...otherParams);
                 },
             };
-            return (0, index_js_1.itr8FromIterator)(retVal);
+            return retVal;
         };
         return (itIn) => operatorFunction(itIn, initialStateFactory(param1, param2, param3, param4, ...otherParams));
     };

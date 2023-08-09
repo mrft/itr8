@@ -50,7 +50,7 @@ const index_js_2 = require("../index.js");
  * @category peer/stream
  */
 const itr8FromStream = (stream) => {
-    return (0, index_js_2.itr8FromIterator)(stream[Symbol.asyncIterator]());
+    return stream[Symbol.asyncIterator]();
     // let buffer:any[] = [];
     // let currentResolve;
     // let currentReject;
@@ -88,7 +88,7 @@ const itr8FromStream = (stream) => {
     //     }
     //   }
     // };
-    // return itr8FromIterator(retVal);
+    // return retVal;
 };
 exports.itr8FromStream = itr8FromStream;
 /**

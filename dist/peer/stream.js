@@ -1,6 +1,6 @@
 import * as Stream from "stream";
 import { isPromise } from "../util/index.js";
-import { itr8FromIterator, itr8FromIterable } from "../index.js";
+import { itr8FromIterable } from "../index.js";
 /**
  * Transforms a readable stream into an async itr8.
  *
@@ -24,7 +24,7 @@ import { itr8FromIterator, itr8FromIterable } from "../index.js";
  * @category peer/stream
  */
 const itr8FromStream = (stream) => {
-    return itr8FromIterator(stream[Symbol.asyncIterator]());
+    return stream[Symbol.asyncIterator]();
     // let buffer:any[] = [];
     // let currentResolve;
     // let currentReject;
@@ -62,7 +62,7 @@ const itr8FromStream = (stream) => {
     //     }
     //   }
     // };
-    // return itr8FromIterator(retVal);
+    // return retVal;
 };
 /**
  * This will produce an AsyncIterableIterator where each value is a string

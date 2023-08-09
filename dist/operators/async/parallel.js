@@ -1,5 +1,5 @@
 import { pipe } from "../../util/index.js";
-import { forEach, itr8FromIterator, itr8FromSingleValue, itr8Pushable, itr8ToArray, } from "../../interface/index.js";
+import { forEach, itr8FromSingleValue, itr8Pushable, itr8ToArray, } from "../../interface/index.js";
 // function pipe<IN, A, B, C, D, E>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E): E;
 // function pipe<IN, A, B, C, D, E, F>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F): F;
 // function pipe<IN, A, B, C, D, E, F, G>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G): G;
@@ -21,7 +21,7 @@ function parallel(options, transIt, ...moreTransIts) {
                 (async () => {
                     // const start = Date.now();
                     // const timePassed = () => Date.now() - start;
-                    await pipe(itr8FromIterator(inIt), forEach(async (inElement) => {
+                    await pipe(inIt, forEach(async (inElement) => {
                         // console.log(`${JSON.stringify(inElement)}: taking lane (${timePassed()} ms)`);
                         const itOfItsElement = {
                             callbackIt: itr8Pushable(),
@@ -53,7 +53,7 @@ function parallel(options, transIt, ...moreTransIts) {
                     subItElement.callbackIt.done();
                 }
             }
-            return itr8FromIterator(iteratorOfIterables());
+            return iteratorOfIterables();
         };
     }
     else {
@@ -63,7 +63,7 @@ function parallel(options, transIt, ...moreTransIts) {
                 const outIterator = itr8Pushable();
                 // first setup the (concurrent) forEach on the incoming iterator, so that things will be pushed to the pushable iterator
                 (async () => {
-                    await pipe(itr8FromIterator(inIt), forEach(async (inElement) => {
+                    await pipe(inIt, forEach(async (inElement) => {
                         // actively drain the subIterator to force parallel processing
                         // and push the results onto the pushable outIterator
                         const subIt = transItsCombined(itr8FromSingleValue(inElement));
@@ -94,7 +94,7 @@ function parallel(options, transIt, ...moreTransIts) {
                     }
                 }
             }
-            return itr8FromIterator(iteratorOfValues());
+            return iteratorOfValues();
         };
     }
 }

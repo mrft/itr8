@@ -1,4 +1,3 @@
-import { itr8FromIterator } from "./itr8FromIterator.js";
 /**
  * Turns a string into an (async) Iterator that outputs every character of
  * the string separately.
@@ -9,11 +8,11 @@ import { itr8FromIterator } from "./itr8FromIterator.js";
  * @category interface/standard
  */
 function itr8FromStringAsync(s) {
-    return itr8FromIterator((async function* () {
+    return (async function* () {
         for (const x of s) {
             yield x;
         }
-    })());
+    })();
 }
 export { itr8FromStringAsync };
 //# sourceMappingURL=itr8FromStringAsync.js.map

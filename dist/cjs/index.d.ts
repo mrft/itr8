@@ -58,7 +58,7 @@
  *
  * @module
  */
-export { TPipeable, TPushable, TTransIteratorSyncOrAsync, TNextFnResult, TThenable, } from "./types";
+export { TPushable, TTransIteratorSyncOrAsync, TNextFnResult, TThenable, } from "./types";
 export * from "./util/index.js";
 export * from "./interface/index.js";
 export * from "./operators/index.js";

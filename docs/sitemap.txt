@@ -1,7 +1,6 @@
 https://mrft.github.io/itr8/types/index.TTransIteratorSyncOrAsync.html
 https://mrft.github.io/itr8/types/index.TNextFnResult.html
 https://mrft.github.io/itr8/types/index.TThenable.html
-https://mrft.github.io/itr8/types/index.TPipeable.html
 https://mrft.github.io/itr8/types/index.TPushable.html
 https://mrft.github.io/itr8/variables/util.AsyncFunction.html
 https://mrft.github.io/itr8/modules.html
@@ -37,7 +36,6 @@ https://mrft.github.io/itr8/functions/operators.debounce.html
 https://mrft.github.io/itr8/functions/interface.itr8ToString.html
 https://mrft.github.io/itr8/functions/interface.itr8ToMultiIterable.html
 https://mrft.github.io/itr8/functions/operators.mostRecent.html
-https://mrft.github.io/itr8/functions/interface.itr8FromIterator.html
 https://mrft.github.io/itr8/functions/interface.itr8ToArray.html
 https://mrft.github.io/itr8/functions/operators.tap.html
 https://mrft.github.io/itr8/functions/operators.some.html

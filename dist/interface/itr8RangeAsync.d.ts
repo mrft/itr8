@@ -1,4 +1,3 @@
-import { TPipeable } from "../types.js";
 /**
  * Utility function that produces an (async) iterator
  * producing integers starting and ending where you want,
@@ -14,5 +13,5 @@ import { TPipeable } from "../types.js";
  *
  * @category interface/standard
  */
-declare function itr8RangeAsync(from: number, to: number, step?: number): TPipeable & AsyncIterableIterator<number>;
+declare function itr8RangeAsync(from: number, to: number, step?: number): AsyncIterableIterator<number>;
 export { itr8RangeAsync };

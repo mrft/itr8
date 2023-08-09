@@ -24,7 +24,7 @@ function parallel(options, transIt, ...moreTransIts) {
                 (async () => {
                     // const start = Date.now();
                     // const timePassed = () => Date.now() - start;
-                    await (0, index_js_1.pipe)((0, index_js_2.itr8FromIterator)(inIt), (0, index_js_2.forEach)(async (inElement) => {
+                    await (0, index_js_1.pipe)(inIt, (0, index_js_2.forEach)(async (inElement) => {
                         // console.log(`${JSON.stringify(inElement)}: taking lane (${timePassed()} ms)`);
                         const itOfItsElement = {
                             callbackIt: (0, index_js_2.itr8Pushable)(),
@@ -56,7 +56,7 @@ function parallel(options, transIt, ...moreTransIts) {
                     subItElement.callbackIt.done();
                 }
             }
-            return (0, index_js_2.itr8FromIterator)(iteratorOfIterables());
+            return iteratorOfIterables();
         };
     }
     else {
@@ -66,7 +66,7 @@ function parallel(options, transIt, ...moreTransIts) {
                 const outIterator = (0, index_js_2.itr8Pushable)();
                 // first setup the (concurrent) forEach on the incoming iterator, so that things will be pushed to the pushable iterator
                 (async () => {
-                    await (0, index_js_1.pipe)((0, index_js_2.itr8FromIterator)(inIt), (0, index_js_2.forEach)(async (inElement) => {
+                    await (0, index_js_1.pipe)(inIt, (0, index_js_2.forEach)(async (inElement) => {
                         // actively drain the subIterator to force parallel processing
                         // and push the results onto the pushable outIterator
                         const subIt = transItsCombined((0, index_js_2.itr8FromSingleValue)(inElement));
@@ -97,7 +97,7 @@ function parallel(options, transIt, ...moreTransIts) {
                     }
                 }
             }
-            return (0, index_js_2.itr8FromIterator)(iteratorOfValues());
+            return iteratorOfValues();
         };
     }
 }

@@ -1,4 +1,3 @@
-import { TPipeable } from "../types.js";
 /**
  * Turns a single value into an Iterator that will produce 1 result.
  * Should work for boolean, number, string, object, ...
@@ -8,5 +7,5 @@ import { TPipeable } from "../types.js";
  *
  * @category interface/standard
  */
-declare function itr8FromSingleValue<T>(v: any): TPipeable & IterableIterator<T>;
+declare function itr8FromSingleValue<T>(v: any): IterableIterator<T>;
 export { itr8FromSingleValue };

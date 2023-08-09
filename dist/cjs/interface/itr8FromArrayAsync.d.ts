@@ -1,4 +1,3 @@
-import { TPipeable } from "../types.js";
 /**
  * Turns an array into an (async) Iterator. Mainly useful for testing.
  *
@@ -7,5 +6,5 @@ import { TPipeable } from "../types.js";
  *
  * @category interface/standard
  */
-declare function itr8FromArrayAsync<T>(a: Array<T>): TPipeable & AsyncIterableIterator<T>;
+declare function itr8FromArrayAsync<T>(a: Array<T>): AsyncIterableIterator<T>;
 export { itr8FromArrayAsync };

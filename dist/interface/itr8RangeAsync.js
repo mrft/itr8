@@ -1,4 +1,3 @@
-import { itr8FromIterator } from "./itr8FromIterator.js";
 /**
  * Utility function that produces an (async) iterator
  * producing integers starting and ending where you want,
@@ -17,7 +16,7 @@ import { itr8FromIterator } from "./itr8FromIterator.js";
 function itr8RangeAsync(from, to, step) {
     const stepValue = step !== undefined ? Math.abs(step) : 1;
     const upwards = from < to;
-    return itr8FromIterator((async function* () {
+    return (async function* () {
         if (upwards) {
             for (let i = from; i <= to; i = i + stepValue) {
                 yield i;
@@ -28,7 +27,7 @@ function itr8RangeAsync(from, to, step) {
                 yield i;
             }
         }
-    })());
+    })();
 }
 export { itr8RangeAsync };
 //# sourceMappingURL=itr8RangeAsync.js.map

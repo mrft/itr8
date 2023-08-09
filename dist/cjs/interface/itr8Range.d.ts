@@ -1,4 +1,3 @@
-import { TPipeable } from "../types.js";
 /**
  * Utility function that produces an iterator producing numbers (not only integers)
  * starting and ending where you want, which is useful for trying out stuff
@@ -31,5 +30,5 @@ import { TPipeable } from "../types.js";
  *
  * @category interface/standard
  */
-declare function itr8Range(from: number, to: number, step?: number): TPipeable & IterableIterator<number>;
+declare function itr8Range(from: number, to: number, step?: number): IterableIterator<number>;
 export { itr8Range };

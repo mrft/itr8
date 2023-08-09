@@ -1,4 +1,3 @@
-import { itr8FromIterator } from "./itr8FromIterator.js";
 /**
  * Utility function that produces an iterator producing numbers (not only integers)
  * starting and ending where you want, which is useful for trying out stuff
@@ -34,7 +33,7 @@ import { itr8FromIterator } from "./itr8FromIterator.js";
 function itr8Range(from, to, step) {
     const stepValue = step !== undefined ? Math.abs(step) : 1;
     const upwards = from < to;
-    return itr8FromIterator((function* () {
+    return (function* () {
         if (upwards) {
             for (let i = from; i <= to; i = i + stepValue) {
                 yield i;
@@ -45,7 +44,7 @@ function itr8Range(from, to, step) {
                 yield i;
             }
         }
-    })());
+    })();
 }
 export { itr8Range };
 //# sourceMappingURL=itr8Range.js.map

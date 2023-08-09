@@ -1,4 +1,3 @@
-import { itr8FromIterator } from "./itr8FromIterator.js";
 /**
  * Creates an AsyncIterableIterator, that also exposes
  * * a push(...) method that can be used to push values into it (for example based on events).
@@ -60,7 +59,7 @@ function itr8Pushable(bufferSize) {
             // done = true;
         },
     };
-    return itr8FromIterator(retVal);
+    return retVal;
 }
 export { itr8Pushable };
 //# sourceMappingURL=itr8Pushable.js.map

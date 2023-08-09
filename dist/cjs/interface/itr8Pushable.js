@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.itr8Pushable = void 0;
-const itr8FromIterator_js_1 = require("./itr8FromIterator.js");
 /**
  * Creates an AsyncIterableIterator, that also exposes
  * * a push(...) method that can be used to push values into it (for example based on events).
@@ -63,7 +62,7 @@ function itr8Pushable(bufferSize) {
             // done = true;
         },
     };
-    return (0, itr8FromIterator_js_1.itr8FromIterator)(retVal);
+    return retVal;
 }
 exports.itr8Pushable = itr8Pushable;
 //# sourceMappingURL=itr8Pushable.js.map

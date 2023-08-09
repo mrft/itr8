@@ -1,4 +1,3 @@
-import { TPipeable } from "../types.js";
 /**
  * Gets a wrapped instance of the iterator OR the async iterator from any iterable (including arrays)
  * so that we can easily pipe it into the operators.
@@ -13,5 +12,5 @@ import { TPipeable } from "../types.js";
  *
  * @category interface/standard
  */
-declare function itr8FromIterable<T>(it: Iterable<T> | AsyncIterable<T>): TPipeable & (IterableIterator<T> | AsyncIterableIterator<T>);
+declare function itr8FromIterable<T>(it: Iterable<T> | AsyncIterable<T>): IterableIterator<T> | AsyncIterableIterator<T>;
 export { itr8FromIterable };

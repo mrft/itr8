@@ -1,4 +1,4 @@
-import { TPipeable, TPushable } from "../types.js";
+import { TPushable } from "../types.js";
 /**
  * Returns a (pushable async) iterator that will automatically fire with the Date.now() value
  * of when it fired (= the number of milliseconds elapsed since January 1, 1970 00:00:00 UTC).
@@ -11,5 +11,5 @@ import { TPipeable, TPushable } from "../types.js";
  *
  * @category interface/standard
  */
-declare function itr8Interval(intervalMilliseconds: number): TPipeable & AsyncIterableIterator<number> & TPushable;
+declare function itr8Interval(intervalMilliseconds: number): AsyncIterableIterator<number> & TPushable;
 export { itr8Interval };

@@ -221,7 +221,7 @@ const peek = (peekForward = 1, peekBackward = 1) => powerMap((nextIn, state) => 
 //   //         : { done: true, value: undefined } as IteratorResult<T>;
 //   //     }
 //   //   };
-//   //   return itr8FromIterator(retVal as any);
+//   //   return retVal as any;
 //   // }
 // };
 export { peek };

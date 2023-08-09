@@ -1,4 +1,3 @@
-import { itr8FromIterator } from "./itr8FromIterator.js";
 /**
  * Turns an array into an Iterator
  * (itr8FromIterable is more generic, this one is mainly useful for writing tests together
@@ -10,7 +9,7 @@ import { itr8FromIterator } from "./itr8FromIterator.js";
  * @category interface/standard
  */
 function itr8FromArray(a) {
-    return itr8FromIterator(a[Symbol.iterator]());
+    return a[Symbol.iterator]();
 }
 export { itr8FromArray };
 //# sourceMappingURL=itr8FromArray.js.map

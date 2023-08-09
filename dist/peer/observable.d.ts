@@ -1,5 +1,4 @@
 import { Observable } from "rxjs";
-import { TPipeable } from "../types.js";
 /**
  * Turns an Observable into an AsyncIterableIterator,
  * so we can use all itr8 operators on it.
@@ -9,7 +8,7 @@ import { TPipeable } from "../types.js";
  *
  * @category peer/observable
  */
-declare function itr8FromObservable<T>(observable: Observable<T>): TPipeable & AsyncIterableIterator<T>;
+declare function itr8FromObservable<T>(observable: Observable<T>): AsyncIterableIterator<T>;
 /**
  * Turns an AsyncIterableIterator into an Observable,
  * so we can use all RxJS operators on it.

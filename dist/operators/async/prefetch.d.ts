@@ -25,5 +25,5 @@
  *
  * @category operators/async
  */
-declare const prefetch: (amount: number) => <T>(it: Iterator<T, any, undefined> | AsyncIterator<T, any, undefined>) => Iterator<T, any, undefined> | AsyncIterator<T, any, undefined>;
+declare const prefetch: (amount: number) => <T>(it: Iterator<T, any, undefined> | AsyncIterator<T, any, undefined>) => IterableIterator<T> | AsyncIterableIterator<T>;
 export { prefetch };
