@@ -219,27 +219,6 @@ const forLoop = <State>(
 };
 
 /**
- * Produce a new (parameterless) itr8 that is the combination of all the itr8 params
- *
- * Maybe We could allow the first element to either be a TTransIterator or just an iterator?
- * As long as the final output is an iterator?
- *
- * @param params a list of transIterators
- *
- * @category util
- */
-// function compose<TIn=any,TOut=any>(
-//   first:TTransIteratorSyncOrAsync,
-//   ...params:Array<TTransIteratorSyncOrAsync>
-// ):TTransIteratorSyncOrAsync<TIn, TOut> {
-//   const [second, ...rest] = params;
-//   return second
-//     ? compose((it:Iterator<any>) => itr8FromIterator(second(first(it))), ...rest)
-//     : (it:Iterator<any>) => itr8FromIterator(first(it));
-//   ;
-// }
-
-/**
  * A more generic pipe function that takes multiple functions as input
  * and outputs a single function where input = input of the first function
  * and output = output where every funtion has been applied to the output of the previous on.

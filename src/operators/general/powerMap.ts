@@ -1,9 +1,5 @@
-import { itr8FromIterable, itr8FromIterator } from "../../interface/index.js";
-import {
-  TNextFnResult,
-  TPipeable,
-  TTransIteratorSyncOrAsync,
-} from "../../types.js";
+import { itr8FromIterable } from "../../interface/index.js";
+import { TNextFnResult, TTransIteratorSyncOrAsync } from "../../types.js";
 import { forLoop, isPromise, thenable } from "../../util/index.js";
 
 /**
@@ -319,7 +315,7 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
     };
 
     ////////////////////////////////////////////////////////////////////////////////
-    // Here is the returned TPipeable & IterableIterator
+    // Here is the returned IterableIterator
     ////////////////////////////////////////////////////////////////////////////////
     const retVal = {
       // return the current (async?) iterator to make it an iterable iterator (so we can use for ... of)
@@ -337,15 +333,12 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
       },
     };
 
-    return itr8FromIterator(
-      retVal as IterableIterator<TOut> | AsyncIterableIterator<TOut>
-    );
+    return retVal as IterableIterator<TOut> | AsyncIterableIterator<TOut>;
   };
 
   const transIt = (
     itIn: Iterator<TIn> | AsyncIterator<TIn>
-  ): TPipeable<TIn, TOut> &
-    (IterableIterator<TOut> | AsyncIterableIterator<TOut>) =>
+  ): IterableIterator<TOut> | AsyncIterableIterator<TOut> =>
     operatorFunction(itIn, initialStateFactory());
 
   /**
@@ -690,7 +683,7 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
 //       };
 
 //       ////////////////////////////////////////////////////////////////////////////////
-//       // Here is the returned TPipeable & IterableIterator
+//       // Here is the returned IterableIterator
 //       ////////////////////////////////////////////////////////////////////////////////
 //       const retVal = {
 //         // return the current (async?) iterator to make it an iterable iterator (so we can use for ... of)
@@ -707,7 +700,7 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
 //         },
 //       };
 
-//       return itr8FromIterator(retVal as any);
+//       return retVal as any;
 //     };
 
 //     return (itIn: Iterator<TIn> | AsyncIterator<TIn>) => operatorFunction(itIn, initialStateFactory());
@@ -1214,7 +1207,7 @@ const itr8OperatorFactoryExperimental = function <
         };
 
       ////////////////////////////////////////////////////////////////////////////////
-      // Here is the returned TPipeable & IterableIterator
+      // Here is the returned IterableIterator
       ////////////////////////////////////////////////////////////////////////////////
       const retVal = {
         // return the current (async?) iterator to make it an iterable iterator (so we can use for ... of)
@@ -1232,15 +1225,12 @@ const itr8OperatorFactoryExperimental = function <
         },
       };
 
-      return itr8FromIterator(
-        retVal as IterableIterator<TOut> | AsyncIterableIterator<TOut>
-      );
+      return retVal as IterableIterator<TOut> | AsyncIterableIterator<TOut>;
     };
 
     return (
       itIn: Iterator<TIn> | AsyncIterator<TIn>
-    ): TPipeable<TIn, TOut> &
-      (IterableIterator<TOut> | AsyncIterableIterator<TOut>) =>
+    ): IterableIterator<TOut> | AsyncIterableIterator<TOut> =>
       operatorFunction(
         itIn,
         initialStateFactory(param1, param2, param3, param4, ...otherParams)

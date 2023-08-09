@@ -13,18 +13,42 @@
     npm install mrft/itr8
 ```
 
-**Usage**
+**Usage in NodeJS or with bundlers**
 
 ```typescript
-// in an EcmaScript module - ESM (NodeJS or the browser)
-import { ... } from "itr8";
-// in a CommonJS module - CJS (NodeJS)
-const itr8 = require("itr8/cjs");
+// in an EcmaScript module - ESM
+import { pipe, itr8Range, forEach, filter, map } from "itr8";
+// in a CommonJS module - CJS
+const { pipe, itr8Range, forEach, filter, map } = require("itr8/cjs");
+```
+
+**Usage in the browser**
+
+```html
+<script type="module">
+  import {
+    pipe,
+    itr8Range,
+    forEach,
+    filter,
+    map,
+  } from "https://cdn.jsdelivr.net/npm/itr8@latest";
+  // or "https://cdn.skypack.dev/itr8@latest" or "https://unpkg.com/itr8@latest"
+
+  // or use the minified bundle: "https://<some-cdn>/itr8@latest/itr8.min.js"
+  import {
+    pipe,
+    itr8Range,
+    forEach,
+    filter,
+    map,
+  } from "https://cdn.jsdelivr.net/npm/itr8@latest/itr8.min.js";
+</script>
 ```
 
 **[itr8 source code](https://github.com/mrft/itr8)** can be found on github
 
-**[itr8 documentation](https://mrft.github.io/itr8)** can be found at the itr8 github site.
+**[full itr8 documentation](https://mrft.github.io/itr8)** can be found at the itr8 github site.
 
 **Table of Contents**
 
@@ -557,3 +581,4 @@ In this section I will list various libraries, projects and articles that I foun
   - [lazy.js](http://danieltao.com/lazy.js/): "like underscore, but lazier". Dot-chaining again. No async iterator support I think.
   - [itiriri](https://labs42io.github.io/itiriri/). Dot chaining again, and only for synchronous iterators, although it has an async sister called [itiriri-async](https://labs42io.github.io/itiriri-async/)
 - [iter8](https://www.npmjs.com/package/iter8): "Use iterables, iterators and generators as easily as arrays. Provides the complete Array API (plus a lot more), and works with everything you throw at it.". Dot-chaining again. No async iterator support I think.
+- An article called "[Decouple Business Logic using Async Generators](https://medium.com/dailyjs/decoupling-business-logic-using-async-generators-cc257f80ab33)" on mediom.com.

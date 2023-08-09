@@ -1,4 +1,4 @@
-import { TPipeable, TPushable } from "../types.js";
+import { TPushable } from "../types.js";
 import { itr8Pushable } from "./itr8Pushable.js";
 
 /**
@@ -15,7 +15,7 @@ import { itr8Pushable } from "./itr8Pushable.js";
  */
 function itr8Interval(
   intervalMilliseconds: number
-): TPipeable & AsyncIterableIterator<number> & TPushable {
+): AsyncIterableIterator<number> & TPushable {
   const it = itr8Pushable<number>(Infinity); // infinite buffer !!!
   const interval = setInterval(() => {
     it.push(Date.now());

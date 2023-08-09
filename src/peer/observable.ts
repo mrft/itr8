@@ -1,5 +1,4 @@
 import { Observable, from } from "rxjs";
-import { TPipeable } from "../types.js";
 import { itr8Pushable } from "../interface/itr8Pushable.js";
 
 /**
@@ -13,7 +12,7 @@ import { itr8Pushable } from "../interface/itr8Pushable.js";
  */
 function itr8FromObservable<T>(
   observable: Observable<T>
-): TPipeable & AsyncIterableIterator<T> {
+): AsyncIterableIterator<T> {
   const retVal = itr8Pushable();
   observable.subscribe({
     next(data) {
@@ -28,7 +27,7 @@ function itr8FromObservable<T>(
       retVal.done();
     },
   });
-  return retVal as TPipeable & AsyncIterableIterator<T>;
+  return retVal as AsyncIterableIterator<T>;
 
   // let buffer:any[] = [];
 
@@ -72,7 +71,7 @@ function itr8FromObservable<T>(
   //     }
   //   },
   // }
-  // return itr8FromIterator(retVal);
+  // return retVal;
 }
 
 /**

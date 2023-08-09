@@ -238,7 +238,7 @@ const peek = <TIn>(peekForward = 1, peekBackward = 1) =>
 //   //     }
 //   //   };
 
-//   //   return itr8FromIterator(retVal as any);
+//   //   return retVal as any;
 //   // }
 // };
 

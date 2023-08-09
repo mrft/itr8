@@ -1,6 +1,3 @@
-import { TPipeable } from "../types.js";
-import { itr8FromIterator } from "./itr8FromIterator.js";
-
 /**
  * Utility function that produces an iterator producing numbers (not only integers)
  * starting and ending where you want, which is useful for trying out stuff
@@ -37,22 +34,20 @@ function itr8Range(
   from: number,
   to: number,
   step?: number
-): TPipeable & IterableIterator<number> {
+): IterableIterator<number> {
   const stepValue = step !== undefined ? Math.abs(step) : 1;
   const upwards = from < to;
-  return itr8FromIterator(
-    (function* () {
-      if (upwards) {
-        for (let i = from; i <= to; i = i + stepValue) {
-          yield i;
-        }
-      } else {
-        for (let i = from; i >= to; i = i - stepValue) {
-          yield i;
-        }
+  return (function* () {
+    if (upwards) {
+      for (let i = from; i <= to; i = i + stepValue) {
+        yield i;
       }
-    })()
-  );
+    } else {
+      for (let i = from; i >= to; i = i - stepValue) {
+        yield i;
+      }
+    }
+  })();
 }
 
 export { itr8Range };

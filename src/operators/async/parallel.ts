@@ -1,12 +1,11 @@
 import { pipe } from "../../util/index.js";
 import {
   forEach,
-  itr8FromIterator,
   itr8FromSingleValue,
   itr8Pushable,
   itr8ToArray,
 } from "../../interface/index.js";
-import { TPipeable, TPushable, TTransIteratorSyncOrAsync } from "../../types";
+import { TPushable, TTransIteratorSyncOrAsync } from "../../types";
 
 /**
  * This operator should make it easy to run asynchronous transIterators in parallel, in order
@@ -132,7 +131,7 @@ function parallel(
   if (options.keepOrder === undefined || options.keepOrder) {
     return <T, U>(
       inIt: Iterator<T> | AsyncIterator<T>
-    ): TPipeable & AsyncIterableIterator<U> => {
+    ): AsyncIterableIterator<U> => {
       type TItOfItsElement = {
         callbackIt: TPushable & AsyncIterableIterator<boolean>;
         subIt: TPushable & AsyncIterableIterator<T>;
@@ -147,7 +146,7 @@ function parallel(
           // const start = Date.now();
           // const timePassed = () => Date.now() - start;
           await pipe(
-            itr8FromIterator(inIt),
+            inIt,
             forEach(
               async (inElement) => {
                 // console.log(`${JSON.stringify(inElement)}: taking lane (${timePassed()} ms)`);
@@ -186,13 +185,12 @@ function parallel(
           subItElement.callbackIt.done();
         }
       }
-      return itr8FromIterator(iteratorOfIterables()) as TPipeable &
-        AsyncIterableIterator<U>;
+      return iteratorOfIterables() as AsyncIterableIterator<U>;
     };
   } else {
     return <T, U>(
       inIt: Iterator<T> | AsyncIterator<T>
-    ): TPipeable & AsyncIterableIterator<U> => {
+    ): AsyncIterableIterator<U> => {
       type TItElement =
         | { callbackIt: TPushable & AsyncIterableIterator<boolean> }
         | { value: T };
@@ -204,7 +202,7 @@ function parallel(
         // first setup the (concurrent) forEach on the incoming iterator, so that things will be pushed to the pushable iterator
         (async () => {
           await pipe(
-            itr8FromIterator(inIt),
+            inIt,
             forEach(
               async (inElement) => {
                 // actively drain the subIterator to force parallel processing
@@ -245,8 +243,7 @@ function parallel(
           }
         }
       }
-      return itr8FromIterator(iteratorOfValues()) as TPipeable &
-        AsyncIterableIterator<U>;
+      return iteratorOfValues() as AsyncIterableIterator<U>;
     };
   }
 }

@@ -1,5 +1,4 @@
-import { TPipeable, TPushable } from "../types.js";
-import { itr8FromIterator } from "./itr8FromIterator.js";
+import { TPushable } from "../types.js";
 
 /**
  * Creates an AsyncIterableIterator, that also exposes
@@ -19,7 +18,7 @@ import { itr8FromIterator } from "./itr8FromIterator.js";
  */
 function itr8Pushable<T>(
   bufferSize?: number
-): TPipeable & AsyncIterableIterator<T> & TPushable {
+): AsyncIterableIterator<T> & TPushable {
   const buffer: any[] = [];
 
   let currentResolve;
@@ -68,8 +67,7 @@ function itr8Pushable<T>(
     },
   };
 
-  return itr8FromIterator(retVal as AsyncIterableIterator<T>) as TPipeable &
-    AsyncIterableIterator<T> & { push: (T) => void; done: () => void };
+  return retVal as AsyncIterableIterator<T> & TPushable<T>;
 }
 
 export { itr8Pushable };

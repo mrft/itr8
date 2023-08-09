@@ -1,10 +1,8 @@
 import * as Stream from "stream";
 import { isPromise } from "../util/index.js";
-import { itr8FromIterator, itr8FromIterable } from "../index.js";
+import { itr8FromIterable } from "../index.js";
 import { map } from "../operators/general/map.js";
 import { stringToChar } from "../operators/strings/stringToChar.js";
-
-import { TPipeable } from "../types.js";
 
 /**
  * Transforms a readable stream into an async itr8.
@@ -30,8 +28,8 @@ import { TPipeable } from "../types.js";
  */
 const itr8FromStream = (
   stream: Stream.Readable
-): TPipeable & AsyncIterableIterator<any> => {
-  return itr8FromIterator(stream[Symbol.asyncIterator]());
+): AsyncIterableIterator<any> => {
+  return stream[Symbol.asyncIterator]();
 
   // let buffer:any[] = [];
 
@@ -76,7 +74,7 @@ const itr8FromStream = (
   //   }
   // };
 
-  // return itr8FromIterator(retVal);
+  // return retVal;
 };
 
 /**
@@ -92,7 +90,7 @@ const itr8FromStream = (
  *
  * @category peer/stream
  */
-const itr8FromStdin: () => TPipeable & AsyncIterableIterator<string> = () => {
+const itr8FromStdin: () => AsyncIterableIterator<string> = () => {
   process.stdin.setEncoding("utf8");
   return itr8FromStream(process.stdin);
   // OBSOLETE BECAUSE OF the setEnconding

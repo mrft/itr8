@@ -1,6 +1,3 @@
-import { TPipeable } from "../types.js";
-import { itr8FromIterator } from "./itr8FromIterator.js";
-
 /**
  * Turns a single value into an (async) Iterator that will produce 1 result.
  * Should work for boolean, number, string, object, ...
@@ -10,14 +7,10 @@ import { itr8FromIterator } from "./itr8FromIterator.js";
  *
  * @category interface/standard
  */
-function itr8FromSingleValueAsync<T>(
-  v: any
-): TPipeable & AsyncIterableIterator<T> {
-  return itr8FromIterator(
-    (async function* () {
-      yield v;
-    })()
-  );
+function itr8FromSingleValueAsync<T>(v: any): AsyncIterableIterator<T> {
+  return (async function* () {
+    yield v;
+  })();
 }
 
 export { itr8FromSingleValueAsync };

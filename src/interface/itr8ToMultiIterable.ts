@@ -1,7 +1,6 @@
 import { takeWhile } from "../operators/general/takeWhile.js";
 import { pipe } from "../util/index.js";
 import { forEach } from "./forEach.js";
-import { itr8FromIterator } from "./itr8FromIterator.js";
 
 /**
  * When you want to process the same iterator mutltiple times in different ways
@@ -90,7 +89,7 @@ function itr8ToMultiIterable<T>(
         buffer.size === 0 ? 0 : Math.min(...buffer.keys())
       );
       // TODO: set a disconnect timeout (we'll need to store the last get time, or the timeout id)
-      return itr8FromIterator(outIt) as AsyncIterator<T>;
+      return outIt;
     },
   };
   // subscriberMap.set(outIt, buffer.size > 0 ? buffer.values.next().value : 0);

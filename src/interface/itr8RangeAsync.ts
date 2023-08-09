@@ -1,6 +1,3 @@
-import { TPipeable } from "../types.js";
-import { itr8FromIterator } from "./itr8FromIterator.js";
-
 /**
  * Utility function that produces an (async) iterator
  * producing integers starting and ending where you want,
@@ -20,22 +17,20 @@ function itr8RangeAsync(
   from: number,
   to: number,
   step?: number
-): TPipeable & AsyncIterableIterator<number> {
+): AsyncIterableIterator<number> {
   const stepValue = step !== undefined ? Math.abs(step) : 1;
   const upwards = from < to;
-  return itr8FromIterator(
-    (async function* () {
-      if (upwards) {
-        for (let i = from; i <= to; i = i + stepValue) {
-          yield i;
-        }
-      } else {
-        for (let i = from; i >= to; i = i - stepValue) {
-          yield i;
-        }
+  return (async function* () {
+    if (upwards) {
+      for (let i = from; i <= to; i = i + stepValue) {
+        yield i;
       }
-    })()
-  );
+    } else {
+      for (let i = from; i >= to; i = i - stepValue) {
+        yield i;
+      }
+    }
+  })();
 }
 
 export { itr8RangeAsync };

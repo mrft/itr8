@@ -1,5 +1,4 @@
 import { isPromise } from "../../util/index.js";
-import { itr8FromIterator } from "../../index.js";
 
 /**
  * Probably only useful on async iterators.
@@ -31,7 +30,7 @@ import { itr8FromIterator } from "../../index.js";
 const prefetch = (amount: number) => {
   return <T>(
     it: Iterator<T> | AsyncIterator<T>
-  ): Iterator<T> | AsyncIterator<T> => {
+  ): IterableIterator<T> | AsyncIterableIterator<T> => {
     let inputs: Array<Promise<IteratorResult<T>> | IteratorResult<T>> = [];
     let isAsyncInput: boolean;
     const addInputIfNeeded = async () => {
@@ -74,7 +73,7 @@ const prefetch = (amount: number) => {
       },
     };
 
-    return itr8FromIterator(retVal as any);
+    return retVal as IterableIterator<T> | AsyncIterableIterator<T>;
   };
 };
 

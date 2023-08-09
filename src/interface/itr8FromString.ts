@@ -1,4 +1,3 @@
-import { TPipeable } from "../types.js";
 import { itr8FromIterable } from "./itr8FromIterable.js";
 
 /**
@@ -11,8 +10,8 @@ import { itr8FromIterable } from "./itr8FromIterable.js";
  *
  * @category interface/standard
  */
-function itr8FromString(s: string): TPipeable & IterableIterator<string> {
-  return itr8FromIterable(s) as TPipeable & IterableIterator<string>;
+function itr8FromString(s: string): IterableIterator<string> {
+  return itr8FromIterable(s) as IterableIterator<string>;
 }
 
 export { itr8FromString };

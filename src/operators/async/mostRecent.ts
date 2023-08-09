@@ -1,5 +1,4 @@
 import { isPromise } from "../../util/index.js";
-import { itr8FromIterator } from "../../index.js";
 
 /**
  * Probably only useful on async iterators.
@@ -88,7 +87,7 @@ const mostRecent = <T>(initalValue: T) => {
       },
     };
 
-    return itr8FromIterator(retVal as any);
+    return retVal as any;
   };
 };
 
