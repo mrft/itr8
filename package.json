@@ -69,11 +69,20 @@
     "// publish": "we will publish the dist folder only, so first we need to copy the package.json into the dist folder, then cd into it and only then run npm publish !!!",
     "// publish 02": "npm publish will run prepublishOnly, prepack, prepare, postpack, publish, postpublish",
     "prepack": "if [ \"$(basename \"$(pwd)\")\" != \"dist\" ] && [ -f package.json ];\n then echo \"\n********************************************************************************\n[publish] DO NOT RUN npm publish from the project's root, but instead from inside the /dist folder\n********************************************************************************\n\" && exit 1;\n fi;\n if [ $( git symbolic-ref --short HEAD ) != 'main' ];\n then echo '\n********************************************************************************\n[publish] Publishing to npm should only be done on the main branch.\n********************************************************************************\n';\n fi;\n cp ../README.md ../LICENSE . ;\n",
-    "// postpack": "ls ../;\n"
+    "// postpack": "ls ../;\n",
+    "gitDiff": "echo 'git diff but exclude irrelevant directories like dist/ and docs/' && git diff -- . ':!dist/' ':!docs/'"
   },
   "keywords": [],
-  "author": "",
+  "author": "Frederik Tilkin",
   "license": "ISC",
+  "homepage": "https://mrft.github.io/itr8",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrft/itr8.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mrft/itr8/issues"
+  },
   "devDependencies": {
     "@knodes/typedoc-plugin-pages": "^0.23.4",
     "@sinonjs/fake-timers": "^11.0.0",

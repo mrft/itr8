@@ -1,5 +1,4 @@
 services:
-
   itr8node12tests:
     image: node:12
     container_name: itr8node12tests

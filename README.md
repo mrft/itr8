@@ -278,7 +278,7 @@ Check https://mrft.github.io/itr8/modules.html to find developer documentation a
 
 ## What is a transIterator?
 
-It is simply a function with an iterator as single argument which will return another iterator. So it transforms iterators, which is why I have called it transIterator (~transducers). The cool thing about it is that you can easily chain them together, by using the output of the first one as input of the next one and so on. You could compare this to piping in linux, where each tool typically reads from stdin, and outputs to stdout, and the pipe symbol makes ure that the output of the first program is used as input of the next one.
+It is simply a function with an iterator as single argument which will return another iterator. So it transforms iterators, which is why I have called it transIterator (~transducers). The cool thing about it is that you can easily chain them together, by using the output of the first one as input of the next one and so on. You could compare this to piping in linux, where each tool typically reads from stdin, and outputs to stdout, and the pipe symbol makes sure that the output of the first program is used as input of the next one.
 
 ### What is the difference between a transIterator and an operator?
 
@@ -546,3 +546,14 @@ function(...argumants) {
   return (itr:Iterator) => Iterator
 }
 ```
+
+## Related work
+
+In this section I will list various libraries, projects and articles that I found mostly after having written this library, which are exploring or building upon similar ideas.
+
+- [ts-lazy-collections](https://github.com/WimJongeneel/ts-lazy-collections): "lazy collections with iterators for TypeScript". Experimental code, explained in [this article called 'fast pipelines with generators in typescript'](https://itnext.io/fast-pipelines-with-generators-in-typescript-85d285ae6f51)
+- The comments on the previous article mention a few other options:
+  - [dottless](https://www.npmjs.com/package/dotless): "a JavaScript library to write linq style functional code". It uses the same idea of not dot-chaining the methods (hence the name), so it's very powerful, but I don't see support for async iterators.
+  - [lazy.js](http://danieltao.com/lazy.js/): "like underscore, but lazier". Dot-chaining again. No async iterator support I think.
+  - [itiriri](https://labs42io.github.io/itiriri/). Dot chaining again, and only for synchronous iterators, although it has an async sister called [itiriri-async](https://labs42io.github.io/itiriri-async/)
+- [iter8](https://www.npmjs.com/package/iter8): "Use iterables, iterators and generators as easily as arrays. Provides the complete Array API (plus a lot more), and works with everything you throw at it.". Dot-chaining again. No async iterator support I think.

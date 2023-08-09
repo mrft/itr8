@@ -8,9 +8,11 @@ export * from "./groupPer.js";
 
 export * from "./intersperse.js";
 
+export * from "./map.js";
+
 export * from "./peek.js";
 
-export * from "./map.js";
+export * from "./powerMap.js";
 
 export * from "./reduce.js";
 
