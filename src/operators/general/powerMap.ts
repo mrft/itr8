@@ -46,7 +46,7 @@ import { forLoop, isPromise, thenable } from "../../util/index.js";
  *
  * @param nextFn
  * @param initialStateFactory a function that generates the initialSate
- * @returns a fucntion taking an iterator as input and that has an iterator as output
+ * @returns a function taking an iterator as input and that has an iterator as output
  *
  * @category operators/general
  */
