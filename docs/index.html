@@ -143,7 +143,7 @@ library could evolve in the future.
 <a href="#what-is-a-transiterator" id="what-is-a-transiterator" style="color: inherit; text-decoration: none;">
   <h2>What is a transIterator?</h2>
 </a>
-<p>It is simply a function with an iterator as single argument which will return another iterator. So it transforms iterators, which is why I have called it transIterator (~transducers). The cool thing about it is that you can easily chain them together, by using the output of the first one as input of the next one and so on. You could compare this to piping in linux, where each tool typically reads from stdin, and outputs to stdout, and the pipe symbol makes ure that the output of the first program is used as input of the next one.</p>
+<p>It is simply a function with an iterator as single argument which will return another iterator. So it transforms iterators, which is why I have called it transIterator (~transducers). The cool thing about it is that you can easily chain them together, by using the output of the first one as input of the next one and so on. You could compare this to piping in linux, where each tool typically reads from stdin, and outputs to stdout, and the pipe symbol makes sure that the output of the first program is used as input of the next one.</p>
 
 <a href="#what-is-the-difference-between-a-transiterator-and-an-operator" id="what-is-the-difference-between-a-transiterator-and-an-operator" style="color: inherit; text-decoration: none;">
   <h3>What is the difference between a transIterator and an operator?</h3>
@@ -342,6 +342,21 @@ In my view, if we create a set of functions that take some arguments as input, a
 (+ some arguments) as input and returning another iterator as output.</p>
 <pre><code><span class="hl-5">function</span><span class="hl-0">(...</span><span class="hl-7">argumants</span><span class="hl-0">) {</span><br/><span class="hl-0">  </span><span class="hl-4">return</span><span class="hl-0"> (</span><span class="hl-7">itr</span><span class="hl-0">:</span><span class="hl-9">Iterator</span><span class="hl-0">) </span><span class="hl-5">=&gt;</span><span class="hl-0"> </span><span class="hl-7">Iterator</span><br/><span class="hl-0">}</span>
 </code></pre>
+
+<a href="#related-work" id="related-work" style="color: inherit; text-decoration: none;">
+  <h2>Related work</h2>
+</a>
+<p>In this section I will list various libraries, projects and articles that I found mostly after having written this library, which are exploring or building upon similar ideas.</p>
+<ul>
+<li><a href="https://github.com/WimJongeneel/ts-lazy-collections">ts-lazy-collections</a>: &quot;lazy collections with iterators for TypeScript&quot;. Experimental code, explained in <a href="https://itnext.io/fast-pipelines-with-generators-in-typescript-85d285ae6f51">this article called &#39;fast pipelines with generators in typescript&#39;</a></li>
+<li>The comments on the previous article mention a few other options:<ul>
+<li><a href="https://www.npmjs.com/package/dotless">dottless</a>: &quot;a JavaScript library to write linq style functional code&quot;. It uses the same idea of not dot-chaining the methods (hence the name), so it&#39;s very powerful, but I don&#39;t see support for async iterators.</li>
+<li><a href="http://danieltao.com/lazy.js/">lazy.js</a>: &quot;like underscore, but lazier&quot;. Dot-chaining again. No async iterator support I think.</li>
+<li><a href="https://labs42io.github.io/itiriri/">itiriri</a>. Dot chaining again, and only for synchronous iterators, although it has an async sister called <a href="https://labs42io.github.io/itiriri-async/">itiriri-async</a></li>
+</ul>
+</li>
+<li><a href="https://www.npmjs.com/package/iter8">iter8</a>: &quot;Use iterables, iterators and generators as easily as arrays. Provides the complete Array API (plus a lot more), and works with everything you throw at it.&quot;. Dot-chaining again. No async iterator support I think.</li>
+</ul>
 </div></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">

@@ -62,6 +62,7 @@ https://mrft.github.io/itr8/functions/operators.runningPercentile.html
 https://mrft.github.io/itr8/functions/operators.throttle.html
 https://mrft.github.io/itr8/functions/interface.itr8Pushable.html
 https://mrft.github.io/itr8/functions/interface.itr8FromSingleValue.html
+https://mrft.github.io/itr8/functions/operators.powerMap.html
 https://mrft.github.io/itr8/functions/peer.itr8ToObservable.html
 https://mrft.github.io/itr8/functions/operators.repeat.html
 https://mrft.github.io/itr8/functions/operators.flatten.html

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>max | itr8</title><meta name="description" content="Documentation for itr8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script async src="../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../assets/pages.css"/></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>powerMap | itr8</title><meta name="description" content="Documentation for itr8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script async src="../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../assets/pages.css"/></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -14,20 +14,90 @@
 <ul class="tsd-breadcrumb">
 <li><a href="../modules.html">itr8</a></li>
 <li><a href="../modules/operators.html">operators</a></li>
-<li><a href="operators.max.html">max</a></li></ul>
-<h1>Function max</h1></div>
+<li><a href="operators.powerMap.html">powerMap</a></li></ul>
+<h1>Function powerMap</h1></div>
 <section class="tsd-panel">
 <ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-<li class="tsd-signature tsd-anchor-link" id="max">max<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/index.TTransIteratorSyncOrAsync.html" class="tsd-signature-type" data-tsd-kind="Type alias">TTransIteratorSyncOrAsync</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span><a href="#max" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="powerMap">power<wbr/>Map<span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>nextFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>nextIn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">IteratorResult</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span>, state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span>, initialStateFactory<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/index.TTransIteratorSyncOrAsync.html" class="tsd-signature-type" data-tsd-kind="Type alias">TTransIteratorSyncOrAsync</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">&gt;</span><a href="#powerMap" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Output a single thing which is the highest of all values.</p>
-
-<h3>Example</h3><pre><code class="language-typescript"><span class="hl-0">   </span><span class="hl-2">pipe</span><span class="hl-0">(</span><br/><span class="hl-0">     </span><span class="hl-2">itr8FromArray</span><span class="hl-0">([ </span><span class="hl-8">1</span><span class="hl-0">, </span><span class="hl-8">2</span><span class="hl-0">, </span><span class="hl-8">7</span><span class="hl-0">, </span><span class="hl-8">4</span><span class="hl-0"> ]),</span><br/><span class="hl-0">     </span><span class="hl-2">total</span><span class="hl-0">(), </span><span class="hl-1">// =&gt; [ 7 ]</span><br/><span class="hl-0">   );</span>
+<div class="tsd-comment tsd-typography"><p>The powerMap can be used as the base for many many other operators.</p>
+<p>An operator is &#39;a function that generates a transIterator&#39;.
+So for example filter(...) is an operator, because when called with an argument
+(the filter function) the result of that will be another function which is the transIterator.</p>
+<p>A transIterator is simply a function with an iterator as single argument which will return
+another iterator. This way we can easily &#39;build a chain of mulitple transIterators&#39;.
+So it transforms iterators, which is why I have called it transIterator (~transducers).</p>
+<p>powerMap is an operator that generates a transIterator that
+will work both on synchronous and asynchronous iterators.
+The powerMap needs to be provided with a single function of the form:</p>
+<pre><code class="language-typescript"><span class="hl-0">(</span><span class="hl-7">nextOfPreviousIteratorInTheChain</span><span class="hl-0">, </span><span class="hl-7">state</span><span class="hl-0">) </span><span class="hl-5">=&gt;</span><span class="hl-0"> </span><span class="hl-7">TNextFnResult</span><span class="hl-0"> | </span><span class="hl-9">Promise</span><span class="hl-0">&lt;[</span><span class="hl-7">TNextFnResult</span><span class="hl-0">]&gt;</span>
 </code></pre>
-</div>
-<h4 class="tsd-returns-title">Returns <a href="../types/index.TTransIteratorSyncOrAsync.html" class="tsd-signature-type" data-tsd-kind="Type alias">TTransIteratorSyncOrAsync</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>and another function generating an initial &#39;state&#39; (not every operator needs state)</p>
 <ul>
-<li>Defined in <a href="https://github.com/mrft/itr8/blob/eb5b53d/src/operators/numeric/max.ts#L17">operators/numeric/max.ts:17</a></li></ul></aside></li></ul></section></div>
+<li><em>nextIn</em> is the (resolved if async) result of a next call of the input iterator.
+This means it will be of the form <code>{ done: true }</code> or <code>{ done: false, value: &lt;...&gt; }</code>.</li>
+<li>The <em>state</em> parameter is used to allow operators to have state, but not all operators need this.
+For example: a &#39;map&#39; operator doesn&#39;t need state, but the &#39;skip&#39; operator would need to keep
+track of how many records have passed.</li>
+</ul>
+<p>Check the readme for some examples on how to write your own operators using &#39;powerMap&#39;
+(or check the source code as all the available operators have been built using this function).</p>
+<p>BEWARE: NEVER MODIFY THE STATE OBJECT (or any of its children!), ALWAYS RETURN A NEW VALUE!</p>
+<p>Why is the initial state not a simple value, but a function that produces the state?
+ This way, even if nextFn would modify the state, it wouldn&#39;t mess with other instances
+ of the same operator? Because if we&#39;d like to deep clone the initial state ourselves, we might
+ end up with some complex cases when classes are involved (I hope no one who&#39;s interested in
+ this library will want to use classes as their state, because the library is more &#39;functional
+ programming&#39; oriented)</p>
+
+<h3>Returns</h3><p>a fucntion taking an iterator as input and that has an iterator as output</p>
+</div>
+<section class="tsd-panel tsd-type-parameters">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameters">
+<li>
+<h4>TIn = <span class="tsd-signature-type">unknown</span></h4>
+<div class="tsd-comment tsd-typography"><p>the type of values that the input iterator must produce</p>
+</div></li>
+<li>
+<h4>TOut = <span class="tsd-signature-type">unknown</span></h4>
+<div class="tsd-comment tsd-typography"><p>the type of values that the output iterator will produce</p>
+</div></li>
+<li>
+<h4>TState = <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography"><p>the type of the state that will be passed between all iterations</p>
+</div></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>nextFn: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>nextIn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">IteratorResult</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span>, state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></h5>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
+<ul class="tsd-signatures tsd-kind-type-literal">
+<li class="tsd-signature"><span class="tsd-signature-symbol">(</span>nextIn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">IteratorResult</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span>, state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>nextIn: <span class="tsd-signature-type">IteratorResult</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
+<li>
+<h5>state: <span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></li>
+<li>
+<h5>initialStateFactory: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">)</span></h5>
+<div class="tsd-comment tsd-typography"><p>a function that generates the initialSate</p>
+</div>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
+<ul class="tsd-signatures tsd-kind-type-literal">
+<li class="tsd-signature"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span></h4></li></ul></li></ul></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/index.TTransIteratorSyncOrAsync.html" class="tsd-signature-type" data-tsd-kind="Type alias">TTransIteratorSyncOrAsync</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/mrft/itr8/blob/eb5b53d/src/operators/general/powerMap.ts#L57">operators/general/powerMap.ts:57</a></li></ul></aside></li></ul></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -68,13 +138,13 @@
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.intersperse.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>intersperse</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.lineByLine.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>line<wbr/>By<wbr/>Line</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.map.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>map</a></li>
-<li class="current tsd-kind-function tsd-parent-kind-module"><a href="operators.max.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>max</a></li>
+<li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.max.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>max</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.min.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>min</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.mostRecent.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>most<wbr/>Recent</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.parallel.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>parallel</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.peek.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>peek</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.percentile.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>percentile</a></li>
-<li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.powerMap.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>power<wbr/>Map</a></li>
+<li class="current tsd-kind-function tsd-parent-kind-module"><a href="operators.powerMap.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>power<wbr/>Map</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.prefetch.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>prefetch</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.reduce.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>reduce</a></li>
 <li class="tsd-kind-function tsd-parent-kind-module"><a href="operators.repeat.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>repeat</a></li>
