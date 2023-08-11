@@ -40,7 +40,7 @@ function itr8Pushable<T>(
 
   createNewCurrentDataPromise();
 
-  const retVal = {
+  const retVal: AsyncIterableIterator<T> & TPushable<T> = {
     [Symbol.asyncIterator]: () => retVal,
     next: async () => {
       // if (done) {
@@ -67,7 +67,7 @@ function itr8Pushable<T>(
     },
   };
 
-  return retVal as AsyncIterableIterator<T> & TPushable<T>;
+  return retVal;
 }
 
 export { itr8Pushable };

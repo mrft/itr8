@@ -93,7 +93,7 @@ function itr8ToMultiIterable<T>(
     },
   };
   // subscriberMap.set(outIt, buffer.size > 0 ? buffer.values.next().value : 0);
-  return retVal as AsyncIterableIterator<T>;
+  return retVal;
 }
 
 export { itr8ToMultiIterable };

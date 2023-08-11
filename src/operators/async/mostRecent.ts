@@ -74,9 +74,9 @@ const mostRecent = <T>(initalValue: T) => {
       } while (!nextOut.done);
     };
 
-    const retVal = {
+    const retVal: AsyncIterableIterator<T> = {
       // [Symbol.iterator]: () => retVal as IterableIterator<T>,
-      [Symbol.asyncIterator]: () => retVal as AsyncIterableIterator<T>,
+      [Symbol.asyncIterator]: () => retVal,
       next: async () => {
         if (resolveNextOutRead === undefined) {
           handleInputPromise();
@@ -85,9 +85,22 @@ const mostRecent = <T>(initalValue: T) => {
         }
         return nextOut;
       },
+      // when the iterator is 'abandoned' (the user indicates no more next() calls will follow)
+      // we can do cleanup, but we also pass the message to our incoming iterator!
+      return: async (value?: any) => {
+        it.return?.();
+        return { done: true, value };
+      },
+      // when the iterator get a throw() call
+      // (the user indicates no more next() calls will follow because of an error)
+      // we can do cleanup, but we also pass the message to our incoming iterator!
+      throw: async (err: any) => {
+        it.throw?.(err);
+        return { done: true, value: undefined };
+      },
     };
 
-    return retVal as any;
+    return retVal;
   };
 };
 

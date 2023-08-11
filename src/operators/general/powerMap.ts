@@ -168,7 +168,9 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
           operatorState.done = true;
           return { done: true, value: undefined };
         } else if ("value" in curNextFnResult) {
-          if (curNextFnResult.isLast) operatorState.done = true;
+          if (curNextFnResult.isLast) {
+            operatorState.done = true;
+          }
           return { done: false, value: curNextFnResult.value };
         } else if ("iterable" in curNextFnResult) {
           if (operatorState.currentOutputIterator !== undefined)
@@ -270,7 +272,9 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
           operatorState.done = true; // make sure we keep returning done
           return { done: curNextFnResult.done, value: undefined };
         } else if ("value" in curNextFnResult) {
-          if (curNextFnResult.isLast) operatorState.done = true;
+          if (curNextFnResult.isLast) {
+            operatorState.done = true;
+          }
           return { done: false, value: curNextFnResult.value };
         } else if ("iterable" in curNextFnResult) {
           if (operatorState.currentOutputIterator !== undefined)
@@ -305,6 +309,12 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
     let generateNextReturnVal = ():
       | IteratorResult<TOut>
       | Promise<IteratorResult<TOut>> => {
+      // VERSION without 'magic' for debugging
+      // return isAsyncInput || isAsyncNextFn
+      //   ? generateNextReturnValAsync()
+      //   : generateNextReturnValSync();
+
+      // VERSION that replaces generateNextReturnVal with the sync or async version
       if (isAsyncInput || isAsyncNextFn) {
         generateNextReturnVal = generateNextReturnValAsync;
       } else {
@@ -331,6 +341,23 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
         | Promise<IteratorResult<TOut[]>> => {
         return generateNextReturnVal();
       },
+      // when the iterator is 'abandoned' (the user indicates no more next() calls will follow)
+      // we can do cleanup, but we also pass the message to our incoming iterator!
+      return: (value?: any) => {
+        itIn.return?.();
+        return isAsyncInput || isAsyncNextFn
+          ? Promise.resolve({ done: true, value })
+          : { done: true, value };
+      },
+      // when the iterator get a throw() call
+      // (the user indicates no more next() calls will follow because of an error)
+      // we can do cleanup, but we also pass the message to our incoming iterator!
+      throw: (err?: any) => {
+        itIn.throw?.(err);
+        return isAsyncInput || isAsyncNextFn
+          ? Promise.resolve({ done: true, value: undefined })
+          : { done: true, value: undefined };
+      },
     };
 
     return retVal as IterableIterator<TOut> | AsyncIterableIterator<TOut>;
@@ -338,8 +365,14 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
 
   const transIt = (
     itIn: Iterator<TIn> | AsyncIterator<TIn>
-  ): IterableIterator<TOut> | AsyncIterableIterator<TOut> =>
-    operatorFunction(itIn, initialStateFactory());
+  ): IterableIterator<TOut> | AsyncIterableIterator<TOut> => {
+    try {
+      return operatorFunction(itIn, initialStateFactory());
+    } catch (err) {
+      itIn.throw?.();
+      throw err;
+    }
+  };
 
   /**
    * Experiment: we could expose the "transNextFn" which is similar to a transducer:
