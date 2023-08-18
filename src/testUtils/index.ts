@@ -25,7 +25,7 @@ const arrayToStream = (arr: any[], timeBetweenChunks = 10) => {
   };
 
   arr.forEach((item, index) =>
-    setTimeout(() => readable.push(item), index * timeBetweenChunks)
+    setTimeout(() => readable.push(item), index * timeBetweenChunks),
   );
 
   // no more data
@@ -53,7 +53,7 @@ const sleep = (milliseconds: number, value?: any) =>
  */
 function hrtimeToMilliseconds([seconds, nanoseconds]: [
   number,
-  number
+  number,
 ]): number {
   return seconds * 1000 + nanoseconds / 1000000;
 }
@@ -84,7 +84,7 @@ function hrtimeToMilliseconds([seconds, nanoseconds]: [
  */
 async function awaitPromiseWithFakeTimers<T>(
   clock: FakeTimers.InstalledClock,
-  p: Promise<T>
+  p: Promise<T>,
 ): Promise<T> {
   await clock.runAllAsync();
   return p;
@@ -121,7 +121,7 @@ async function awaitPromiseWithFakeTimers<T>(
  */
 async function checkIfOperatorRespectsIteratorProtocol(
   itIn: Iterator<unknown>,
-  transIt: TTransIteratorSyncOrAsync
+  transIt: TTransIteratorSyncOrAsync,
 ) {
   // itr8ToMultiIterable should produce iterators WITH return() and throw() functions!
   const iterable = itr8ToMultiIterable(itIn);
@@ -148,12 +148,12 @@ async function checkIfOperatorRespectsIteratorProtocol(
     assert.hasAnyDeepKeys(
       ret1,
       ["done", "value"],
-      "return() does not return an IteratorResult"
+      "return() does not return an IteratorResult",
     );
     assert.equal(
       its1.spyReturnIn.callCount,
       1,
-      "return(...) on the input iterator has not been called."
+      "return(...) on the input iterator has not been called.",
     );
   }
 
@@ -166,12 +166,12 @@ async function checkIfOperatorRespectsIteratorProtocol(
     assert.hasAnyDeepKeys(
       ret2,
       ["done", "value"],
-      "return() does not return an IteratorResult"
+      "return() does not return an IteratorResult",
     );
     assert.equal(
       its2.spyThrowIn.callCount,
       0,
-      "throw(...) on the input iterator has not been called."
+      "throw(...) on the input iterator has not been called.",
     );
   }
 
@@ -183,12 +183,12 @@ async function checkIfOperatorRespectsIteratorProtocol(
     assert.hasAnyDeepKeys(
       ret3,
       ["done", "value"],
-      "throw() does not return an IteratorResult"
+      "throw() does not return an IteratorResult",
     );
     assert.equal(
       its3.spyThrowIn.callCount,
       0,
-      "throw(...) on the input iterator has been called, but we removed it"
+      "throw(...) on the input iterator has been called, but we removed it",
     );
   }
 
@@ -202,12 +202,12 @@ async function checkIfOperatorRespectsIteratorProtocol(
     assert.hasAnyDeepKeys(
       ret4,
       ["done", "value"],
-      "throw() does not return an IteratorResult"
+      "throw() does not return an IteratorResult",
     );
     assert.equal(
       its4.spyReturnIn.callCount,
       0,
-      "throw(...) on the input iterator has been called, but we removed it"
+      "throw(...) on the input iterator has been called, but we removed it",
     );
   }
 }

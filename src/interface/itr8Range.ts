@@ -33,7 +33,7 @@
 function itr8Range(
   from: number,
   to: number,
-  step?: number
+  step?: number,
 ): IterableIterator<number> {
   const stepValue = step !== undefined ? Math.abs(step) : 1;
   const upwards = from < to;

@@ -30,7 +30,7 @@ const min = () =>
         state: { ...state, min: Math.min(state.min, nextIn.value) },
       };
     },
-    () => ({ done: false, min: Infinity })
+    () => ({ done: false, min: Infinity }),
   );
 
 export { min };

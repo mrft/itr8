@@ -34,7 +34,7 @@ const intersperse = (intersperseThing: unknown) =>
       // first time, just return the first element
       return { done: false, iterable: [nextIn.value], state: true };
     },
-    () => false
+    () => false,
   );
 
 export { intersperse };

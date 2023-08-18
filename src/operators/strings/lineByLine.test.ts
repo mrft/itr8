@@ -59,43 +59,43 @@ describe("operators/strings/lineByLine.ts", () => {
     // sync
     assert.deepEqual(
       pipe(itr8FromArray(input1), lineByLine(), itr8ToArray),
-      expected1
+      expected1,
     );
 
     assert.deepEqual(
       pipe(itr8FromArray(input2), lineByLine(), itr8ToArray),
-      expected2
+      expected2,
     );
 
     assert.deepEqual(
       pipe(itr8FromArray(input3), lineByLine(), itr8ToArray),
-      expected3
+      expected3,
     );
 
     assert.deepEqual(
       pipe(itr8FromArray(input4), lineByLine("<br>"), itr8ToArray),
-      expected4
+      expected4,
     );
 
     // async
     assert.deepEqual(
       await pipe(itr8FromArrayAsync(input1), lineByLine(), itr8ToArray),
-      expected1
+      expected1,
     );
 
     assert.deepEqual(
       await pipe(itr8FromArray(input2), lineByLine(), itr8ToArray),
-      expected2
+      expected2,
     );
 
     assert.deepEqual(
       await pipe(itr8FromArrayAsync(input3), lineByLine(), itr8ToArray),
-      expected3
+      expected3,
     );
 
     assert.deepEqual(
       await pipe(itr8FromArrayAsync(input4), lineByLine("<br>"), itr8ToArray),
-      expected4
+      expected4,
     );
   });
 });

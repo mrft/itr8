@@ -20,7 +20,7 @@ const debounce = <TIn>(cooldownMilliseconds: number) =>
       }
       return { done: false, state: newState };
     },
-    () => -Infinity
+    () => -Infinity,
   );
 
 export { debounce };

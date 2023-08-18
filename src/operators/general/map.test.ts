@@ -19,26 +19,26 @@ describe("operators/general/map.ts", () => {
     assert.deepEqual(
       itr8ToArray(map(plusOne)(itr8Range(4, 7))),
       [5, 6, 7, 8],
-      "map synchronous plusOne fails"
+      "map synchronous plusOne fails",
     );
 
     assert.deepEqual(
       itr8ToArray(map(wrapString)(itr8Range(4, 7))),
       ["<-- 4 -->", "<-- 5 -->", "<-- 6 -->", "<-- 7 -->"],
-      "map synchronous wrapString fails"
+      "map synchronous wrapString fails",
     );
 
     // asynchronous
     assert.deepEqual(
       await itr8ToArray(map(plusOne)(itr8RangeAsync(4, 7))),
       [5, 6, 7, 8],
-      "map asynchronous plusOne fails"
+      "map asynchronous plusOne fails",
     );
 
     assert.deepEqual(
       await itr8ToArray(map(wrapString)(itr8RangeAsync(4, 7))),
       ["<-- 4 -->", "<-- 5 -->", "<-- 6 -->", "<-- 7 -->"],
-      "map asynchronous wrapString fails"
+      "map asynchronous wrapString fails",
     );
   });
 });

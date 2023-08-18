@@ -36,7 +36,7 @@ import { isPromise } from "../util/index.js";
 function itr8ToObject<TK extends string | number | symbol, TV>(
   iterator:
     | Iterator<[TK: string | number | symbol, TV: unknown]>
-    | AsyncIterator<[TK: string | number | symbol, TV: any]>
+    | AsyncIterator<[TK: string | number | symbol, TV: any]>,
 ): Record<TK, TV> | Promise<Record<TK, TV>> {
   let n = iterator.next();
   if (isPromise(n)) {

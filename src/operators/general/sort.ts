@@ -44,7 +44,7 @@ const sort = <TIn>(sortFn?: (a: TIn, b: TIn) => number) =>
       // state.list.push(nextIn.value);
       // return { done: false, state: { ...state, list: state.list /* [...state.list, nextIn.value] */ } };
     },
-    () => ({ done: false, list: [] })
+    () => ({ done: false, list: [] }),
   );
 
 export { sort };

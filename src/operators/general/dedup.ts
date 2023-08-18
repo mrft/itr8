@@ -44,7 +44,7 @@ const dedup = <TIn>(mapFn?: (v: TIn) => any) =>
           : { done: false, state: v };
       }).src;
     },
-    () => undefined
+    () => undefined,
   );
 
 export { dedup };

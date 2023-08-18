@@ -14,13 +14,13 @@ describe("operators/general/repeatEach.ts", () => {
       pipe(
         itr8FromArray(["hello", "world", "and", "goodbye"]),
         repeatEach(2),
-        itr8ToArray
+        itr8ToArray,
       ),
-      ["hello", "hello", "world", "world", "and", "and", "goodbye", "goodbye"]
+      ["hello", "hello", "world", "world", "and", "and", "goodbye", "goodbye"],
     );
     assert.deepEqual(
       pipe(itr8FromArray([1, 2, 3, 4]), repeatEach(5), itr8ToArray),
-      [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4]
+      [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4],
     );
 
     assert.deepEqual(pipe(itr8FromArray([]), repeatEach(500), itr8ToArray), []);

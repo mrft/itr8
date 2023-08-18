@@ -24,7 +24,7 @@ const throttle = <TIn>(throttleMilliseconds: number) =>
       }
       return { done: false, state };
     },
-    () => -Infinity
+    () => -Infinity,
   );
 
 export { throttle };

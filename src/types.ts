@@ -18,7 +18,7 @@ type TTransIteratorAsync<TIn, TOut> = (
  * a (Pipeable, Sync or Async, Iterable) Iterator
  */
 type TTransIteratorSyncOrAsync<TIn = any, TOut = any> = (
-  iterator: Iterator<TIn> | AsyncIterator<TIn>
+  iterator: Iterator<TIn> | AsyncIterator<TIn>,
 ) => IterableIterator<TOut> | AsyncIterableIterator<TOut>;
 
 /**

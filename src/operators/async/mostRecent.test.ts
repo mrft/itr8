@@ -25,7 +25,7 @@ describe("operators/async/mostRecent.ts", () => {
     assert.deepEqual(
       await itOut.next(),
       { value: "2nd value" },
-      "third value promise should not be resolved here yet"
+      "third value promise should not be resolved here yet",
     );
     await sleep(1);
     assert.deepEqual(await itOut.next(), { value: "third value" });

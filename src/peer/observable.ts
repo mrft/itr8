@@ -11,7 +11,7 @@ import { itr8Pushable } from "../interface/itr8Pushable.js";
  * @category peer/observable
  */
 function itr8FromObservable<T>(
-  observable: Observable<T>
+  observable: Observable<T>,
 ): AsyncIterableIterator<T> {
   const retVal = itr8Pushable();
   observable.subscribe({
@@ -20,7 +20,7 @@ function itr8FromObservable<T>(
     },
     error(err) {
       retVal.push(
-        Promise.reject(`[observable] something wrong occurred: ${err}`)
+        Promise.reject(`[observable] something wrong occurred: ${err}`),
       );
     },
     complete() {
@@ -84,7 +84,7 @@ function itr8FromObservable<T>(
  * @category peer/observable
  */
 function itr8ToObservable<T>(
-  iterator: IterableIterator<T> | AsyncIterableIterator<T>
+  iterator: IterableIterator<T> | AsyncIterableIterator<T>,
 ): Observable<T> {
   // const iterable = {
   //   [Symbol.iterator]: () => iterable,

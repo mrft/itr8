@@ -29,7 +29,7 @@ import { forEach } from "./forEach.js";
  * @category interface/standard
  */
 function itr8ToString<T>(
-  iterator: Iterator<T> | AsyncIterator<T>
+  iterator: Iterator<T> | AsyncIterator<T>,
 ): string | Promise<string> {
   let n = iterator.next();
   if (isPromise(n)) {

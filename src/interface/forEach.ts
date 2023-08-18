@@ -29,7 +29,7 @@ import { isPromise } from "../util/index.js";
  */
 const forEach = function <T = any>(
   handler: (T) => void | Promise<void>,
-  options?: { concurrency?: number }
+  options?: { concurrency?: number },
 ): (it: Iterator<T> | AsyncIterator<T>) => void | Promise<void> {
   return (it: Iterator<T>) => {
     let throwCount = 0;
@@ -42,7 +42,7 @@ const forEach = function <T = any>(
       }
     };
     const addToRunningHandlersList = (
-      handlerPossiblePromise: Promise<void>
+      handlerPossiblePromise: Promise<void>,
     ) => {
       // add it to the running handlers list
       runningHandlers.add(handlerPossiblePromise);
@@ -113,7 +113,7 @@ const forEach = function <T = any>(
         it.return?.(next.value);
       } else {
         const handlerPossiblePromise: Promise<void> | void = tryHandler(
-          next.value
+          next.value,
         );
         if (isPromise(handlerPossiblePromise)) {
           return (async () => {

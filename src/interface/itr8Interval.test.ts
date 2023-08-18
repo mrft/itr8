@@ -21,7 +21,7 @@ describe("interface/itr8Interval.ts", () => {
       // const itArray = await itr8ToArray(it);
       const itArray = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(it) as Promise<Array<number>>
+        itr8ToArray(it) as Promise<Array<number>>,
       );
       assert.equal(itArray.length, 3);
       itArray.forEach((t) => assert(typeof t, "number"));

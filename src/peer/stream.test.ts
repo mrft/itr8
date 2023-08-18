@@ -65,7 +65,7 @@ describe("peer/stream.ts", () => {
     const stdinLinesArray = await pipe(
       itr8FromStdin(),
       lineByLine(),
-      itr8ToArray
+      itr8ToArray,
     );
     // assert.equal(stdinLinesArray.length, 4);
     assert.deepEqual(stdinLinesArray, [

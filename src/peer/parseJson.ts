@@ -117,7 +117,7 @@ const parseJson = (params: Array<string>) =>
         return { done: false, state: newState };
       }
     },
-    () => ({ parser: null, done: false, common: {} })
+    () => ({ parser: null, done: false, common: {} }),
   );
 
 export { parseJson };

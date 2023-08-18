@@ -19,7 +19,7 @@ describe("@sinonjs/fake-timers", () => {
       assert.equal(
         stop - start,
         BigInt(50),
-        "process.hrtime gives incorrect results"
+        "process.hrtime gives incorrect results",
       );
     } finally {
       clock.uninstall();

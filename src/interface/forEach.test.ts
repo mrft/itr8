@@ -18,7 +18,7 @@ describe("operators/general/forEach.ts", () => {
 
         forEach((x) => {
           result1.push(x);
-        })
+        }),
       );
 
       // synchronous
@@ -31,7 +31,7 @@ describe("operators/general/forEach.ts", () => {
         forEach(async (x) => {
           // console.log('----', x);
           result2.push(x);
-        })
+        }),
       );
 
       assert.deepEqual(result2, [
@@ -48,7 +48,7 @@ describe("operators/general/forEach.ts", () => {
         map(plusOne),
         forEach((x) => {
           result3.push(x);
-        })
+        }),
       );
 
       assert.deepEqual(result3, [5, 6, 7, 8]);
@@ -59,7 +59,7 @@ describe("operators/general/forEach.ts", () => {
         map(wrapString),
         forEach(async (x) => {
           result4.push(x);
-        })
+        }),
       );
 
       assert.deepEqual(result4, [
@@ -99,8 +99,8 @@ describe("operators/general/forEach.ts", () => {
           pipe(
             itr8Range(5, 2),
             map(pow(2)), // => 25 16 9 4
-            forEach(forEachHandler, { concurrency: 4 })
-          ) as Promise<void>
+            forEach(forEachHandler, { concurrency: 4 }),
+          ) as Promise<void>,
         );
 
         assert.equal(maxCounter, 4);
@@ -117,8 +117,8 @@ describe("operators/general/forEach.ts", () => {
           pipe(
             itr8Range(5, 2),
             map(pow(2)), // => 25, 16, 9, 4
-            forEach(forEachHandler, { concurrency: 2 })
-          ) as Promise<void>
+            forEach(forEachHandler, { concurrency: 2 }),
+          ) as Promise<void>,
         );
 
         assert.equal(maxCounter, 2);
@@ -171,18 +171,18 @@ describe("operators/general/forEach.ts", () => {
           clock,
           pipe(
             iteratorFactory(),
-            forEach(forEachFactory(descr, 5))
-          ) as Promise<void>
+            forEach(forEachFactory(descr, 5)),
+          ) as Promise<void>,
         );
         assert.deepEqual(
           results[descr].values,
           [1, 2, 3, 4],
-          `${descr}: 'values' fail!`
+          `${descr}: 'values' fail!`,
         );
         assert.deepEqual(
           results[descr].times.map((t) => Math.round(t / 5) * 5),
           [0, 5, 5, 5],
-          `${descr}: 'times' fail!`
+          `${descr}: 'times' fail!`,
         );
       } finally {
         clock.uninstall();
@@ -211,31 +211,31 @@ describe("operators/general/forEach.ts", () => {
        */
       const testReturn = async (
         asyncIterator: boolean,
-        asyncHandler: boolean
+        asyncHandler: boolean,
       ) => {
         const flagToWord = new Map([
           [false, "Sync"],
           [true, "Async"],
         ]);
         const msgPrefix = `${flagToWord.get(
-          asyncIterator
+          asyncIterator,
         )} iterator with ${flagToWord.get(asyncHandler)} handler`;
         const spiedIt = createItWithReturnAndThrowSpies(asyncIterator);
         await pipe(
           spiedIt.it,
           forEach((x) => {
             const y = x * 3;
-          })
+          }),
         );
         assert.equal(
           spiedIt.returnSpy.callCount,
           1,
-          `${msgPrefix}: return() has not been called exactly once`
+          `${msgPrefix}: return() has not been called exactly once`,
         );
         assert.equal(
           spiedIt.throwSpy.callCount,
           0,
-          `${msgPrefix}: throw() has been called while it shouldn't have been`
+          `${msgPrefix}: throw() has been called while it shouldn't have been`,
         );
       };
 
@@ -248,14 +248,14 @@ describe("operators/general/forEach.ts", () => {
        */
       const testThrow = async (
         asyncIterator: boolean,
-        asyncHandler: boolean
+        asyncHandler: boolean,
       ) => {
         const flagToWord = new Map([
           [false, "Sync"],
           [true, "Async"],
         ]);
         const msgPrefix = `${flagToWord.get(
-          asyncIterator
+          asyncIterator,
         )} iterator with ${flagToWord.get(asyncHandler)} handler`;
         const spiedIt = createItWithReturnAndThrowSpies(asyncIterator);
         try {
@@ -264,19 +264,19 @@ describe("operators/general/forEach.ts", () => {
             forEach((x) => {
               if (x > 5)
                 throw new Error("I happily crash when the value is > 5");
-            })
+            }),
           );
           assert.fail(`${msgPrefix}: forEach should have thrown an exception`);
         } catch (e) {}
         assert.equal(
           spiedIt.throwSpy.callCount,
           1,
-          `${msgPrefix}: throw() has not been called exactly once`
+          `${msgPrefix}: throw() has not been called exactly once`,
         );
         assert.equal(
           spiedIt.returnSpy.callCount,
           0,
-          `${msgPrefix}: return() has been called while it shouldn't have been`
+          `${msgPrefix}: return() has been called while it shouldn't have been`,
         );
       };
 

@@ -5,7 +5,7 @@ describe("interface/.ts", () => {
   it("itr8FromSingleValueAsync(...)can turn a single value into an async iterator", async () => {
     const b = { someKey: "value", otherKey: true, thirdKey: 234 };
     const iterator: AsyncIterator<string> = itr8FromSingleValueAsync(
-      b
+      b,
     ) as AsyncIterator<string>;
 
     const next = iterator.next();

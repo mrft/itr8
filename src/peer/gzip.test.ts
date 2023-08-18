@@ -13,7 +13,7 @@ describe("operators/coding_decoding/gzip.ts", () => {
       flatten(),
       gzip(),
       gunzip(),
-      flatten()
+      flatten(),
     );
 
     await pipe(
@@ -23,7 +23,7 @@ describe("operators/coding_decoding/gzip.ts", () => {
       forEach(([a, b]) => {
         // console.log('         gzip test equality:', a, ' ?= ', b);
         assert.deepEqual(a, b);
-      })
+      }),
     );
   }).timeout(2_000);
 });

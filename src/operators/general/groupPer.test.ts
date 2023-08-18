@@ -8,14 +8,14 @@ describe("operators/general/groupPer.ts", () => {
     assert.deepEqual(
       itr8ToArray(groupPer(3)(itr8Range(1, 7))),
       [[1, 2, 3], [4, 5, 6], [7]],
-      "groupPer on sync iterator FAILED"
+      "groupPer on sync iterator FAILED",
     );
 
     // async
     assert.deepEqual(
       await itr8ToArray(groupPer(3)(itr8RangeAsync(1, 7))),
       [[1, 2, 3], [4, 5, 6], [7]],
-      "groupPer on async iterator FAILED"
+      "groupPer on async iterator FAILED",
     );
   });
 });

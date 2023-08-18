@@ -32,7 +32,7 @@ const uniqBy = <TIn, TMapFn>(mapFn: (v: TIn) => TMapFn) =>
       newState.add(hash);
       return { done: false, value: nextIn.value, state: newState };
     },
-    () => new Set([])
+    () => new Set([]),
   );
 
 export { uniqBy };

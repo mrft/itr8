@@ -14,7 +14,7 @@ describe("interface/itr8ToObject.ts", () => {
     assert.deepEqual(
       itr8ToObject(a[Symbol.iterator]()),
       Object.fromEntries(a),
-      "itr8ToObject failed on a synchronous iterator"
+      "itr8ToObject failed on a synchronous iterator",
     );
 
     async function* asyncGenerator() {
@@ -26,7 +26,7 @@ describe("interface/itr8ToObject.ts", () => {
     assert.deepEqual(
       await itr8ToObject(asyncGenerator()),
       Object.fromEntries(a),
-      "itr8ToObject failed on an Asynchronous iterator"
+      "itr8ToObject failed on an Asynchronous iterator",
     );
   });
 });

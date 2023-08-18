@@ -39,7 +39,7 @@ const map = <TIn, TOut>(mapFn: (v: TIn) => TOut | Promise<TOut>) =>
         // }
       }
     },
-    () => undefined
+    () => undefined,
   );
 
 export { map };

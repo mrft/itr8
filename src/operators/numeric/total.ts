@@ -31,7 +31,7 @@ const total = () =>
         state: { ...state, total: state.total + nextIn.value },
       };
     },
-    () => ({ done: false, total: 0 })
+    () => ({ done: false, total: 0 }),
   );
 
 export { total };

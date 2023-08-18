@@ -20,9 +20,9 @@ describe("operators/general/takeWhile.ts", () => {
           tappedValues.push(v);
         }),
         takeWhile((x) => x < 5),
-        itr8ToArray
+        itr8ToArray,
       ),
-      [0, 1, 2, 3, 4]
+      [0, 1, 2, 3, 4],
     );
     // making sure the input iterator doesn't get called more often than is needed
     assert.deepEqual(tappedValues, [0, 1, 2, 3, 4, 5]);
@@ -35,9 +35,9 @@ describe("operators/general/takeWhile.ts", () => {
           tappedValues.push(v);
         }),
         takeWhile((x) => x !== "o"),
-        itr8ToArray
+        itr8ToArray,
       ),
-      ["H", "e", "l", "l"]
+      ["H", "e", "l", "l"],
     );
     // making sure the input iterator doesn't get called more often than is needed
     assert.deepEqual(tappedValues, ["H", "e", "l", "l", "o"]);

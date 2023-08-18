@@ -45,7 +45,7 @@ const zip = <TIn>(secondIterator: Iterator<any> | AsyncIterator<any>) =>
       //   value: [nextIn.value, (secondNext as IteratorResult<any>).value],
       // };
     },
-    () => undefined
+    () => undefined,
   );
 
 export { zip };

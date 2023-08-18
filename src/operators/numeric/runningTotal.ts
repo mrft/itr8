@@ -23,7 +23,7 @@ const runningTotal = () =>
       const newTotal = state + nextIn.value;
       return { done: false, value: newTotal, state: newTotal };
     },
-    () => 0
+    () => 0,
   );
 
 export { runningTotal };

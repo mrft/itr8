@@ -14,7 +14,7 @@ const skip = <TIn>(params = 0) =>
       if (state < params) return { done: false, state: state + 1 };
       return { done: false, value: nextIn.value };
     },
-    () => 0
+    () => 0,
   );
 
 export { skip };

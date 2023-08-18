@@ -46,7 +46,7 @@ const repeatEach = <TIn>(count = 2) =>
         })(),
       };
     },
-    () => undefined
+    () => undefined,
   );
 
 export { repeatEach };

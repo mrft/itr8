@@ -27,7 +27,7 @@ const runningAverage = () =>
         value: newSum / newCount,
       };
     },
-    () => ({ done: false, count: 0, sum: 0 })
+    () => ({ done: false, count: 0, sum: 0 }),
   );
 
 export { runningAverage };

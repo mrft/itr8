@@ -14,7 +14,7 @@ describe("operators/coding_decoding/gunzip.ts", () => {
     const gunzipped = pipe(
       itr8FromStream(fs.createReadStream("./test/lorem_ipsum.txt.gz")),
       gunzip(),
-      flatten()
+      flatten(),
     );
 
     await pipe(
@@ -24,7 +24,7 @@ describe("operators/coding_decoding/gunzip.ts", () => {
       forEach(([a, b]) => {
         // console.log('         gzip test equality:', a, ' ?= ', b);
         assert.deepEqual(a, b);
-      })
+      }),
     );
 
     // DECODE FROM UTF8 to JS STRING VERSION
@@ -32,7 +32,7 @@ describe("operators/coding_decoding/gunzip.ts", () => {
       itr8FromStream(fs.createReadStream("./test/lorem_ipsum.txt.gz")),
       gunzip(),
       utf8ToString(),
-      flatten()
+      flatten(),
     );
 
     await pipe(
@@ -43,7 +43,7 @@ describe("operators/coding_decoding/gunzip.ts", () => {
       forEach(([a, b]) => {
         // console.log('         gzip test equality:', a, ' ?= ', b);
         assert.deepEqual(a, b);
-      })
+      }),
     );
   });
 });

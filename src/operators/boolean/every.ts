@@ -29,7 +29,7 @@ const every = <TIn>(filterFn: (TIn) => boolean | Promise<boolean>) =>
         return { done: false, value: result, state: { done: true } };
       }).src;
     },
-    () => ({ done: false })
+    () => ({ done: false }),
   );
 
 export { every };

@@ -25,7 +25,7 @@ const take = <TIn>(count = Infinity) =>
       }
       return { done: true };
     },
-    () => 0
+    () => 0,
   );
 
 export { take };

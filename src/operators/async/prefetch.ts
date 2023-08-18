@@ -29,7 +29,7 @@ import { isPromise } from "../../util/index.js";
  */
 const prefetch = (amount: number) => {
   return <T>(
-    it: Iterator<T> | AsyncIterator<T>
+    it: Iterator<T> | AsyncIterator<T>,
   ): IterableIterator<T> | AsyncIterableIterator<T> => {
     let inputs: Array<Promise<IteratorResult<T>> | IteratorResult<T>> = [];
     let isAsyncInput: boolean;

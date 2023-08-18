@@ -30,7 +30,7 @@ const filter = <TIn>(filterFn: (v: TIn) => boolean | Promise<boolean>) =>
       //   return { done: false };
       // }
     },
-    () => undefined
+    () => undefined,
   );
 
 export { filter };

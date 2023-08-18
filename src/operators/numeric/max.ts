@@ -31,7 +31,7 @@ const max = () =>
         state: { ...state, max: Math.max(state.max, nextIn.value) },
       };
     },
-    () => ({ done: false, max: -Infinity })
+    () => ({ done: false, max: -Infinity }),
   );
 
 export { max };

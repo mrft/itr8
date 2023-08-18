@@ -30,7 +30,7 @@ const uniq = <TIn>() =>
       newState.add(nextIn.value);
       return { done: false, value: nextIn.value, state: newState };
     },
-    () => new Set([])
+    () => new Set([]),
   );
 
 export { uniq };

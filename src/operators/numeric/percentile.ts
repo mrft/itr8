@@ -50,7 +50,7 @@ const percentile = (percentage: number) =>
         state: { ...state, count: newCount, topArray: newTopArray },
       };
     },
-    () => ({ done: false, count: 0, topArray: [] })
+    () => ({ done: false, count: 0, topArray: [] }),
   );
 
 export { percentile };

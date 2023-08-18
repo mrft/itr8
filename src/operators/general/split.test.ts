@@ -53,7 +53,7 @@ describe("operators/general/split.ts", () => {
 
     assert.deepEqual(
       await itr8ToArray(split("Hello")(itr8FromArrayAsync(input))),
-      [[], ["World", "!", "Goodbye", "Space", "!"]]
+      [[], ["World", "!", "Goodbye", "Space", "!"]],
     );
   });
 });

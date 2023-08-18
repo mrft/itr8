@@ -26,13 +26,13 @@ const skipWhile = <TIn>(whileFn: (v: TIn) => boolean | Promise<boolean>) =>
           (keepSkipping: boolean, _isSync: boolean) =>
             keepSkipping
               ? { done: false, state }
-              : { done: false, value: nextIn.value, state: false }
+              : { done: false, value: nextIn.value, state: false },
         ).src;
         // return { done: false, state };
       }
       return { done: false, value: nextIn.value, state: false };
     },
-    () => true
+    () => true,
   );
 
 export { skipWhile };

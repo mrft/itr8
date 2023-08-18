@@ -52,7 +52,7 @@ const fnThatStoresResultsFactory = (
     string,
     { values: any[]; times: number[]; startTime?: number }
   >,
-  _clock: FakeTimers.InstalledClock
+  _clock: FakeTimers.InstalledClock,
 ): ((value: number, sleepTime?: number) => Promise<void>) => {
   const r = resultsToBeModified[resultName] || { values: [], times: [] };
   resultsToBeModified[resultName] = r;
@@ -80,7 +80,7 @@ const repeatEach = <TIn>(count: number) =>
         })(),
       };
     },
-    () => undefined
+    () => undefined,
   );
 
 describe("operators/async/parallel.ts", () => {
@@ -113,36 +113,36 @@ describe("operators/async/parallel.ts", () => {
           map(async (x: number) => {
             await f(x);
             return x;
-          })
-        )
+          }),
+        ),
       );
 
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
 
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
 
       assert.deepEqual(
         result,
         [2, 4, 6, 8],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [2, 4, 6, 8],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [10, 10, 10, 10],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       // parallel of 3 and processing time of 10
@@ -158,34 +158,34 @@ describe("operators/async/parallel.ts", () => {
           map(async (x: number) => {
             await f(x);
             return x;
-          })
-        )
+          }),
+        ),
       );
 
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         [2, 4, 6, 8],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [2, 4, 6, 8],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [10, 10, 10, 20],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       // parallel of 4 and processing time differs
@@ -201,33 +201,33 @@ describe("operators/async/parallel.ts", () => {
             await f(x, x);
             return x;
           }),
-          map((x: number) => x * 2)
-        )
+          map((x: number) => x * 2),
+        ),
       );
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         [100, 60, 20],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [10, 30, 50],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [10, 30, 50],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       return;
@@ -313,33 +313,33 @@ describe("operators/async/parallel.ts", () => {
           map(async (x) => {
             await f(x);
             return x;
-          })
-        )
+          }),
+        ),
       );
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         [2, 2, 4, 4, 6, 6, 8, 8],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [2, 4, 6, 8, 2, 4, 6, 8],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [10, 10, 10, 10, 20, 20, 20, 20],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       return;
@@ -357,33 +357,33 @@ describe("operators/async/parallel.ts", () => {
           map(async (x) => {
             await f(x);
             return x;
-          })
-        )
+          }),
+        ),
       );
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         [2, 4, 6, 8],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [2, 4, 6, 8],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [10, 10, 10, 20],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       // parallel of 4 and processing time differs
@@ -399,33 +399,33 @@ describe("operators/async/parallel.ts", () => {
             await f(x, x);
             return x;
           }),
-          map((x) => x * 2)
-        )
+          map((x) => x * 2),
+        ),
       );
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         [100, 60, 20],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [10, 30, 50],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [10, 30, 50],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
     } finally {
       clock.uninstall();
@@ -455,33 +455,33 @@ describe("operators/async/parallel.ts", () => {
           map(async (x) => {
             await f(x, x * 2);
             return x;
-          })
-        )
+          }),
+        ),
       );
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         [30, 20, 10, 0],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [20, 30, 0, 10],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [40, 60, 60, 80],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       return;
@@ -499,33 +499,33 @@ describe("operators/async/parallel.ts", () => {
           map(async (x) => {
             await f(x);
             return x;
-          })
-        )
+          }),
+        ),
       );
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         [2, 4, 6, 8],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [2, 4, 6, 8],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [10, 0, 0, 10],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       // parallel of 4 and processing time differs
@@ -541,33 +541,33 @@ describe("operators/async/parallel.ts", () => {
             await f(x, x);
             return x;
           }),
-          map((x) => x * 2)
-        )
+          map((x) => x * 2),
+        ),
       );
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         [100, 60, 20],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [10, 30, 50],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [10, 30, 50],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
     } finally {
       clock.uninstall();
@@ -602,33 +602,33 @@ describe("operators/async/parallel.ts", () => {
             await f(x, x);
             return x;
           }),
-          map((x) => x * 2)
-        )
+          map((x) => x * 2),
+        ),
       );
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         [20, 60, 100],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [10, 30, 50],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [10, 30, 50],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       // parallel of 2 and processing time differs
@@ -645,33 +645,33 @@ describe("operators/async/parallel.ts", () => {
             await f(x, x);
             return x;
           }),
-          map((x) => x * 2)
-        )
+          map((x) => x * 2),
+        ),
       );
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         [60, 100, 60],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [30, 50, 30],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [30, 50, 60],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
     } finally {
       clock.uninstall();
@@ -701,33 +701,33 @@ describe("operators/async/parallel.ts", () => {
           map(async (x) => {
             await f(x, x * 2);
             return x;
-          })
-        )
+          }),
+        ),
       );
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         [0, 10, 20, 30],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         [0, 10, 20, 30],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [0, 20, 40, 60],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       // parallel of 4 and processing time multiple of 10
@@ -749,33 +749,33 @@ describe("operators/async/parallel.ts", () => {
           map(async ([code, time]) => {
             await f(code, time);
             return code;
-          })
-        )
+          }),
+        ),
       );
       await awaitPromiseWithFakeTimers(clock, sleep(150));
       assert.deepEqual(
         results[descr].values,
         [],
-        `${descr}: no code should have been executed before the first next() call!`
+        `${descr}: no code should have been executed before the first next() call!`,
       );
       result = await awaitPromiseWithFakeTimers(
         clock,
-        itr8ToArray(iterator) as Promise<any>
+        itr8ToArray(iterator) as Promise<any>,
       );
       assert.deepEqual(
         result,
         ["B", "C", "A", "D"],
-        `${descr}: result in the proper order fails!`
+        `${descr}: result in the proper order fails!`,
       );
       assert.deepEqual(
         results[descr].values,
         ["B", "C", "A", "D"],
-        `${descr}: 'values' in the order as processed fail!`
+        `${descr}: 'values' in the order as processed fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 10) * 10),
         [10, 20, 30, 40],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
     } finally {
       clock.uninstall();

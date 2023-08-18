@@ -14,13 +14,13 @@ describe("operators/general/repeat.ts", () => {
       pipe(
         itr8FromArray(["hello", "world", "and", "goodbye"]),
         repeat(2),
-        itr8ToArray
+        itr8ToArray,
       ),
-      ["hello", "world", "and", "goodbye", "hello", "world", "and", "goodbye"]
+      ["hello", "world", "and", "goodbye", "hello", "world", "and", "goodbye"],
     );
     assert.deepEqual(
       await pipe(itr8FromArrayAsync([1, 2, 3, 4]), repeat(5), itr8ToArray),
-      [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]
+      [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4],
     );
 
     assert.deepEqual(pipe(itr8FromArray([]), repeat(500), itr8ToArray), []);

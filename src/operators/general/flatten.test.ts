@@ -15,14 +15,14 @@ describe("operators/general/flatten.ts", () => {
     assert.deepEqual(
       itr8ToArray(flatten()(itr8FromArray(arrayToBeFlattened))),
       flattenedArray,
-      "flatten on sync iterator FAILED"
+      "flatten on sync iterator FAILED",
     );
 
     // async
     assert.deepEqual(
       await itr8ToArray(flatten()(itr8FromArrayAsync(arrayToBeFlattened))),
       flattenedArray,
-      "flatten on async iterator FAILED"
+      "flatten on async iterator FAILED",
     );
   });
 });

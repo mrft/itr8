@@ -33,7 +33,7 @@ const runningPercentile = (percentage: number) =>
         value: newTopArray[0],
       };
     },
-    () => ({ count: 0, topArray: [] })
+    () => ({ count: 0, topArray: [] }),
   );
 
 export { runningPercentile };

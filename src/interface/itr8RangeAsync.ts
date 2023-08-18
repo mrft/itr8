@@ -16,7 +16,7 @@
 function itr8RangeAsync(
   from: number,
   to: number,
-  step?: number
+  step?: number,
 ): AsyncIterableIterator<number> {
   const stepValue = step !== undefined ? Math.abs(step) : 1;
   const upwards = from < to;

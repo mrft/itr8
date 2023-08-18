@@ -16,9 +16,9 @@ describe("operators/general/uniq.ts", () => {
       pipe(
         itr8FromArray([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]),
         uniq(),
-        itr8ToArray
+        itr8ToArray,
       ),
-      [1, 2, 3, 4, 5]
+      [1, 2, 3, 4, 5],
     );
 
     // async
@@ -26,9 +26,9 @@ describe("operators/general/uniq.ts", () => {
       await pipe(
         itr8FromArrayAsync([1, 2, 2, 2, 3, 4, 3, 3, 4, 1, 5, 3, 2, 1]),
         uniq(),
-        itr8ToArray
+        itr8ToArray,
       ),
-      [1, 2, 3, 4, 5]
+      [1, 2, 3, 4, 5],
     );
   });
 });

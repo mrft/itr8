@@ -35,7 +35,7 @@ const split = <TIn>(delimiter) =>
         state: [...(state === null ? [] : state), nextIn.value],
       };
     },
-    () => null
+    () => null,
   );
 
 export { split };

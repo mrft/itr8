@@ -59,7 +59,7 @@ const transduce = <TIn>(transducer: (TTransformer) => TTransformer) =>
       const newResult: unknown[] = [];
       (state.toArrayTransformer as any).curResult = newResult;
       state.transformer["@@transducer/result"](
-        state.transformer["@@transducer/step"](newResult, nextIn.value)
+        state.transformer["@@transducer/step"](newResult, nextIn.value),
       );
 
       if (state.transformer["@@transducer/reduced"])
@@ -85,7 +85,7 @@ const transduce = <TIn>(transducer: (TTransformer) => TTransformer) =>
         transformer: transducer(toArrayTransformer),
       };
       return state;
-    }
+    },
   );
 
 export { transduce };

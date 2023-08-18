@@ -29,7 +29,7 @@ const average = () =>
       const newSum = state.sum + nextIn.value;
       return { done: false, state: { ...state, count: newCount, sum: newSum } };
     },
-    () => ({ done: false, count: 0, sum: 0 })
+    () => ({ done: false, count: 0, sum: 0 }),
   );
 
 export { average };

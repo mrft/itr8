@@ -12,7 +12,7 @@ describe("operators/boolean/every.ts", () => {
     const moreThan5 = (a) => a > 5;
     assert.deepEqual(
       await pipe(itr8RangeAsync(10, 35), every(moreThan5), itr8ToArray),
-      [true]
+      [true],
     );
   });
 });

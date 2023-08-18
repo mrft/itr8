@@ -12,14 +12,14 @@ import * as zlib from "zlib";
 const gunzip = () =>
   map(
     (
-      data: Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string | number
+      data: Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string | number,
     ) => {
       if (typeof data === "number") {
         return promisify(zlib.gunzip)(Buffer.from([data]));
       } else {
         return promisify(zlib.gunzip)(data);
       }
-    }
+    },
   );
 
 export { gunzip };

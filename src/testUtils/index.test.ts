@@ -14,7 +14,7 @@ describe("./test/utils.ts", () => {
           // console.log('received data from stream', data);
         });
         readStream.on("end", () => resolve(arrayRead));
-      }
+      },
     );
 
     assert.deepEqual(resultOfReadingTheStream, arr);

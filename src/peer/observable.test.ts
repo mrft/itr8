@@ -24,7 +24,7 @@ describe("peer/observable.ts", () => {
   it("itr8FromObservable works properly", async () => {
     // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and delay stuff
     const observable = from(a).pipe(
-      concatMap((item) => of(item).pipe(rxjsDelay(1)))
+      concatMap((item) => of(item).pipe(rxjsDelay(1))),
     );
     assert.deepEqual(await itr8ToArray(itr8FromObservable(observable)), a);
   });
@@ -32,7 +32,7 @@ describe("peer/observable.ts", () => {
   it("itr8FromObservable works properly", async () => {
     // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and delay stuff
     const observable = from(a).pipe(
-      concatMap((item) => of(item).pipe(rxjsDelay(1)))
+      concatMap((item) => of(item).pipe(rxjsDelay(1))),
     );
     assert.deepEqual(await itr8ToArray(itr8FromObservable(observable)), a);
   });
@@ -40,7 +40,7 @@ describe("peer/observable.ts", () => {
   it("itr8ToObservable works properly", async () => {
     // from(a) is enough in theory, but I wanted to spread it over time a bit, hence the pipe and delay stuff
     const observable = itr8ToObservable(itr8FromArray(a)).pipe(
-      concatMap((item) => of(item).pipe(rxjsDelay(1)))
+      concatMap((item) => of(item).pipe(rxjsDelay(1))),
     );
     assert.deepEqual(await itr8ToArray(itr8FromObservable(observable)), a);
   });

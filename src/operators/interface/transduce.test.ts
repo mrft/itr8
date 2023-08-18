@@ -51,7 +51,7 @@ const opr8RepeatEach = <TIn>(count = 2) =>
         })(),
       };
     },
-    () => undefined
+    () => undefined,
   );
 
 describe("operators/interface/transduce.ts", () => {
@@ -63,16 +63,16 @@ describe("operators/interface/transduce.ts", () => {
 
     assert.deepEqual(
       pipe(itr8Range(0, 2), transduce(transducerRepeat(2)), itr8ToArray),
-      [0, 0, 1, 1, 2, 2]
+      [0, 0, 1, 1, 2, 2],
     );
 
     assert.deepEqual(
       pipe(
         itr8Range(0, 7),
         transduce(transducersJs.filter(isEven)),
-        itr8ToArray
+        itr8ToArray,
       ),
-      [0, 2, 4, 6]
+      [0, 2, 4, 6],
     );
 
     const startItr8 = hrtime.bigint();
@@ -84,7 +84,7 @@ describe("operators/interface/transduce.ts", () => {
       take(49_000),
       opr8RepeatEach(3),
       count(),
-      itr8ToArray
+      itr8ToArray,
     ) as Iterable<number>;
     const durationItr8 = Number(hrtime.bigint() - startItr8) / 1_000_000;
 
@@ -92,7 +92,7 @@ describe("operators/interface/transduce.ts", () => {
       "[transduce]       transIterators take",
       durationItr8,
       "ms and return ",
-      totalItr8
+      totalItr8,
     );
 
     const startTransduce = hrtime.bigint();
@@ -104,11 +104,11 @@ describe("operators/interface/transduce.ts", () => {
           transducersJs.map((x) => `${x} Mississippi`),
           transducersJs.drop(5),
           transducersJs.take(49_000),
-          transducerRepeat(3)
-        )
+          transducerRepeat(3),
+        ),
       ),
       count(),
-      itr8ToArray
+      itr8ToArray,
     ) as Array<number>;
     const durationTransduce =
       Number(hrtime.bigint() - startTransduce) / 1_000_000;
@@ -117,7 +117,7 @@ describe("operators/interface/transduce.ts", () => {
       "[transduce] TRANSDUCERS          take",
       durationTransduce,
       "ms and return ",
-      totalTransduce
+      totalTransduce,
     );
 
     const startItr8Async = hrtime.bigint();
@@ -129,7 +129,7 @@ describe("operators/interface/transduce.ts", () => {
       take(49_000),
       opr8RepeatEach(3),
       count(),
-      itr8ToArray
+      itr8ToArray,
     );
     const durationItr8Async =
       Number(hrtime.bigint() - startItr8Async) / 1_000_000;
@@ -138,7 +138,7 @@ describe("operators/interface/transduce.ts", () => {
       "[transduce] async transIterators take",
       durationItr8Async,
       "ms and return ",
-      totalItr8Async
+      totalItr8Async,
     );
 
     const startTransduceAsync = hrtime.bigint();
@@ -150,11 +150,11 @@ describe("operators/interface/transduce.ts", () => {
           transducersJs.map((x) => `${x} Mississippi`),
           transducersJs.drop(5),
           transducersJs.take(49_000),
-          transducerRepeat(3)
-        )
+          transducerRepeat(3),
+        ),
       ),
       count(),
-      itr8ToArray
+      itr8ToArray,
     );
     const durationTransduceAsync =
       Number(hrtime.bigint() - startTransduceAsync) / 1_000_000;
@@ -163,7 +163,7 @@ describe("operators/interface/transduce.ts", () => {
       "[transduce] TRANSDUCERS async    take",
       durationTransduceAsync,
       "ms and return ",
-      totalTransduceAsync
+      totalTransduceAsync,
     );
 
     console.log(
@@ -171,7 +171,7 @@ describe("operators/interface/transduce.ts", () => {
       Math.round((100 * durationTransduce) / durationItr8),
       "% ASYNC",
       Math.round((100 * durationTransduceAsync) / durationItr8Async),
-      "%"
+      "%",
     );
   }).timeout(10_000);
 });

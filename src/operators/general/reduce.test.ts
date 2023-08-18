@@ -9,9 +9,9 @@ describe("operators/general/reduce.ts", () => {
       pipe(
         itr8Range(0, 4),
         reduce((acc: number, cur: number) => acc + cur, 0),
-        itr8ToArray
+        itr8ToArray,
       ),
-      [10]
+      [10],
     );
 
     assert.deepEqual(
@@ -19,9 +19,9 @@ describe("operators/general/reduce.ts", () => {
         itr8Range(1, 999),
         // implement a simple 'count' by returning index + 1
         reduce((_acc: number, _cur: number, index: number) => index + 1, 0),
-        itr8ToArray
+        itr8ToArray,
       ),
-      [999]
+      [999],
     );
 
     // async
@@ -29,9 +29,9 @@ describe("operators/general/reduce.ts", () => {
       await pipe(
         itr8RangeAsync(0, 4),
         reduce((acc: number, cur: number) => acc + cur, 0),
-        itr8ToArray
+        itr8ToArray,
       ),
-      [10]
+      [10],
     );
 
     assert.deepEqual(
@@ -39,9 +39,9 @@ describe("operators/general/reduce.ts", () => {
         itr8RangeAsync(0, 4),
         // implement a simple 'count' by returning index + 1
         reduce((acc: number, cur: number, index: number) => index + 1, 0),
-        itr8ToArray
+        itr8ToArray,
       ),
-      [5]
+      [5],
     );
 
     // async reducer function works as well
@@ -52,9 +52,9 @@ describe("operators/general/reduce.ts", () => {
           await sleep(1);
           return acc + cur;
         }, 0),
-        itr8ToArray
+        itr8ToArray,
       ),
-      [10]
+      [10],
     );
   });
 });

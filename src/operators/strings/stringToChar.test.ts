@@ -35,13 +35,13 @@ describe("operators/strings/stringToChar.ts", () => {
     // sync
     assert.deepEqual(
       itr8ToArray(stringToChar()(itr8FromArray(input))),
-      expected
+      expected,
     );
 
     // async
     assert.deepEqual(
       await itr8ToArray(stringToChar()(itr8FromArrayAsync(input))),
-      expected
+      expected,
     );
   });
 });

@@ -25,7 +25,7 @@ describe("operators/async/prefetch.ts", () => {
       const results: any = {};
       const fnThatStoresResultsFactory = (
         resultName: string,
-        sleepTime: number
+        sleepTime: number,
       ) => {
         const r: any = results[resultName] || { values: [], times: [] };
         results[resultName] = r;
@@ -52,17 +52,17 @@ describe("operators/async/prefetch.ts", () => {
           for await (const v of iteratorFactory()) {
             await f(v);
           }
-        })()
+        })(),
       );
       assert.deepEqual(
         results[descr].values,
         [1, 2, 3, 4],
-        `${descr}: 'values' fail!`
+        `${descr}: 'values' fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 5) * 5),
         [0, 10, 10, 10],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       // prefetch of 1 and processing time of half the input resolve time
@@ -75,21 +75,21 @@ describe("operators/async/prefetch.ts", () => {
         (async () => {
           for await (const v of pipe(
             iteratorFactory(),
-            prefetch(1)
+            prefetch(1),
           ) as AsyncIterableIterator<any>) {
             await f(v);
           }
-        })()
+        })(),
       );
       assert.deepEqual(
         results[descr].values,
         [1, 2, 3, 4],
-        `${descr}: 'values' fail!`
+        `${descr}: 'values' fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 5) * 5),
         [0, 5, 5, 5],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       // prefetch of 1 and processing time equal to the input resolve time
@@ -102,22 +102,22 @@ describe("operators/async/prefetch.ts", () => {
         (async () => {
           for await (const v of pipe(
             iteratorFactory(),
-            prefetch(1)
+            prefetch(1),
           ) as AsyncIterableIterator<any>) {
             // console.log('start processing', v);
             await f(v);
           }
-        })()
+        })(),
       );
       assert.deepEqual(
         results[descr].values,
         [1, 2, 3, 4],
-        `${descr}: 'values' fail!`
+        `${descr}: 'values' fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 5) * 5),
         [0, 0, 0, 0],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       // prefetch of 1 and processing time equal to half the input resolve time
@@ -130,22 +130,22 @@ describe("operators/async/prefetch.ts", () => {
         (async () => {
           for await (const v of pipe(
             iteratorFactory(),
-            prefetch(3)
+            prefetch(3),
           ) as AsyncIterableIterator<any>) {
             // console.log('start processing', v);
             await f(v);
           }
-        })()
+        })(),
       );
       assert.deepEqual(
         results[descr].values,
         [1, 2, 3, 4],
-        `${descr}: 'values' fail!`
+        `${descr}: 'values' fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 5) * 5),
         [0, 5, 5, 5],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       // prefetch of 3 and a first longer processing time followed by very short processing times
@@ -160,23 +160,23 @@ describe("operators/async/prefetch.ts", () => {
         (async () => {
           for await (const v of pipe(
             iteratorFactory(),
-            prefetch(3)
+            prefetch(3),
           ) as AsyncIterableIterator<any>) {
             // console.log('start processing', v);
             await f(v, processingTimes[index]);
             index++;
           }
-        })()
+        })(),
       );
       assert.deepEqual(
         results[descr].values,
         [1, 2, 3, 4],
-        `${descr}: 'values' fail!`
+        `${descr}: 'values' fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 5) * 5),
         [0, 0, 0, 0],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
 
       // prefetch of 1 and a first longer processing time followed by very short processing times
@@ -190,23 +190,23 @@ describe("operators/async/prefetch.ts", () => {
         (async () => {
           for await (const v of pipe(
             iteratorFactory(),
-            prefetch(1)
+            prefetch(1),
           ) as AsyncIterableIterator<any>) {
             // console.log('start processing', v);
             await f(v, processingTimes[index]);
             index++;
           }
-        })()
+        })(),
       );
       assert.deepEqual(
         results[descr].values,
         [1, 2, 3, 4],
-        `${descr}: 'values' fail!`
+        `${descr}: 'values' fail!`,
       );
       assert.deepEqual(
         results[descr].times.map((t) => Math.round(t / 5) * 5),
         [0, 0, 10, 10],
-        `${descr}: 'times' fail!`
+        `${descr}: 'times' fail!`,
       );
     } finally {
       clock.uninstall();

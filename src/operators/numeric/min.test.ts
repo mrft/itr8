@@ -10,7 +10,7 @@ describe("operators/numeric/min.ts", () => {
     // async
     assert.deepEqual(
       await itr8ToArray(min()(itr8FromArrayAsync([1, -4, 7, 2]))),
-      [-4]
+      [-4],
     );
   });
 });

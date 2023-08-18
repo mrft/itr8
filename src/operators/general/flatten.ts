@@ -18,6 +18,6 @@ const flatten = <TIn>() =>
       if (nextIn.done) return { done: true };
       return { done: false, iterable: nextIn.value };
     },
-    () => undefined
+    () => undefined,
   );
 export { flatten };

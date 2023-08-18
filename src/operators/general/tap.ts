@@ -22,7 +22,7 @@ const tap = <TIn>(tapFn: (TIn) => void) =>
         return { done: false, value: nextIn.value };
       }
     },
-    () => undefined
+    () => undefined,
   );
 
 export { tap };

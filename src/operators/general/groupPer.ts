@@ -35,7 +35,7 @@ const groupPer = <TIn>(groupSize: number) =>
         state: { ...state, buffer: [...state.buffer, nextIn.value] },
       };
     },
-    () => ({ done: false, buffer: [] })
+    () => ({ done: false, buffer: [] }),
   );
 
 export { groupPer };

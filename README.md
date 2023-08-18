@@ -93,7 +93,7 @@ const resultArray = pipe(
   filter((x) => x % 3 === 0), // => 6 12 18 24 30 [36 42 ...]
   skip(2), // => 18 24 30 [36 42 ...]
   take(3), // => 18 24 30
-  itr8ToArray
+  itr8ToArray,
 );
 // 1) you should be aware that the values between square brackets will never actually be calculated
 //    because only as many elements as needed will be pulled from the iterator!
@@ -122,7 +122,7 @@ const resultArray2 = await pipe(
   filter((x) => x % 3 === 0), // => 6 12 18 24 30 [36 42 ...]
   skip(2), // => 18 24 30 [36 42 ...]
   take(3), // => 18 24 30
-  itr8ToArray
+  itr8ToArray,
 );
 // as you can see the actual algorithm did not change at all, we just had to 'await' the result
 // because we are now using an asynchronous iterator as input!!!
@@ -136,7 +136,7 @@ const myOperator = () =>
     map((x) => x * 2), // => 2 4 6 8 10 12 14 16 ... [34 36 38 ...]
     filter((x) => x % 3 === 0), // => 6 12 18 24 30 [36 42 ...]
     skip(2), // => 18 24 30 [36 42 ...]
-    take(3) // => 18 24 30
+    take(3), // => 18 24 30
   );
 // 1) this is essentially the same as the totally unreadable
 //    (iterator) => take(3)(skip(2)(filter((x) => x % 3 === 0)(map((x) => x * 2)(iterator))))
@@ -147,7 +147,7 @@ const myOperator = () =>
 const resultArray = pipe(
   itr8FromIterable(inputArray), // the input iterator
   myOperator(),
-  itr8ToArray
+  itr8ToArray,
 );
 
 // if we need to execute some code for every element of the resulting iterator, use forEach
@@ -161,8 +161,8 @@ pipe(
       const descr = await getElementFromDisk(id);
       console.log("element = ", descr);
     },
-    { concurrency: 1 } // these options are optional (default concurrency is 1)
-  )
+    { concurrency: 1 }, // these options are optional (default concurrency is 1)
+  ),
 );
 
 // So now that we know that we can easily apply any operator to any iterator
@@ -184,7 +184,7 @@ const myOwnIterator = () => itr8FromIterable(myGeneratorFunction());
 // This means that it will actually execute code and start 'draining' the iterator
 for (let x of pipe(
   itr8Range(1, 1000),
-  filter((x) => x % 3 === 0)
+  filter((x) => x % 3 === 0),
 )) {
   console.log(x);
 }
@@ -266,7 +266,7 @@ const createBall = (): TBall => ({ hits: 0, status: "" });
 
 const createBat = async (
   inbound: AsyncIterableIterator<TBall> & TPushable,
-  outbound: AsyncIterableIterator<TBall> & TPushable
+  outbound: AsyncIterableIterator<TBall> & TPushable,
 ) => {
   pipe(
     inbound,
@@ -278,7 +278,7 @@ const createBat = async (
       console.log(`🎾  Ball hit ${hits} time(s), ${status}`);
     }),
     delay(500), // assume it's going to take a bit to hit the ball
-    forEach((b) => outbound.push(b)) // smash the ball back
+    forEach((b) => outbound.push(b)), // smash the ball back
   );
 };
 
@@ -356,7 +356,7 @@ const filterNil = () =>
         return { done: false, value: nextIn.value };
       }
     },
-    () => null // no state needed
+    () => null, // no state needed
   );
 ```
 
@@ -386,7 +386,7 @@ Knowing all this we can break down the example:
 Let's write an operator that repeats each value from the input iterator n times on the output iterator:
 
 ```typescript
-const opr8RepeatEach = <TIn>(count: number) =>
+const opr8RepeatEach = <TIn,>(count: number) =>
   powerMap<TIn, TIn>(
     (nextIn, _state) => {
       if (nextIn.done) {
@@ -401,7 +401,7 @@ const opr8RepeatEach = <TIn>(count: number) =>
         })(),
       };
     },
-    () => undefined
+    () => undefined,
   );
 ```
 
@@ -410,7 +410,7 @@ As you can see, we use the 'iterable' property here, and in order to easily gene
 But you could also assign an array, because that is also an iterable. But beware that creating an intermediate array will use more memory (especially if the count is high)! I'll show you the same example with an array here:
 
 ```typescript
-const opr8RepeatEach = <TIn>(count: number) =>
+const opr8RepeatEach = <TIn,>(count: number) =>
   powerMap<TIn, TIn>(
     (nextIn, _state) => {
       if (nextIn.done) {
@@ -421,7 +421,7 @@ const opr8RepeatEach = <TIn>(count: number) =>
         iterable: Array.from(Array(count)).map((x) => nextIn.value),
       };
     },
-    () => undefined
+    () => undefined,
   );
 ```
 
@@ -448,7 +448,7 @@ const total = () =>
         state: { ...state, total: state.total + nextIn.value },
       };
     },
-    () => ({ done: false, total: 0 })
+    () => ({ done: false, total: 0 }),
   );
 ```
 
@@ -582,3 +582,25 @@ In this section I will list various libraries, projects and articles that I foun
   - [itiriri](https://labs42io.github.io/itiriri/). Dot chaining again, and only for synchronous iterators, although it has an async sister called [itiriri-async](https://labs42io.github.io/itiriri-async/)
 - [iter8](https://www.npmjs.com/package/iter8): "Use iterables, iterators and generators as easily as arrays. Provides the complete Array API (plus a lot more), and works with everything you throw at it.". Dot-chaining again. No async iterator support I think.
 - An article called "[Decouple Business Logic using Async Generators](https://medium.com/dailyjs/decoupling-business-logic-using-async-generators-cc257f80ab33)" on mediom.com.
+- [iter-ops](https://github.com/vitaly-t/iter-ops) from vitaly-t (author of pg-promise) which is very similar, but uses iterables as the base instead of iterators like itr8 does... I added itr8 0.4.5 to the benchmark of iter-ops, and this is the result: itr8 currently pays a high price for synchronous code, but actually performs slightly better than iter-ops for asynchronous code.
+  ```
+  Synchronous test for 1e+7 items:
+  ┌────────────┬──────────┬─────────┐
+  │  (index)   │ duration │ length  │
+  ├────────────┼──────────┼─────────┤
+  │  iter-ops  │   292    │ 5000000 │
+  │    rxjs    │   339    │ 5000000 │
+  │ rxjs + sub │   1550   │ 5000000 │
+  │    itr8    │   2000   │ 5000000 │
+  └────────────┴──────────┴─────────┘
+  Asynchronous test for 1e+7 items:
+  ┌────────────┬──────────┬─────────┐
+  │  (index)   │ duration │ length  │
+  ├────────────┼──────────┼─────────┤
+  │  iter-ops  │   7403   │ 5000000 │
+  │    rxjs    │   3248   │ 5000000 │
+  │ rxjs + sub │   7788   │ 5000000 │
+  │    itr8    │   6860   │ 5000000 │
+  └────────────┴──────────┴─────────┘
+  ```
+- [iterare](https://github.com/felixfbecker/iterare): Dot-chaining again. No async iterator support I think.

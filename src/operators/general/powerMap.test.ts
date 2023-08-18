@@ -26,7 +26,7 @@ const transIts = {
         }
         return { done: false, value: mapFn(nextIn.value) };
       },
-      () => undefined
+      () => undefined,
     );
   },
   opr8Skip: (offset: number) => {
@@ -40,7 +40,7 @@ const transIts = {
         }
         return { done: false, value: nextIn.value };
       },
-      () => 0
+      () => 0,
     );
   },
   opr8Delay: (timeout: number) => {
@@ -51,7 +51,7 @@ const transIts = {
             resolve(nextIn);
           }, timeout);
         }),
-      () => 0
+      () => 0,
     );
   },
 
@@ -64,7 +64,7 @@ const transIts = {
         }
         return { done: false, value: mapFn(nextIn.value) };
       },
-      () => null
+      () => null,
     );
   },
   // async nextFn, sync iterator
@@ -76,7 +76,7 @@ const transIts = {
         }
         return { done: false, value: mapFn(nextIn.value) };
       },
-      () => undefined
+      () => undefined,
     );
   },
   // sync nextFn, async iterator
@@ -88,7 +88,7 @@ const transIts = {
         }
         return { done: false, value: Promise.resolve(mapFn(nextIn.value)) };
       },
-      () => null
+      () => null,
     );
   },
   // async nextFn, async iterator
@@ -100,7 +100,7 @@ const transIts = {
         }
         return { done: false, value: Promise.resolve(mapFn(nextIn.value)) };
       },
-      () => null
+      () => null,
     );
   },
   /**
@@ -136,7 +136,7 @@ const transIts = {
           })(),
         };
       },
-      () => undefined
+      () => undefined,
     );
   },
   // async nextFn, sync iterator
@@ -155,7 +155,7 @@ const transIts = {
           })(),
         };
       },
-      () => undefined
+      () => undefined,
     );
   },
   // sync nextFn, async iterator
@@ -174,7 +174,7 @@ const transIts = {
           })(),
         };
       },
-      () => undefined
+      () => undefined,
     );
   },
   // async nextFn, async iterator
@@ -193,7 +193,7 @@ const transIts = {
           })(),
         };
       },
-      () => undefined
+      () => undefined,
     );
   },
 
@@ -216,7 +216,7 @@ const transIts = {
         }
         return { done: false };
       },
-      () => null
+      () => null,
     );
   },
   // async nextFn, sync iterator
@@ -231,7 +231,7 @@ const transIts = {
         }
         return { done: false };
       },
-      () => null
+      () => null,
     );
   },
   // sync nextFn, async iterator
@@ -246,7 +246,7 @@ const transIts = {
         }
         return { done: false };
       },
-      () => null
+      () => null,
     );
   },
   // async nextFn, async iterator
@@ -261,7 +261,7 @@ const transIts = {
         }
         return { done: false };
       },
-      () => null
+      () => null,
     );
   },
   // operator that uses state params to initialize the state
@@ -273,7 +273,7 @@ const transIts = {
         }
         return { done: false, value: nextIn.value, state: state - 1 };
       },
-      () => initVal
+      () => initVal,
     );
   },
   // operator that uses multiple params, and returns a tuple [TIn, p1, p2, p3]
@@ -283,7 +283,7 @@ const transIts = {
       // I guess the TOut from the type variables shoulmdbe enough to detect invalid types
       (
         nextIn,
-        state: boolean
+        state: boolean,
       ): TNextFnResult<[unknown, number, string, boolean], boolean> => {
         if (nextIn.done) {
           return { done: true };
@@ -294,18 +294,18 @@ const transIts = {
           state,
         };
       },
-      () => param3
+      () => param3,
     );
   },
   opr8TransNextFn: (
     transNextFn: (
-      input: TNextFnResult<unknown, undefined>
-    ) => TNextFnResult<unknown, undefined>
+      input: TNextFnResult<unknown, undefined>,
+    ) => TNextFnResult<unknown, undefined>,
   ) => {
     return powerMap<unknown, unknown, unknown>(
       (nextIn, _state) =>
         transNextFn(nextIn as TNextFnResult<unknown, undefined>),
-      () => undefined
+      () => undefined,
     );
   },
   /**
@@ -322,7 +322,7 @@ const transIts = {
         state: state + 1,
         isLast: state + 1 === 5,
       }),
-      () => 0
+      () => 0,
     ),
   /**
    * operator that uses isLast to indicate that no further pulls from the incoming iterator
@@ -343,7 +343,7 @@ const transIts = {
           nextIn.value,
         ],
       }),
-      () => undefined
+      () => undefined,
     ),
 };
 
@@ -381,23 +381,23 @@ describe("./operators/general/powerMap.ts", () => {
       // synchronous
       assert.deepEqual(
         itr8ToArray(transIts.opr8Map(plusOne)(itr8Range(4, 7))),
-        [5, 6, 7, 8]
+        [5, 6, 7, 8],
       );
 
       assert.deepEqual(
         itr8ToArray(transIts.opr8Map(wrapString)(itr8Range(4, 7))),
-        ["<-- 4 -->", "<-- 5 -->", "<-- 6 -->", "<-- 7 -->"]
+        ["<-- 4 -->", "<-- 5 -->", "<-- 6 -->", "<-- 7 -->"],
       );
 
       // asynchronous
       assert.deepEqual(
         await itr8ToArray(transIts.opr8Map(plusOne)(itr8RangeAsync(4, 7))),
-        [5, 6, 7, 8]
+        [5, 6, 7, 8],
       );
 
       assert.deepEqual(
         await itr8ToArray(transIts.opr8Map(wrapString)(itr8RangeAsync(4, 7))),
-        ["<-- 4 -->", "<-- 5 -->", "<-- 6 -->", "<-- 7 -->"]
+        ["<-- 4 -->", "<-- 5 -->", "<-- 6 -->", "<-- 7 -->"],
       );
 
       const iterableIterator = transIts.opr8Map(plusOne)(itr8Range(4, 7));
@@ -418,14 +418,14 @@ describe("./operators/general/powerMap.ts", () => {
       assert.deepEqual(
         await pipe(generateItr(), mapFn(plusOne), mapFn(timesTwo), itr8ToArray),
         [10, 12, 14, 16],
-        `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with plus one fails`
+        `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with plus one fails`,
       );
 
       // console.log(`        TESTING ${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with wrapString`);
       assert.deepEqual(
         await itr8ToArray(mapFn(wrapString)(generateItr())),
         ["<-- 4 -->", "<-- 5 -->", "<-- 6 -->", "<-- 7 -->"],
-        `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with wrap string fails`
+        `${syncOrAsyncIterator} input iterator with mapFn ${mapFnName} with wrap string fails`,
       );
     };
 
@@ -451,7 +451,7 @@ describe("./operators/general/powerMap.ts", () => {
 
     const testRepeatEach = async (
       useAsyncIterator: boolean,
-      repeatEachFn: (any) => any
+      repeatEachFn: (any) => any,
     ) => {
       const repeatEachFnName = transItToName(repeatEachFn);
       const syncOrAsyncIterator = useAsyncIterator ? "async" : "sync";
@@ -463,13 +463,13 @@ describe("./operators/general/powerMap.ts", () => {
       assert.deepEqual(
         await itr8ToArray(repeatEachFn(2)(generateItr())),
         [4, 4, 5, 5, 6, 6, 7, 7],
-        `${syncOrAsyncIterator} input iterator with mapFn ${repeatEachFnName} with 2 FAILED`
+        `${syncOrAsyncIterator} input iterator with mapFn ${repeatEachFnName} with 2 FAILED`,
       );
 
       assert.deepEqual(
         await itr8ToArray(repeatEachFn(3)(generateItr())),
         [4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7],
-        `${syncOrAsyncIterator} input iterator with mapFn ${repeatEachFnName} with 3 FAILED`
+        `${syncOrAsyncIterator} input iterator with mapFn ${repeatEachFnName} with 3 FAILED`,
       );
     };
 
@@ -496,13 +496,13 @@ describe("./operators/general/powerMap.ts", () => {
     it("opr8Skip(...) operator works properly", async () => {
       assert.deepEqual(
         itr8ToArray(transIts.opr8Skip(5)(itr8Range(1, 7))),
-        [6, 7]
+        [6, 7],
       );
 
       // asynchronous
       assert.deepEqual(
         await itr8ToArray(transIts.opr8Skip(5)(itr8RangeAsync(1, 7))),
-        [6, 7]
+        [6, 7],
       );
     });
 
@@ -515,11 +515,11 @@ describe("./operators/general/powerMap.ts", () => {
             pipe(
               itr8Range(1, 7),
               transIts.opr8Delay(10),
-              itr8ToArray
-            ) as Promise<Array<number>>
+              itr8ToArray,
+            ) as Promise<Array<number>>,
           ),
           [1, 2, 3, 4, 5, 6, 7],
-          "async opr8Delay on sync iterator fails"
+          "async opr8Delay on sync iterator fails",
         );
 
         // asynchronous
@@ -529,11 +529,11 @@ describe("./operators/general/powerMap.ts", () => {
             pipe(
               itr8RangeAsync(1, 7),
               transIts.opr8Delay(10),
-              itr8ToArray
-            ) as Promise<Array<number>>
+              itr8ToArray,
+            ) as Promise<Array<number>>,
           ),
           [1, 2, 3, 4, 5, 6, 7],
-          "async opr8Delay on async iterator fails"
+          "async opr8Delay on async iterator fails",
         );
       } finally {
         clock.uninstall();
@@ -546,20 +546,20 @@ describe("./operators/general/powerMap.ts", () => {
         pipe(
           itr8Range(1, 100),
           transIts.opr8TakeUseStateFactoryParams(5),
-          itr8ToArray
+          itr8ToArray,
         ),
         [1, 2, 3, 4, 5],
-        "sync opr8TakeUseStateFactoryParams on sync iterator fails"
+        "sync opr8TakeUseStateFactoryParams on sync iterator fails",
       );
       // asynchronous
       assert.deepEqual(
         await pipe(
           itr8RangeAsync(1, 100),
           transIts.opr8TakeUseStateFactoryParams(5),
-          itr8ToArray
+          itr8ToArray,
         ),
         [1, 2, 3, 4, 5],
-        "sync opr8TakeUseStateFactoryParams on async iterator fails"
+        "sync opr8TakeUseStateFactoryParams on async iterator fails",
       );
     });
 
@@ -569,28 +569,28 @@ describe("./operators/general/powerMap.ts", () => {
         pipe(
           itr8Range(1, 3),
           transIts.opr8UseMultipleParams(234, "onetwothree", true),
-          itr8ToArray
+          itr8ToArray,
         ),
         [
           [1, 234, "onetwothree", true],
           [2, 234, "onetwothree", true],
           [3, 234, "onetwothree", true],
         ],
-        "sync opr8UseMultipleParams on sync iterator fails"
+        "sync opr8UseMultipleParams on sync iterator fails",
       );
       // asynchronous
       assert.deepEqual(
         await pipe(
           itr8RangeAsync(1, 3),
           transIts.opr8UseMultipleParams(234, "onetwothree", true),
-          itr8ToArray
+          itr8ToArray,
         ),
         [
           [1, 234, "onetwothree", true],
           [2, 234, "onetwothree", true],
           [3, 234, "onetwothree", true],
         ],
-        "sync opr8UseMultipleParams on async iterator fails"
+        "sync opr8UseMultipleParams on async iterator fails",
       );
     });
 
@@ -600,20 +600,20 @@ describe("./operators/general/powerMap.ts", () => {
       assert.deepEqual(
         pipe(transformedIt, itr8ToArray),
         [1, 2, 3, 4, 5],
-        "sync fails"
+        "sync fails",
       );
       // pull the transformedIterator 10 more times (they all should return done: true)
       pipe(
         itr8Range(1, 10),
         forEach((_x) => {
           transformedIt.next();
-        })
+        }),
       );
       // the input iterator should not be pulled more often than 5 times !!!
       assert.deepEqual(
         it.next().value,
         6,
-        "only the given amount should be pulled from the incoming iterator and not an element more"
+        "only the given amount should be pulled from the incoming iterator and not an element more",
       );
 
       const itAsync = itr8RangeAsync(1, 100);
@@ -621,20 +621,20 @@ describe("./operators/general/powerMap.ts", () => {
       assert.deepEqual(
         await pipe(transformedItAsync, itr8ToArray),
         [1, 2, 3, 4, 5],
-        "sync fails"
+        "sync fails",
       );
       // pull the transformedIterator 10 more times (they all should return done: true)
       await pipe(
         itr8Range(1, 10),
         forEach(async (_x) => {
           await transformedItAsync.next();
-        })
+        }),
       );
       // the input iterator should not be pulled more often than 5 times !!!
       assert.deepEqual(
         (await itAsync.next()).value,
         6,
-        "only the given amount should be pulled from the incoming (async) iterator and not an element more"
+        "only the given amount should be pulled from the incoming (async) iterator and not an element more",
       );
     });
 
@@ -644,20 +644,20 @@ describe("./operators/general/powerMap.ts", () => {
       assert.deepEqual(
         pipe(transformedIt, itr8ToArray),
         [1, 1, 1, 1, 1],
-        "sync fails"
+        "sync fails",
       );
       // pull the transformedIterator 10 more times (they all should return done: true)
       pipe(
         itr8Range(1, 10),
         forEach((_x) => {
           transformedIt.next();
-        })
+        }),
       );
       // the input iterator should not be pulled more often than 5 times !!!
       assert.deepEqual(
         it.next().value,
         2,
-        "only the given amount should be pulled from the incoming iterator and not an element more"
+        "only the given amount should be pulled from the incoming iterator and not an element more",
       );
 
       const itAsync = itr8RangeAsync(1, 100);
@@ -665,20 +665,20 @@ describe("./operators/general/powerMap.ts", () => {
       assert.deepEqual(
         await pipe(transformedItAsync, itr8ToArray),
         [1, 1, 1, 1, 1],
-        "sync fails"
+        "sync fails",
       );
       // pull the transformedIterator 10 more times (they all should return done: true)
       await pipe(
         itr8Range(1, 10),
         forEach(async (_x) => {
           await transformedItAsync.next();
-        })
+        }),
       );
       // the input iterator should not be pulled more often than 5 times !!!
       assert.deepEqual(
         (await itAsync.next()).value,
         2,
-        "only the given amount should be pulled from the incoming (async) iterator and not an element more"
+        "only the given amount should be pulled from the incoming (async) iterator and not an element more",
       );
     });
 
@@ -725,47 +725,49 @@ describe("./operators/general/powerMap.ts", () => {
           pipe(
             itr8Range(1, 5),
             transIts.opr8TransNextFn((x) =>
-              transFilterOver6(transMapTimes2(x))
+              transFilterOver6(transMapTimes2(x)),
             ),
-            itr8ToArray
+            itr8ToArray,
           ),
-          [8, 10]
+          [8, 10],
         );
+
+        const rangeMax = 1_000_000;
 
         const startTransIt = Date.now();
         const maxAndCountTransIt = { max: 0, count: 0 };
         pipe(
-          itr8Range(1, 100_000),
+          itr8Range(1, rangeMax),
           transItMapTimes2,
           transItFilterOver6,
           forEach((v) => {
             maxAndCountTransIt.max = Math.max(maxAndCountTransIt.max, v);
             maxAndCountTransIt.count += 1;
-          })
+          }),
         );
         const durationTransIt = Date.now() - startTransIt;
 
         const startTransNext = Date.now();
         const maxAndCountTransNext = { max: 0, count: 0 };
         pipe(
-          itr8Range(1, 100_000),
+          itr8Range(1, rangeMax),
           transIts.opr8TransNextFn((x) => transFilterOver6(transMapTimes2(x))),
           forEach((v) => {
             maxAndCountTransNext.max = Math.max(maxAndCountTransNext.max, v);
             maxAndCountTransNext.count += 1;
-          })
+          }),
         );
         const durationTransNext = Date.now() - startTransNext;
         assert.deepEqual(maxAndCountTransIt, {
-          max: 200_000,
-          count: 100_000 - 3,
+          max: rangeMax * 2,
+          count: rangeMax - 3,
         });
         assert.deepEqual(maxAndCountTransNext, maxAndCountTransIt);
 
         console.log(
-          ` * transIts took ${durationTransIt} ms and transNexts took ${durationTransNext} ms`
+          ` * transIts took ${durationTransIt} ms and transNexts took ${durationTransNext} ms`,
         );
-      }).timeout(2_000);
+      }).timeout(5_000);
     });
   });
 });

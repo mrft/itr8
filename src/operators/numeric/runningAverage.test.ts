@@ -12,7 +12,7 @@ describe("operators/numeric/runningAverage.ts", () => {
     // sync
     assert.deepEqual(
       pipe(itr8Range(1, 10), runningAverage(), itr8ToArray),
-      [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5]
+      [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5],
     );
 
     // async
@@ -20,9 +20,9 @@ describe("operators/numeric/runningAverage.ts", () => {
       await pipe(
         itr8FromArrayAsync([1, 2, 2, 4, 3]),
         runningAverage(),
-        itr8ToArray
+        itr8ToArray,
       ),
-      [1, 1.5, 1.6666666666666667, 2.25, 2.4]
+      [1, 1.5, 1.6666666666666667, 2.25, 2.4],
     );
   });
 });

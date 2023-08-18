@@ -26,20 +26,20 @@ describe("operators/numeric/percentile.ts", () => {
     assert.deepEqual(
       pipe(itr8Range(1, 100), percentile(90), itr8ToArray),
       // [90],
-      [arrayPercentile(90, itr8ToArray(itr8Range(1, 100)) as number[])]
+      [arrayPercentile(90, itr8ToArray(itr8Range(1, 100)) as number[])],
     );
 
     assert.deepEqual(
       pipe(itr8Range(1, 100), percentile(95), itr8ToArray),
       // [95],
-      [arrayPercentile(95, itr8ToArray(itr8Range(1, 100)) as number[])]
+      [arrayPercentile(95, itr8ToArray(itr8Range(1, 100)) as number[])],
     );
 
     // async
     assert.deepEqual(
       await pipe(itr8RangeAsync(1, 100), percentile(95), itr8ToArray),
       // [95],
-      [arrayPercentile(95, itr8ToArray(itr8Range(1, 100)) as number[])]
+      [arrayPercentile(95, itr8ToArray(itr8Range(1, 100)) as number[])],
     );
   });
 });

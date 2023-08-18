@@ -13,7 +13,7 @@
  * @category interface/standard
  */
 function itr8FromIterable<T>(
-  it: Iterable<T> | AsyncIterable<T>
+  it: Iterable<T> | AsyncIterable<T>,
 ): IterableIterator<T> | AsyncIterableIterator<T> {
   if (it[Symbol.iterator]) {
     return it[Symbol.iterator]();

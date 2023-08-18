@@ -10,7 +10,7 @@ describe("interface/itr8Range.ts", () => {
 
     assert.deepEqual(
       itr8ToArray(itr8Range(4, 7, 0.5)),
-      [4, 4.5, 5, 5.5, 6, 6.5, 7]
+      [4, 4.5, 5, 5.5, 6, 6.5, 7],
     );
 
     // be forgiving about the sign of the step value

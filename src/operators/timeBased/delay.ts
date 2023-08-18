@@ -13,7 +13,7 @@ const delay = <TIn>(timeout: number) =>
         setTimeout(() => resolve(nextIn), timeout);
       });
     },
-    () => undefined
+    () => undefined,
   );
 
 export { delay };

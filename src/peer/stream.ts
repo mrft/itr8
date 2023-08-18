@@ -27,7 +27,7 @@ import { stringToChar } from "../operators/strings/stringToChar.js";
  * @category peer/stream
  */
 const itr8FromStream = (
-  stream: Stream.Readable
+  stream: Stream.Readable,
 ): AsyncIterableIterator<any> => {
   return stream[Symbol.asyncIterator]();
 

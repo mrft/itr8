@@ -10,7 +10,7 @@ describe("operators/boolean/some.ts", () => {
     const moreThan5 = (a) => a > 5;
     assert.deepEqual(
       await pipe(itr8RangeAsync(4, -3), some(moreThan5), itr8ToArray),
-      [false]
+      [false],
     );
   });
 });

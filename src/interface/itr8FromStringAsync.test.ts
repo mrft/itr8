@@ -4,7 +4,7 @@ import { itr8FromStringAsync } from "./itr8FromStringAsync.js";
 describe("interface/itr8FromStringAsync.ts", () => {
   it("itr8FromStringAsync(...) can turn a string into an async iterator", async () => {
     const iterator: AsyncIterator<string> = itr8FromStringAsync(
-      "hello"
+      "hello",
     ) as AsyncIterator<string>;
 
     const next = iterator.next();

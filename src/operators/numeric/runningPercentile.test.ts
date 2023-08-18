@@ -7,13 +7,13 @@ describe("operators/numeric/runningPercentile.ts", () => {
     // sync
     assert.deepEqual(
       pipe(itr8Range(1, 10), runningPercentile(50), itr8ToArray),
-      [1, 1, 2, 2, 3, 3, 4, 4, 5, 5]
+      [1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
     );
 
     // async
     assert.deepEqual(
       await pipe(itr8RangeAsync(1, 10), runningPercentile(90), itr8ToArray),
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 9]
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 9],
     );
   });
 });

@@ -55,7 +55,7 @@ const repeat = <TIn>(count = 2) =>
         state: { list: list.concat(nextIn.value), remaining },
       };
     },
-    () => ({ list: [], remaining: count - 1 })
+    () => ({ list: [], remaining: count - 1 }),
   );
 
 export { repeat };

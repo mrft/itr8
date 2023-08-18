@@ -24,7 +24,7 @@ const stringToChar = () =>
         iterable: itr8FromString(nextIn.value),
       };
     },
-    () => undefined
+    () => undefined,
   );
 
 export { stringToChar };

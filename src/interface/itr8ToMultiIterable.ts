@@ -28,7 +28,7 @@ import { forEach } from "./forEach.js";
 function itr8ToMultiIterable<T>(
   it:
     | Iterator<T>
-    | AsyncIterator<T> /*, abandonedTimeoutMilliseconds = Infinity */
+    | AsyncIterator<T> /*, abandonedTimeoutMilliseconds = Infinity */,
 ): AsyncIterable<T> {
   const subscriberMap: Map<AsyncIterableIterator<T>, number> = new Map();
   const buffer: Map<number, IteratorResult<T> | Promise<IteratorResult<T>>> =
@@ -54,7 +54,7 @@ function itr8ToMultiIterable<T>(
           takeWhile((i) => i < minIndex),
           forEach((i) => {
             buffer.delete(i);
-          })
+          }),
         );
       };
 
@@ -86,7 +86,7 @@ function itr8ToMultiIterable<T>(
       // add the new iterator to the subscriberMap
       subscriberMap.set(
         outIt,
-        buffer.size === 0 ? 0 : Math.min(...buffer.keys())
+        buffer.size === 0 ? 0 : Math.min(...buffer.keys()),
       );
       // TODO: set a disconnect timeout (we'll need to store the last get time, or the timeout id)
       return outIt;

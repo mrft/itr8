@@ -7,13 +7,13 @@ describe("operators/numeric/runningTotal.ts", () => {
     // sync
     assert.deepEqual(
       itr8ToArray(runningTotal()(itr8Range(1, 4))),
-      [1, 3, 6, 10]
+      [1, 3, 6, 10],
     );
 
     // async
     assert.deepEqual(
       await itr8ToArray(runningTotal()(itr8RangeAsync(1, 4))),
-      [1, 3, 6, 10]
+      [1, 3, 6, 10],
     );
   });
 });

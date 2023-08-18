@@ -5,7 +5,7 @@ describe("interface/itr8FromArrayAsync.ts", () => {
   it("itr8FromArrayAsync(...) can turn an array into an async iterator", async () => {
     const b = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
     const iterator: AsyncIterator<string> = itr8FromArrayAsync(
-      b
+      b,
     ) as AsyncIterator<string>;
 
     const next = iterator.next();

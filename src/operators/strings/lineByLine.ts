@@ -64,7 +64,7 @@ const lineByLine = (splitBy = "\n") =>
         }
       }
     },
-    () => ({ done: false, buffer: "" })
+    () => ({ done: false, buffer: "" }),
   );
 
 // Original implementation by combining other operators

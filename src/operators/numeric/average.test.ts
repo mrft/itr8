@@ -15,7 +15,7 @@ describe("operators/numeric/average.ts", () => {
     // async
     assert.deepEqual(
       await pipe(itr8FromArrayAsync([1, 2, 2, 4, 3]), average(), itr8ToArray),
-      [2.4]
+      [2.4],
     );
   });
 });

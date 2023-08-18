@@ -138,7 +138,7 @@ const peek = <TIn>(peekForward = 1, peekBackward = 1) =>
             next: restOfNext || [],
             previous: [state.current, ...state.previous].slice(
               0,
-              peekBackward as number
+              peekBackward as number,
             ),
           };
           return {
@@ -168,7 +168,7 @@ const peek = <TIn>(peekForward = 1, peekBackward = 1) =>
             current,
             next: [...(restOfNext || []), nextIn.value].slice(
               0,
-              peekForward as number
+              peekForward as number,
             ),
             previous: (state.current === Symbol["ITR8_NO_CURRENT"]
               ? state.previous
@@ -193,7 +193,7 @@ const peek = <TIn>(peekForward = 1, peekBackward = 1) =>
       current: Symbol["ITR8_NO_CURRENT"],
       next: [],
       // hasNext
-    })
+    }),
   );
 // const peek = (amountNext: number, amountPrevious: number = 0) => {
 

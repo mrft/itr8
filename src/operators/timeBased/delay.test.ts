@@ -8,7 +8,7 @@ describe("operators/timeBased/delay.ts", () => {
     const clock = FakeTimers.install(); // don't forget to uninstall the clock in a finally block !
     try {
       const itr8toArrayDelayedBy10WithSyncInputPromise = itr8ToArray(
-        delay(10)(itr8Range(1, 7))
+        delay(10)(itr8Range(1, 7)),
       );
 
       // now run all the clock ticks
@@ -18,11 +18,11 @@ describe("operators/timeBased/delay.ts", () => {
       assert.deepEqual(
         await itr8toArrayDelayedBy10WithSyncInputPromise,
         [1, 2, 3, 4, 5, 6, 7],
-        "async opr8Delay on sync iterator fails"
+        "async opr8Delay on sync iterator fails",
       );
 
       const itr8toArrayDelayedBy10WithAsyncInputPromise = itr8ToArray(
-        delay(10)(itr8RangeAsync(1, 7))
+        delay(10)(itr8RangeAsync(1, 7)),
       );
       // now run all the clock ticks and uninstall the fake clock
       await clock.runAllAsync();
@@ -31,7 +31,7 @@ describe("operators/timeBased/delay.ts", () => {
       assert.deepEqual(
         await itr8toArrayDelayedBy10WithAsyncInputPromise,
         [1, 2, 3, 4, 5, 6, 7],
-        "async opr8Delay on async iterator fails"
+        "async opr8Delay on async iterator fails",
       );
     } finally {
       clock.uninstall();

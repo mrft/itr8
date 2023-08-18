@@ -36,7 +36,7 @@ const fileResolver = (filename) => {
 
   console.log(
     "                                        Hello from worker.ts",
-    transIterator.toString()
+    transIterator.toString(),
   );
 
   const pushIt = itr8Pushable(100);
@@ -44,13 +44,13 @@ const fileResolver = (filename) => {
   if (parentPort) {
     console.log(
       "                                        [WORKER]",
-      "parentPort not null"
+      "parentPort not null",
     );
     parentPort.on("message", (m) => {
       console.log(
         "                                        [WORKER]",
         "onMessage",
-        m
+        m,
       );
       pushIt.push(m);
       // if (parentPort) {
@@ -62,7 +62,7 @@ const fileResolver = (filename) => {
       transIterator,
       forEach((item) => {
         parentPort?.postMessage(item);
-      })
+      }),
     );
   }
 })();

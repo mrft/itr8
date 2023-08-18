@@ -23,30 +23,30 @@ describe("peer/parseJson.ts", () => {
 
     assert.deepEqual(
       await pipe(itr8FromIterable(jsonString), parseJson(["$.b"]), itr8ToArray),
-      [[2, "$.b"]]
+      [[2, "$.b"]],
     );
 
     assert.deepEqual(
       await pipe(
         itr8FromIterable(jsonString),
         parseJson(["$.l.3"]),
-        itr8ToArray
+        itr8ToArray,
       ),
-      [["three", "$.l.3"]]
+      [["three", "$.l.3"]],
     );
 
     assert.deepEqual(
       await pipe(
         itr8FromIterable(jsonString),
         parseJson(["$.*.*"]),
-        itr8ToArray
+        itr8ToArray,
       ),
       [
         ["zero", "$.l.0"],
         ["one", "$.l.1"],
         ["two", "$.l.2"],
         ["three", "$.l.3"],
-      ]
+      ],
     );
 
     // console.log('itr8RPushable');
@@ -64,7 +64,7 @@ describe("peer/parseJson.ts", () => {
           // if (c3 % 100_000 === 0) console.log('pushing', x);
           pushIt.push(x);
           c3++;
-        })
+        }),
       );
       pushIt.push("]");
       pushIt.done();
@@ -88,7 +88,7 @@ describe("peer/parseJson.ts", () => {
         //   failed = true;
         //   assert.fail('value does not start with ´prisoner no.´ as expected');
         // };
-      })
+      }),
     );
     assert.isFalse(failed);
     assert.equal(counter, nrOfResults);

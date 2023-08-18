@@ -28,9 +28,9 @@ const reduce = <TIn, TOut>(
   reducer: (
     accumulator: TOut,
     currentValue: TIn,
-    presentIndex?: number
+    presentIndex?: number,
   ) => TOut | Promise<TOut>,
-  initialValue: TOut
+  initialValue: TOut,
 ) =>
   powerMap<TIn, TOut, { index: number; accumulator: TOut; done: boolean }>(
     (nextIn, state) => {
@@ -52,7 +52,7 @@ const reduce = <TIn, TOut>(
             index: state.index + 1,
             accumulator: reduced,
           },
-        })
+        }),
       ).src;
 
       // const reduced = params.reducer(acc, nextIn.value, state.index);
@@ -77,7 +77,7 @@ const reduce = <TIn, TOut>(
       //   }
       // };
     },
-    () => ({ index: 0, accumulator: initialValue, done: false })
+    () => ({ index: 0, accumulator: initialValue, done: false }),
   );
 
 export { reduce };

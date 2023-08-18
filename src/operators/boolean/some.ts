@@ -30,7 +30,7 @@ const some = <TIn>(filterFn: (TIn) => boolean | Promise<boolean>) =>
         return { done: false, state: { done: false } };
       }).src;
     },
-    () => ({ done: false })
+    () => ({ done: false }),
   );
 
 export { some };

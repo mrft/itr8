@@ -17,7 +17,7 @@ import { TPushable } from "../types.js";
  * @category interface/standard
  */
 function itr8Pushable<T>(
-  bufferSize?: number
+  bufferSize?: number,
 ): AsyncIterableIterator<T> & TPushable {
   const buffer: any[] = [];
 

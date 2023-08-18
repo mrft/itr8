@@ -28,7 +28,7 @@ const count = () =>
       }
       return { done: false, state: { ...state, count: state.count + 1 } };
     },
-    () => ({ done: false, count: 0 })
+    () => ({ done: false, count: 0 }),
   );
 
 export { count };

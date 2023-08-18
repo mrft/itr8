@@ -12,14 +12,14 @@ import { map } from "../operators/general/map.js";
 const gzip = () =>
   map(
     (
-      data: Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string | number
+      data: Buffer /*| TypedArray*/ | DataView | ArrayBuffer | string | number,
     ) => {
       if (typeof data === "number") {
         return promisify(zlib.gzip)(Buffer.from([data]));
       } else {
         return promisify(zlib.gzip)(data);
       }
-    }
+    },
   );
 
 export { gzip };

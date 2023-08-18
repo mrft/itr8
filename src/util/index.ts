@@ -88,7 +88,7 @@ const AsyncFunction = Object.getPrototypeOf(async function () {
  * that checks whether it is a promise or not, and returns the result of the handler?
  * But without the pipe operator it would be a pain to chain them, unless it will return an object
  * with some properties like ```{ result, doAfter:... }```
- * or maybe thenable should always return a new object with poerties ```{ src, then, finally, ... }``` so
+ * or maybe thenable should always return a new object with properties ```{ src, then, finally, ... }``` so
  * that the interface resembles a promise, but if we need the actual promise or value
  * we should simply call src?
  *
@@ -100,6 +100,7 @@ const AsyncFunction = Object.getPrototypeOf(async function () {
  */
 const thenable = <T>(x: T): TThenable<T> => {
   if (isPromise(x)) {
+    // console.log(`[thenable] ASYNC: ${x}`);
     const newX = {
       src: x,
       then: (...args) => thenable(x.then(...args)),
@@ -108,6 +109,7 @@ const thenable = <T>(x: T): TThenable<T> => {
     x.then((value) => (newX["value"] = value));
     return newX;
   } else {
+    // console.log(`[thenable] SYNC: ${x}`);
     if (typeof (x as any)?.then === "function") {
       return x as unknown as TThenable;
     } else {
@@ -128,6 +130,205 @@ const thenable = <T>(x: T): TThenable<T> => {
 };
 
 /**
+ * After I created the thenable function, my code became easier, because I could write
+ * the same code regardless whether the input was synchronous or asynchronous.
+ * But by wrapping something with thenable, the check whether it was a Promise or not
+ * was done on every invocation.
+ *
+ * In a library that is about iterators, we expect this to be called many times.
+ * So it feels like it could make sense to create a version that 'remembers'
+ * the conclusions from the first run, and that will use that knowledge in the second run
+ * (assuming that every next element in an iterator will be a promise if the first was a promise
+ * and vice versa)
+ *
+ * A few tests seemed to indicate that calling isPromise often if about 10x slower than
+ * checking if a variable is true or false (or is a specific symbol), so there should be
+ * gain to be made with this.
+ *
+ * @example
+ * ```@typescript
+ * // instead of
+ * for (x of [1, 2, 3]) {
+ *   thenable(x).then((v) => console.log(v));
+ * }
+ * // do something like
+ * const cachedThenable = thenableFactory(1);
+ * for (x of [1, 2, 3]) {
+ *   cachedThenable(x).then((v) => console.log(v))
+ * }
+ * ```
+ *
+ * @param x a simple value or a promise, for which you need to execute some code
+ * @returns a thenable(...)-like function that has assumptions built-in based on the first x
+ */
+const thenableFactory = <T>(
+  y: T | Promise<T>,
+): ((x: T | Promise<T>) => TThenable<T>) => {
+  let cachedThenable;
+  let firstRun = true;
+  if (isPromise(y)) {
+    // console.log(`[thenableFactory] ASYNC: ${y}`);
+    // let genericThenAsync = (x: Promise<T>, ...args) => {
+    //   const thenResult = x.then(...args);
+    //   if (firstRun) {
+    //     firstRun = false;
+    //     cachedThenable = thenableFactory(thenResult);
+    //     genericThenAsync = (x2: Promise<T>, ...args) => cachedThenable(x2.then(...args));
+    //   }
+    //   return cachedThenable(thenResult);
+    // };
+
+    return function asyncThenable(x: Promise<T>) {
+      const newX = {
+        src: x,
+        then: (...args) => {
+          if (firstRun) {
+            firstRun = false;
+            const thenResult = x.then(...args);
+            cachedThenable = thenableFactory(thenResult);
+            return cachedThenable(thenResult);
+          }
+          return cachedThenable(x.then(...args));
+        },
+      };
+      // make sure the value gets added to this object after the promise resolves
+      x.then((value) => (newX["value"] = value));
+      return newX;
+    };
+    // .bind({}); // needed for 'this' to work
+  } else {
+    // console.log(`[thenableFactory] SYNC: ${y}`);
+    // let genericThenSync = (x: T, okHandler: (v: unknown, isSync?: boolean) => unknown) => {
+    //   if (firstRun) {
+    //     firstRun = false;
+    //     // console.log(`[thenableFactory] set cached thenable = ${okHandlerResult}`);
+    //     cachedThenable = thenableFactory(okHandlerResult);
+    //     // overwrite genericThenSync with a version that does not need to check anymore
+    //     genericThenSync = (x2: T, okHandler2: (v: unknown, isSync?: boolean) => unknown) => {
+    //       const retVal2 = cachedThenable(okHandler2(x2, true));
+    //       // console.log(`genericThenSync ${x2} -> ${retVal2.value}`);
+    //       retVal2["value"] = retVal2.src;
+    //       return retVal2;
+    //     };
+    //   }
+    //   const retVal = cachedThenable(okHandlerResult);
+    //   retVal["value"] = retVal.src;
+    //   return retVal;
+    // };
+
+    return function syncThenable(x: T) {
+      firstRun = true;
+
+      if (typeof (x as any)?.then === "function") {
+        return x as unknown as TThenable;
+      } else {
+        // needed, because in strict mode it is impossble to set a property
+        // on a string primitive (and in non-strict mode the set value cannot be read again)
+        const newX = {
+          src: (x as any)?.src !== undefined ? (x as any).src : x,
+          then: (okHandler: (v: unknown, isSync?: boolean) => unknown) => {
+            if (firstRun) {
+              firstRun = false;
+              // console.log(`[thenableFactory] set cached thenable = ${okHandlerResult}`);
+              const okHandlerResult = okHandler(x, true);
+              cachedThenable = thenableFactory(okHandlerResult);
+              const retVal = cachedThenable(okHandlerResult);
+              retVal["value"] = retVal.src;
+              return retVal;
+            }
+            const retVal = cachedThenable(okHandler(x, true));
+            retVal["value"] = retVal.src;
+            return retVal;
+          },
+          value: x,
+        };
+        return newX;
+      }
+    };
+    // .bind({}); // needed for 'this' to work
+  }
+};
+
+/**
+ * doAfter() will create another function that expects a singoe argument which could either be
+ * a simple value or a promise, and doAfter will make sure that the given function is executed
+ * synchronously if it's a simple value, or asynchronously after the promise resolves.
+ *
+ * Like thenable, but trying to avoid the creation of all the intermediate objects.
+ * With our pipe function, it should be easy to use.
+ *
+ * @example
+ * ```
+ *  pipe(
+ *    promiseOrValue,
+ *    doAfter((v) => { do sync or async stuff with v and return the result }),
+ *    doAfter((w) => { do sync or async stuff and return the result }),
+ *  )
+ * ```
+ */
+const doAfter = <TIn, TOut>(
+  f: (v: TIn) => TOut | Promise<TOut>,
+): ((x: TIn | Promise<TIn>) => TOut | Promise<TOut>) => {
+  return (valueOrPromise: TIn | Promise<TIn>) => {
+    return isPromise(valueOrPromise)
+      ? (valueOrPromise.then(f) as Promise<TOut>)
+      : (f(valueOrPromise) as TOut);
+  };
+};
+
+/**
+ * Like doAfter, but remembers whether the sync or the async route should be chosen
+ * based on the first call.
+ * This could speed up things by avoiding repeated isPromise calls.
+ * @example
+ * ```typescript
+ *  const incrementAfter = doAfterFactory((n) => n + 1);
+ *  const doubleAfter = doAfterFactory((n) => n * 2);
+ *
+ * for (let i = 1; i <= 1_000_000; i++) {
+ *  pipe(
+ *    i,
+ *    incrementAfter,
+ *    doubleAfter,
+ *    toArray,
+ *  );
+ * }
+ * ```
+ * @param f
+ * @returns
+ */
+const doAfterFactory = <TIn, TOut>(
+  f: (v: TIn) => TOut | Promise<TOut>,
+): {
+  doAfter: (x: TIn | Promise<TIn>) => TOut | Promise<TOut>;
+  asyncDoAfter: (promise: Promise<TIn>) => Promise<TOut>;
+  syncDoAfter: (value: TIn) => TOut | Promise<TOut>;
+} => {
+  // let first = true;
+  // let isAsync;
+  const doAfterObj = {
+    asyncDoAfter: async (valueOrPromise: Promise<TIn>) =>
+      f(await valueOrPromise),
+    syncDoAfter: f,
+    doAfter: (valueOrPromise: TIn | Promise<TIn>) => {
+      if (isPromise(valueOrPromise)) {
+        doAfterObj.doAfter = doAfterObj.asyncDoAfter;
+      } else {
+        doAfterObj.doAfter = doAfterObj.syncDoAfter;
+      }
+      return doAfterObj.doAfter(valueOrPromise);
+    },
+  };
+  return doAfterObj;
+  // return (valueOrPromise: TIn | Promise<TIn>) => {
+  //   if (first) {
+  //     isAsync = isPromise(valueOrPromise);
+  //   }
+  //   return isAsync ? (valueOrPromise as Promise<TIn>).then(f) : f(valueOrPromise as TIn);
+  // };
+};
+
+/**
  * This utility function will do a for loop, synchronously if all the parts are synchronous,
  * and asynchronously otherwise.
  * This should help us to use the same code yet supporting both possible scenarios.
@@ -144,7 +345,7 @@ const forLoop = <State>(
   initialStateFactory: () => State | Promise<State>,
   testBeforeEach: (a: State) => boolean | Promise<boolean>,
   afterEach: (a: State) => State | Promise<State>,
-  codeToExecute: (a: State) => void | Promise<void>
+  codeToExecute: (a: State) => void | Promise<void>,
 ) => {
   // if we assume that thenable will return true as the second argument of the callbacks
   // when we are still synchronous, we can write this with thenable I think
@@ -199,63 +400,63 @@ const forLoop = <State>(
                       }afterEach(state);
                     }
                     return state;
-                  `
+                  `,
                   )(
                     firstStateAfterEach,
                     testBeforeEach,
                     codeToExecute,
-                    afterEach
+                    afterEach,
                   );
                 }
-              }
+              },
             );
           });
         } else {
           return initialState;
         }
-      }
+      },
     );
   });
 };
 
-/**
- * A more generic pipe function that takes multiple functions as input
- * and outputs a single function where input = input of the first function
- * and output = output where every funtion has been applied to the output of the previous on.
- *
- * So itr8Pipe(f1:(x:A)=>B, f2:(x:B)=>C, f3:(x:C)=>D) returns (a:A):D => f3(f2(f1(a)))
- *
- * @param first
- * @param params
- * @returns
- *
- * @deprecated see compose (and pipe)
- */
-function itr8Pipe<A, B>(fn1: (x: A) => B): (x: A) => B;
-function itr8Pipe<A, B, C>(fn1: (x: A) => B, fn2: (x: B) => C): (x: A) => C;
-function itr8Pipe<A, B, C, D>(
-  fn1: (x: A) => B,
-  fn2: (x: B) => C,
-  fn3: (x: C) => D
-): (x: A) => D;
-function itr8Pipe<A, B, C, D, E>(
-  fn1: (x: A) => B,
-  fn2: (x: B) => C,
-  fn3: (x: C) => D,
-  fn4: (x: D) => E
-): (x: A) => E;
-/*export*/ function itr8Pipe<A = any, B = any>(
-  first: (x: A) => B,
-  ...params: Array<(any) => any>
-): any {
-  if (params.length === 0) {
-    return first;
-  } else {
-    return params.reduce<(any) => any>((acc, cur) => {
-      return (arg) => cur(acc(arg));
-    }, first);
-  }
-}
+// /**
+//  * A more generic pipe function that takes multiple functions as input
+//  * and outputs a single function where input = input of the first function
+//  * and output = output where every funtion has been applied to the output of the previous on.
+//  *
+//  * So itr8Pipe(f1:(x:A)=>B, f2:(x:B)=>C, f3:(x:C)=>D) returns (a:A):D => f3(f2(f1(a)))
+//  *
+//  * @param first
+//  * @param params
+//  * @returns
+//  *
+//  * @deprecated see compose (and pipe)
+//  */
+// function itr8Pipe<A, B>(fn1: (x: A) => B): (x: A) => B;
+// function itr8Pipe<A, B, C>(fn1: (x: A) => B, fn2: (x: B) => C): (x: A) => C;
+// function itr8Pipe<A, B, C, D>(
+//   fn1: (x: A) => B,
+//   fn2: (x: B) => C,
+//   fn3: (x: C) => D
+// ): (x: A) => D;
+// function itr8Pipe<A, B, C, D, E>(
+//   fn1: (x: A) => B,
+//   fn2: (x: B) => C,
+//   fn3: (x: C) => D,
+//   fn4: (x: D) => E
+// ): (x: A) => E;
+// /*export*/ function itr8Pipe<A = any, B = any>(
+//   first: (x: A) => B,
+//   ...params: Array<(any) => any>
+// ): any {
+//   if (params.length === 0) {
+//     return first;
+//   } else {
+//     return params.reduce<(any) => any>((acc, cur) => {
+//       return (arg) => cur(acc(arg));
+//     }, first);
+//   }
+// }
 
 /**
  * A generic compose function that takes multiple functions as input
@@ -280,20 +481,20 @@ function compose<A, B, C>(fn1: (x: A) => B, fn2: (x: B) => C): (x: A) => C;
 function compose<A, B, C, D>(
   fn1: (x: A) => B,
   fn2: (x: B) => C,
-  fn3: (x: C) => D
+  fn3: (x: C) => D,
 ): (x: A) => D;
 function compose<A, B, C, D, E>(
   fn1: (x: A) => B,
   fn2: (x: B) => C,
   fn3: (x: C) => D,
-  fn4: (x: D) => E
+  fn4: (x: D) => E,
 ): (x: A) => E;
 function compose<A, B, C, D, E, F>(
   fn1: (x: A) => B,
   fn2: (x: B) => C,
   fn3: (x: C) => D,
   fn4: (x: D) => E,
-  fn5: (x: E) => F
+  fn5: (x: E) => F,
 ): (x: A) => F;
 function compose<A, B, C, D, E, F, G>(
   fn1: (x: A) => B,
@@ -301,7 +502,7 @@ function compose<A, B, C, D, E, F, G>(
   fn3: (x: C) => D,
   fn4: (x: D) => E,
   fn5: (x: E) => F,
-  fn6: (x: F) => G
+  fn6: (x: F) => G,
 ): (x: A) => G;
 function compose<A, B, C, D, E, F, G, H>(
   fn1: (x: A) => B,
@@ -310,7 +511,7 @@ function compose<A, B, C, D, E, F, G, H>(
   fn4: (x: D) => E,
   fn5: (x: E) => F,
   fn6: (x: F) => G,
-  fn7: (x: G) => H
+  fn7: (x: G) => H,
 ): (x: A) => H;
 function compose<A, B, C, D, E, F, G, H, I>(
   fn1: (x: A) => B,
@@ -320,7 +521,7 @@ function compose<A, B, C, D, E, F, G, H, I>(
   fn5: (x: E) => F,
   fn6: (x: F) => G,
   fn8: (x: G) => H,
-  fn7: (x: H) => I
+  fn7: (x: H) => I,
 ): (x: A) => I;
 function compose<A, B, C, D, E, F, G, H, I, J>(
   fn1: (x: A) => B,
@@ -331,7 +532,7 @@ function compose<A, B, C, D, E, F, G, H, I, J>(
   fn6: (x: F) => G,
   fn7: (x: G) => H,
   fn8: (x: H) => I,
-  fn9: (x: I) => J
+  fn9: (x: I) => J,
 ): (x: A) => J;
 function compose<A, B, C, D, E, F, G, H, I, J, K>(
   fn1: (x: A) => B,
@@ -343,7 +544,7 @@ function compose<A, B, C, D, E, F, G, H, I, J, K>(
   fn7: (x: G) => H,
   fn8: (x: H) => I,
   fn9: (x: I) => J,
-  fn10: (x: J) => K
+  fn10: (x: J) => K,
 ): (x: A) => K;
 function compose<A, B, C, D, E, F, G, H, I, J, K>(
   fn1: (x: A) => B,
@@ -390,14 +591,14 @@ function pipe<IN, A, B, C>(
   input: IN,
   fn1: (x: IN) => A,
   fn2: (x: A) => B,
-  fn3: (x: B) => C
+  fn3: (x: B) => C,
 ): C;
 function pipe<IN, A, B, C, D>(
   input: IN,
   fn1: (x: IN) => A,
   fn2: (x: A) => B,
   fn3: (x: B) => C,
-  fn4: (x: C) => D
+  fn4: (x: C) => D,
 ): D;
 function pipe<IN, A, B, C, D, E>(
   input: IN,
@@ -405,7 +606,7 @@ function pipe<IN, A, B, C, D, E>(
   fn2: (x: A) => B,
   fn3: (x: B) => C,
   fn4: (x: C) => D,
-  fn5: (x: D) => E
+  fn5: (x: D) => E,
 ): E;
 function pipe<IN, A, B, C, D, E, F>(
   input: IN,
@@ -414,7 +615,7 @@ function pipe<IN, A, B, C, D, E, F>(
   fn3: (x: B) => C,
   fn4: (x: C) => D,
   fn5: (x: D) => E,
-  fn6: (x: E) => F
+  fn6: (x: E) => F,
 ): F;
 function pipe<IN, A, B, C, D, E, F, G>(
   input: IN,
@@ -424,7 +625,7 @@ function pipe<IN, A, B, C, D, E, F, G>(
   fn4: (x: C) => D,
   fn5: (x: D) => E,
   fn6: (x: E) => F,
-  fn7: (x: F) => G
+  fn7: (x: F) => G,
 ): G;
 function pipe<IN, A, B, C, D, E, F, G, H>(
   input: IN,
@@ -435,7 +636,7 @@ function pipe<IN, A, B, C, D, E, F, G, H>(
   fn5: (x: D) => E,
   fn6: (x: E) => F,
   fn7: (x: F) => G,
-  fn8: (x: G) => H
+  fn8: (x: G) => H,
 ): H;
 function pipe<IN, A, B, C, D, E, F, G, H, I>(
   input: IN,
@@ -447,7 +648,7 @@ function pipe<IN, A, B, C, D, E, F, G, H, I>(
   fn6: (x: E) => F,
   fn7: (x: F) => G,
   fn8: (x: G) => H,
-  fn9: (x: H) => I
+  fn9: (x: H) => I,
 ): I;
 function pipe<IN, A, B, C, D, E, F, G, H, I, J>(
   input: IN,
@@ -460,7 +661,7 @@ function pipe<IN, A, B, C, D, E, F, G, H, I, J>(
   fn7: (x: F) => G,
   fn8: (x: G) => H,
   fn9: (x: H) => I,
-  fn10: (x: I) => J
+  fn10: (x: I) => J,
 ): J;
 function pipe<IN, A, B, C, D, E, F, G, H, I, J>(
   input: IN,
@@ -488,22 +689,25 @@ function pipe<IN, A>(
       (acc, cur) => {
         return (arg) => cur(acc(arg));
       },
-      fn1
+      fn1,
     );
     return composedFn(input);
   }
 }
 
 export {
+  compose,
   /**
    * @deprecated Use compose(...) instead!
    */
   compose as itr8Pipe,
-  compose,
   pipe,
   isPromise,
   AsyncFunction,
   thenable,
+  thenableFactory,
+  doAfter,
+  doAfterFactory,
   forLoop,
   // itr8OperatorFactory,
 };

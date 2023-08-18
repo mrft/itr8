@@ -26,7 +26,7 @@ const arrayToStream = (arr: any[], timeBetweenChunks = 10) => {
   };
 
   arr.forEach((item, index) =>
-    setTimeout(() => readable.push(item), index * timeBetweenChunks)
+    setTimeout(() => readable.push(item), index * timeBetweenChunks),
   );
 
   // no more data
@@ -79,7 +79,7 @@ describe("first test the util functions used in the test suite", () => {
           // console.log('received data from stream', data);
         });
         readStream.on("end", () => resolve(arrayRead));
-      }
+      },
     );
 
     assert.deepEqual(resultOfReadingTheStream, arr);
@@ -108,13 +108,13 @@ describe("itr8 test suite", () => {
               filter((x) => x % 10 === 3), // only keep the ones ending with 3
               skip(5),
               take(myLimit),
-              itr8ToArray
+              itr8ToArray,
             ) as number[];
             const duration = Number(hrtime.bigint() - start) / 1_000_000;
             return duration;
           }),
           average(),
-          (it) => (it.next() as IteratorResult<number>).value
+          (it) => (it.next() as IteratorResult<number>).value,
         );
 
         const nthPrimeCallsArr: number[] = [];
@@ -135,7 +135,7 @@ describe("itr8 test suite", () => {
             return duration;
           }),
           average(),
-          (it) => (it.next() as IteratorResult<number>).value
+          (it) => (it.next() as IteratorResult<number>).value,
         );
 
         console.log(
@@ -145,7 +145,7 @@ describe("itr8 test suite", () => {
           `(${resultIt.length} results)`,
           "array took",
           avgDurationArr,
-          `(${resultArr.length} results)`
+          `(${resultArr.length} results)`,
         );
         console.log(
           "        - [native arrays versus iterators]",
@@ -155,7 +155,7 @@ describe("itr8 test suite", () => {
           "-",
           "array called nthPrime",
           nthPrimeCallsArr.length,
-          "times"
+          "times",
         );
 
         assert.equal(resultIt.length, resultArr.length);
@@ -173,7 +173,7 @@ describe("itr8 test suite", () => {
         console.log(
           "heap mem left",
           (mem.heapTotal - mem.heapUsed) / 1024 / 1024,
-          "MB"
+          "MB",
         );
 
         const words = [
@@ -205,7 +205,7 @@ describe("itr8 test suite", () => {
           syncGen(),
           take(1_000_000),
           map((x) => (x.startsWith("nine") ? `9: ${x}` : x)),
-          groupPer(10)
+          groupPer(10),
         ) as Iterator<string>;
         let syncCounter = 0;
         for (let x = itSync.next(); !x.done; x = await itSync.next()) {
@@ -216,7 +216,7 @@ describe("itr8 test suite", () => {
         console.log(
           "        - [mem usage for really large set]",
           "itr8 took",
-          durationIt
+          durationIt,
         );
 
         assert.equal(syncCounter, 100_000);
@@ -226,7 +226,7 @@ describe("itr8 test suite", () => {
           asyncGen(),
           take(1_000_000),
           map((x) => (x.startsWith("nine") ? `9: ${x}` : x)),
-          groupPer(10)
+          groupPer(10),
         );
         let asyncCounter = 0;
         for (let x = await itAsync.next(); !x.done; x = await itAsync.next()) {
@@ -238,7 +238,7 @@ describe("itr8 test suite", () => {
         console.log(
           "      - [mem usage for really large set]",
           "itr8 async took",
-          durationItAsync
+          durationItAsync,
         );
 
         assert.equal(asyncCounter, 100_000);

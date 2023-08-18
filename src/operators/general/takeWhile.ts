@@ -19,7 +19,7 @@ const takeWhile = <TIn>(filterFn: (x: TIn) => boolean | Promise<boolean>) =>
         return { done: true };
       }).src;
     },
-    () => undefined
+    () => undefined,
   );
 
 export { takeWhile };

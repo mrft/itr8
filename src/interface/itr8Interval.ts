@@ -14,7 +14,7 @@ import { itr8Pushable } from "./itr8Pushable.js";
  * @category interface/standard
  */
 function itr8Interval(
-  intervalMilliseconds: number
+  intervalMilliseconds: number,
 ): AsyncIterableIterator<number> & TPushable {
   const it = itr8Pushable<number>(Infinity); // infinite buffer !!!
   const interval = setInterval(() => {

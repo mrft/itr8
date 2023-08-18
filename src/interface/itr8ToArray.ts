@@ -9,7 +9,7 @@ import { isPromise } from "../util/index.js";
  * @category interface/standard
  */
 function itr8ToArray<T>(
-  iterator: Iterator<T> | AsyncIterator<T>
+  iterator: Iterator<T> | AsyncIterator<T>,
 ): Array<T | any> | Promise<Array<T | any>> {
   let n = iterator.next();
   if (isPromise(n)) {
