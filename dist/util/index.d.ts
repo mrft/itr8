@@ -63,7 +63,7 @@ declare const AsyncFunction: any;
  * that checks whether it is a promise or not, and returns the result of the handler?
  * But without the pipe operator it would be a pain to chain them, unless it will return an object
  * with some properties like ```{ result, doAfter:... }```
- * or maybe thenable should always return a new object with poerties ```{ src, then, finally, ... }``` so
+ * or maybe thenable should always return a new object with properties ```{ src, then, finally, ... }``` so
  * that the interface resembles a promise, but if we need the actual promise or value
  * we should simply call src?
  *
@@ -74,6 +74,83 @@ declare const AsyncFunction: any;
  * @category util
  */
 declare const thenable: <T>(x: T) => TThenable<T>;
+/**
+ * After I created the thenable function, my code became easier, because I could write
+ * the same code regardless whether the input was synchronous or asynchronous.
+ * But by wrapping something with thenable, the check whether it was a Promise or not
+ * was done on every invocation.
+ *
+ * In a library that is about iterators, we expect this to be called many times.
+ * So it feels like it could make sense to create a version that 'remembers'
+ * the conclusions from the first run, and that will use that knowledge in the second run
+ * (assuming that every next element in an iterator will be a promise if the first was a promise
+ * and vice versa)
+ *
+ * A few tests seemed to indicate that calling isPromise often if about 10x slower than
+ * checking if a variable is true or false (or is a specific symbol), so there should be
+ * gain to be made with this.
+ *
+ * @example
+ * ```@typescript
+ * // instead of
+ * for (x of [1, 2, 3]) {
+ *   thenable(x).then((v) => console.log(v));
+ * }
+ * // do something like
+ * const cachedThenable = thenableFactory(1);
+ * for (x of [1, 2, 3]) {
+ *   cachedThenable(x).then((v) => console.log(v))
+ * }
+ * ```
+ *
+ * @param x a simple value or a promise, for which you need to execute some code
+ * @returns a thenable(...)-like function that has assumptions built-in based on the first x
+ */
+declare const thenableFactory: <T>(y: T | Promise<T>) => (x: T | Promise<T>) => TThenable<T>;
+/**
+ * doAfter() will create another function that expects a singoe argument which could either be
+ * a simple value or a promise, and doAfter will make sure that the given function is executed
+ * synchronously if it's a simple value, or asynchronously after the promise resolves.
+ *
+ * Like thenable, but trying to avoid the creation of all the intermediate objects.
+ * With our pipe function, it should be easy to use.
+ *
+ * @example
+ * ```
+ *  pipe(
+ *    promiseOrValue,
+ *    doAfter((v) => { do sync or async stuff with v and return the result }),
+ *    doAfter((w) => { do sync or async stuff and return the result }),
+ *  )
+ * ```
+ */
+declare const doAfter: <TIn, TOut>(f: (v: TIn) => TOut | Promise<TOut>) => (x: TIn | Promise<TIn>) => TOut | Promise<TOut>;
+/**
+ * Like doAfter, but remembers whether the sync or the async route should be chosen
+ * based on the first call.
+ * This could speed up things by avoiding repeated isPromise calls.
+ * @example
+ * ```typescript
+ *  const incrementAfter = doAfterFactory((n) => n + 1);
+ *  const doubleAfter = doAfterFactory((n) => n * 2);
+ *
+ * for (let i = 1; i <= 1_000_000; i++) {
+ *  pipe(
+ *    i,
+ *    incrementAfter,
+ *    doubleAfter,
+ *    toArray,
+ *  );
+ * }
+ * ```
+ * @param f
+ * @returns
+ */
+declare const doAfterFactory: <TIn, TOut>(f: (v: TIn) => TOut | Promise<TOut>) => {
+    doAfter: (x: TIn | Promise<TIn>) => TOut | Promise<TOut>;
+    asyncDoAfter: (promise: Promise<TIn>) => Promise<TOut>;
+    syncDoAfter: (value: TIn) => TOut | Promise<TOut>;
+};
 /**
  * This utility function will do a for loop, synchronously if all the parts are synchronous,
  * and asynchronously otherwise.
@@ -141,8 +218,8 @@ declare function pipe<IN, A, B, C, D, E, F, G, H>(input: IN, fn1: (x: IN) => A, 
 declare function pipe<IN, A, B, C, D, E, F, G, H, I>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G, fn8: (x: G) => H, fn9: (x: H) => I): I;
 declare function pipe<IN, A, B, C, D, E, F, G, H, I, J>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G, fn8: (x: G) => H, fn9: (x: H) => I, fn10: (x: I) => J): J;
 declare function pipe<IN, A, B, C, D, E, F, G, H, I, J>(input: IN, fn1: (x: IN) => A, fn2: (x: A) => B, fn3: (x: B) => C, fn4: (x: C) => D, fn5: (x: D) => E, fn6: (x: E) => F, fn7: (x: F) => G, fn8: (x: G) => H, fn9: (x: H) => I, fn10: (x: I) => J, ...moreFns: Array<(x: unknown) => unknown>): unknown;
-export { 
+export { compose, 
 /**
  * @deprecated Use compose(...) instead!
  */
-compose as itr8Pipe, compose, pipe, isPromise, AsyncFunction, thenable, forLoop, };
+compose as itr8Pipe, pipe, isPromise, AsyncFunction, thenable, thenableFactory, doAfter, doAfterFactory, forLoop, };

@@ -36,36 +36,22 @@ const forEach = function (handler, options) {
                 await Promise.race(runningHandlers);
             }
         };
-        const addToRunningHandlersList = (handlerPossiblePromise) => {
+        const addToRunningHandlersList = (handlerPromise) => {
             // add it to the running handlers list
-            runningHandlers.add(handlerPossiblePromise);
-            handlerPossiblePromise.finally(() => {
-                runningHandlers.delete(handlerPossiblePromise);
+            runningHandlers.add(handlerPromise);
+            handlerPromise.finally(() => {
+                runningHandlers.delete(handlerPromise);
             });
         };
         /** Make sure the handler is wrapped in try/catch in order to send the right signals to the
          * input iterator in case something goes wrong!
+         *
+         * Self-replacing function, depending on the very first call, if the first call returns
+         * a promise, the function wil replace itself with an async version, and with a sync
+         * version otherwise
          */
-        const tryHandler = (v) => {
-            try {
-                const handlerPossiblePromise = handler(v);
-                if (isPromise(handlerPossiblePromise)) {
-                    handlerPossiblePromise.catch((e) => {
-                        if (throwCount < 1) {
-                            try {
-                                it.throw?.(e);
-                            }
-                            catch (throwErr) {
-                                // native implementation crashes?
-                                // console.log(v, 'ERROR WHILE THROWING', throwErr);
-                            }
-                            throwCount += 1;
-                        }
-                    });
-                }
-                return handlerPossiblePromise;
-            }
-            catch (e) {
+        let tryHandler = (v) => {
+            const errorCatcher = (e) => {
                 if (throwCount < 1) {
                     try {
                         it.throw?.(e);
@@ -76,6 +62,32 @@ const forEach = function (handler, options) {
                     }
                     throwCount += 1;
                 }
+            };
+            try {
+                const handlerPossiblePromise = handler(v);
+                if (isPromise(handlerPossiblePromise)) {
+                    tryHandler = (v) => {
+                        // async tryHandler
+                        return handler(v).catch(errorCatcher);
+                    };
+                    handlerPossiblePromise.catch(errorCatcher);
+                    return handlerPossiblePromise;
+                }
+                else {
+                    tryHandler = (v) => {
+                        try {
+                            // sync tryHandler
+                            handler(v);
+                        }
+                        catch (e) {
+                            errorCatcher(e);
+                            throw e;
+                        }
+                    };
+                }
+            }
+            catch (e) {
+                errorCatcher(e);
                 throw e;
             }
         };
@@ -124,12 +136,15 @@ const forEach = function (handler, options) {
                     })();
                 }
                 else {
-                    next = it.next();
-                    while (!next.done) {
+                    for (next = it.next(); !next.done; next = it.next()) {
                         tryHandler(next.value);
-                        next = it.next();
-                        // console.log('[forEach] next', next);
                     }
+                    // next = it.next();
+                    // while (!next.done) {
+                    //   tryHandler(next.value);
+                    //   next = it.next();
+                    //   // console.log('[forEach] next', next);
+                    // }
                     it.return?.(next.value);
                 }
             }

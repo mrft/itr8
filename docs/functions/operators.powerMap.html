@@ -20,53 +20,29 @@
 <ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
 <li class="tsd-signature tsd-anchor-link" id="powerMap">power<wbr/>Map<span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>nextFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>nextIn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">IteratorResult</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span>, state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span>, initialStateFactory<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/index.TTransIteratorSyncOrAsync.html" class="tsd-signature-type" data-tsd-kind="Type alias">TTransIteratorSyncOrAsync</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">&gt;</span><a href="#powerMap" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>The powerMap can be used as the base for many many other operators.</p>
-<p>An operator is &#39;a function that generates a transIterator&#39;.
-So for example filter(...) is an operator, because when called with an argument
-(the filter function) the result of that will be another function which is the transIterator.</p>
-<p>A transIterator is simply a function with an iterator as single argument which will return
-another iterator. This way we can easily &#39;build a chain of mulitple transIterators&#39;.
-So it transforms iterators, which is why I have called it transIterator (~transducers).</p>
-<p>powerMap is an operator that generates a transIterator that
-will work both on synchronous and asynchronous iterators.
-The powerMap needs to be provided with a single function of the form:</p>
-<pre><code class="language-typescript"><span class="hl-0">(</span><span class="hl-5">nextOfPreviousIteratorInTheChain</span><span class="hl-0">, </span><span class="hl-5">state</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> </span><span class="hl-5">TNextFnResult</span><span class="hl-0"> | </span><span class="hl-14">Promise</span><span class="hl-0">&lt;[</span><span class="hl-5">TNextFnResult</span><span class="hl-0">]&gt;</span>
-</code></pre>
-<p>and another function generating an initial &#39;state&#39; (not every operator needs state)</p>
-<ul>
-<li><em>nextIn</em> is the (resolved if async) result of a next call of the input iterator.
-This means it will be of the form <code>{ done: true }</code> or <code>{ done: false, value: &lt;...&gt; }</code>.</li>
-<li>The <em>state</em> parameter is used to allow operators to have state, but not all operators need this.
-For example: a &#39;map&#39; operator doesn&#39;t need state, but the &#39;skip&#39; operator would need to keep
-track of how many records have passed.</li>
-</ul>
-<p>Check the readme for some examples on how to write your own operators using &#39;powerMap&#39;
-(or check the source code as all the available operators have been built using this function).</p>
-<p>BEWARE: NEVER MODIFY THE STATE OBJECT (or any of its children!), ALWAYS RETURN A NEW VALUE!</p>
-<p>Why is the initial state not a simple value, but a function that produces the state?
- This way, even if nextFn would modify the state, it wouldn&#39;t mess with other instances
- of the same operator? Because if we&#39;d like to deep clone the initial state ourselves, we might
- end up with some complex cases when classes are involved (I hope no one who&#39;s interested in
- this library will want to use classes as their state, because the library is more &#39;functional
- programming&#39; oriented)</p>
+<div class="tsd-comment tsd-typography"><p>An experimental version of powerMap trying to learn from the lessons from
+the powerMapWithDoAfter version
+We&#39;ll remove doAfter again from the async version, and use simple ifs again.</p>
+<p>The most important optimization is probably the same as what doAfterFactory does:
+do a first run in order to figure out whether the first next() call is synchronous
+and then replace the next function by an entirely synchronous version.
+(And maybe the async version can be written with doAfterFactory (or a for-loop))</p>
+<p>Consequence: an iterable can only be async in a synchronous handler if it is used the first time
+otherwise the iterator will already be synchronous.</p>
+<p>how do you make the while loop work for both synchronous and asynchronous code?
+MAYBE I should reimplement the forLoop function using doAfter, and then use the powerMap version
+that is written using the for-loop (and drop this one)?</p>
 
-<h3>Returns</h3><p>a fucntion taking an iterator as input and that has an iterator as output</p>
-</div>
+<h3>Returns</h3></div>
 <section class="tsd-panel tsd-type-parameters">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameters">
 <li>
-<h4>TIn = <span class="tsd-signature-type">unknown</span></h4>
-<div class="tsd-comment tsd-typography"><p>the type of values that the input iterator must produce</p>
-</div></li>
+<h4>TIn = <span class="tsd-signature-type">unknown</span></h4></li>
 <li>
-<h4>TOut = <span class="tsd-signature-type">unknown</span></h4>
-<div class="tsd-comment tsd-typography"><p>the type of values that the output iterator will produce</p>
-</div></li>
+<h4>TOut = <span class="tsd-signature-type">unknown</span></h4></li>
 <li>
-<h4>TState = <span class="tsd-signature-type">void</span></h4>
-<div class="tsd-comment tsd-typography"><p>the type of the state that will be passed between all iterations</p>
-</div></li></ul></section>
+<h4>TState = <span class="tsd-signature-type">void</span></h4></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -87,8 +63,6 @@ track of how many records have passed.</li>
 <h4 class="tsd-returns-title">Returns <a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/index.TNextFnResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">TNextFnResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></li>
 <li>
 <h5>initialStateFactory: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span><span class="tsd-signature-symbol">)</span></h5>
-<div class="tsd-comment tsd-typography"><p>a function that generates the initialSate</p>
-</div>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures tsd-kind-type-literal">
@@ -97,7 +71,7 @@ track of how many records have passed.</li>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type" data-tsd-kind="Type parameter">TState</span></h4></li></ul></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../types/index.TTransIteratorSyncOrAsync.html" class="tsd-signature-type" data-tsd-kind="Type alias">TTransIteratorSyncOrAsync</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOut</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/mrft/itr8/blob/0cd4599/src/operators/general/powerMap.ts#L53">operators/general/powerMap.ts:53</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/mrft/itr8/blob/c239628/src/operators/general/powerMap.ts#L950">operators/general/powerMap.ts:950</a></li></ul></aside></li></ul></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">

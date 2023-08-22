@@ -14,30 +14,50 @@ const powerMap_js_1 = require("./powerMap.js");
  *
  * @category operators/general
  */
-const map = (mapFn) => (0, powerMap_js_1.powerMap)((nextIn, _state) => {
-    if (nextIn.done) {
-        return { done: true };
-    }
-    else {
-        return (0, index_js_1.thenable)(mapFn(nextIn.value)).then((value) => ({
-            done: false,
-            value,
-        })).src; // return the 'raw' value or promise, not the 'wrapped' version
-        // const nextValOrPromise = mapFn(nextIn.value);
-        // if (isPromise(nextValOrPromise)) {
-        //   return (async () => {
-        //     return {
-        //       done: false,
-        //       value: await nextValOrPromise,
-        //     }
-        //   })();
-        // } else {
-        //   return {
-        //     done: false,
-        //     value: nextValOrPromise,
-        //   }
-        // }
-    }
-}, () => undefined);
+const map = (mapFn) => {
+    const returnIteratorResultSync = (value) => ({
+        done: false,
+        value,
+    });
+    const returnIteratorResultAsync = async (valuePromise) => ({
+        done: false,
+        value: await valuePromise,
+    });
+    let returnIteratorResult = (mapFnResult) => {
+        if ((0, index_js_1.isPromise)(mapFnResult)) {
+            returnIteratorResult = returnIteratorResultAsync;
+        }
+        else {
+            returnIteratorResult = returnIteratorResultSync;
+        }
+        return returnIteratorResult(mapFnResult);
+    };
+    return (0, powerMap_js_1.powerMap)((nextIn, _state) => {
+        if (nextIn.done) {
+            return { done: true };
+        }
+        else {
+            return returnIteratorResult(mapFn(nextIn.value));
+            // return thenable(mapFn(nextIn.value)).then((value) => ({
+            //   done: false,
+            //   value,
+            // })).src; // return the 'raw' value or promise, not the 'wrapped' version
+            // const nextValOrPromise = mapFn(nextIn.value);
+            // if (isPromise(nextValOrPromise)) {
+            //   return (async () => {
+            //     return {
+            //       done: false,
+            //       value: await nextValOrPromise,
+            //     }
+            //   })();
+            // } else {
+            //   return {
+            //     done: false,
+            //     value: nextValOrPromise,
+            //   }
+            // }
+        }
+    }, () => undefined);
+};
 exports.map = map;
 //# sourceMappingURL=map.js.map

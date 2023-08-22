@@ -47,7 +47,7 @@ const index_js_2 = require("../../util/index.js");
  *
  * @param nextFn
  * @param initialStateFactory a function that generates the initialSate
- * @returns a fucntion taking an iterator as input and that has an iterator as output
+ * @returns a function taking an iterator as input and that has an iterator as output
  *
  * @category operators/general
  */
@@ -61,11 +61,14 @@ const powerMap = function (nextFn, initialStateFactory) {
         };
         let nextInPromiseOrValue = undefined;
         // let nextIn: IteratorResult<TIn> | undefined = undefined;
+        let isAsync = undefined;
         let isAsyncInput = undefined;
         function updateNextInPromiseOrValue() {
             nextInPromiseOrValue = itIn.next();
-            if (isAsyncInput === undefined)
+            if (isAsyncInput === undefined) {
                 isAsyncInput = (0, index_js_2.isPromise)(nextInPromiseOrValue);
+                isAsync = isAsync || isAsyncInput;
+            }
         }
         let isAsyncNextFn = undefined;
         // let state = pState;
@@ -120,8 +123,10 @@ const powerMap = function (nextFn, initialStateFactory) {
                 }
                 const nextIn = nextInPromiseOrValue;
                 const curNextFnResult = nextFn(nextIn, operatorState.state);
-                if (isAsyncNextFn === undefined)
+                if (isAsyncNextFn === undefined) {
                     isAsyncNextFn = (0, index_js_2.isPromise)(curNextFnResult);
+                    isAsync = isAsync || isAsyncNextFn;
+                }
                 if (isAsyncNextFn) {
                     return generateNextReturnValAsync(false, curNextFnResult);
                 }
@@ -132,8 +137,9 @@ const powerMap = function (nextFn, initialStateFactory) {
                     return { done: true, value: undefined };
                 }
                 else if ("value" in curNextFnResult) {
-                    if (curNextFnResult.isLast)
+                    if (curNextFnResult.isLast) {
                         operatorState.done = true;
+                    }
                     return { done: false, value: curNextFnResult.value };
                 }
                 else if ("iterable" in curNextFnResult) {
@@ -210,8 +216,10 @@ const powerMap = function (nextFn, initialStateFactory) {
                 else {
                     curNextFnResultPromiseOrValue = nextFn(nextIn, operatorState.state);
                 }
-                if (isAsyncNextFn === undefined)
+                if (isAsyncNextFn === undefined) {
                     isAsyncNextFn = (0, index_js_2.isPromise)(curNextFnResultPromiseOrValue);
+                    isAsync = isAsync || isAsyncNextFn;
+                }
                 const curNextFnResult = (isAsyncNextFn
                     ? await curNextFnResultPromiseOrValue
                     : curNextFnResultPromiseOrValue);
@@ -222,8 +230,9 @@ const powerMap = function (nextFn, initialStateFactory) {
                     return { done: curNextFnResult.done, value: undefined };
                 }
                 else if ("value" in curNextFnResult) {
-                    if (curNextFnResult.isLast)
+                    if (curNextFnResult.isLast) {
                         operatorState.done = true;
+                    }
                     return { done: false, value: curNextFnResult.value };
                 }
                 else if ("iterable" in curNextFnResult) {
@@ -251,13 +260,17 @@ const powerMap = function (nextFn, initialStateFactory) {
          * @returns {IteratorResult<TOut> | Promise<IteratorResult<TOut>>}
          */
         let generateNextReturnVal = () => {
-            if (isAsyncInput || isAsyncNextFn) {
-                generateNextReturnVal = generateNextReturnValAsync;
-            }
-            else {
-                generateNextReturnVal = generateNextReturnValSync;
-            }
-            return generateNextReturnVal();
+            // VERSION without 'magic' for debugging
+            return isAsync
+                ? generateNextReturnValAsync()
+                : generateNextReturnValSync();
+            // VERSION that replaces generateNextReturnVal with the sync or async version
+            // // if (isAsyncInput || isAsyncNextFn) {
+            // //   generateNextReturnVal = generateNextReturnValAsync;
+            // // } else {
+            // //   generateNextReturnVal = generateNextReturnValSync;
+            // // }
+            // return generateNextReturnVal();
         };
         ////////////////////////////////////////////////////////////////////////////////
         // Here is the returned IterableIterator
@@ -270,12 +283,49 @@ const powerMap = function (nextFn, initialStateFactory) {
             [Symbol.asyncIterator]: () => retVal,
             // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
             next: () => {
-                return generateNextReturnVal();
+                if (isAsyncInput || isAsyncNextFn) {
+                    retVal.next = generateNextReturnValAsync;
+                }
+                else {
+                    retVal.next = generateNextReturnValSync;
+                }
+                return retVal.next();
+            },
+            // when the iterator is 'abandoned' (the user indicates no more next() calls will follow)
+            // we can do cleanup, but we also pass the message to our incoming iterator!
+            return: (value) => {
+                var _a;
+                (_a = itIn.return) === null || _a === void 0 ? void 0 : _a.call(itIn);
+                return isAsyncInput || isAsyncNextFn
+                    ? Promise.resolve({ done: true, value })
+                    : { done: true, value };
+            },
+            // when the iterator get a throw() call
+            // (the user indicates no more next() calls will follow because of an error)
+            // we can do cleanup, but we also pass the message to our incoming iterator!
+            throw: (err) => {
+                var _a;
+                (_a = itIn.throw) === null || _a === void 0 ? void 0 : _a.call(itIn, err);
+                return isAsyncInput || isAsyncNextFn
+                    ? Promise.resolve({ done: true, value: undefined })
+                    : { done: true, value: undefined };
             },
         };
         return retVal;
     };
-    const transIt = (itIn) => operatorFunction(itIn, initialStateFactory());
+    const transIt = (itIn) => {
+        var _a;
+        try {
+            return operatorFunction(itIn, initialStateFactory());
+        }
+        catch (err) {
+            (_a = itIn.throw) === null || _a === void 0 ? void 0 : _a.call(itIn);
+            throw err;
+        }
+    };
+    // let cachedValueThenable:
+    //   | ((x: any | Promise<any>) => TThenable<any>)
+    //   | undefined = undefined;
     /**
      * Experiment: we could expose the "transNextFn" which is similar to a transducer:
      * it is a function that transforms an existing nextFn, and by linking them all together
@@ -322,20 +372,16 @@ const powerMap = function (nextFn, initialStateFactory) {
             }).src;
         }
         else if ( /* input.done === false && */"value" in input) {
+            // if (cachedValueThenable === undefined) {
+            //   cachedValueThenable = thenableFactory(input);
+            // }
+            // return cachedValueThenable(input)
+            // .then((input) =>
             return (0, index_js_2.thenable)(nextFn(input, operatorState.state)).then((curNextFnResult) => {
                 const { newState, ...retVal } = curNextFnResult;
                 // store the new state
                 operatorState.state = curNextFnResult.state;
                 return retVal;
-                // // if it contains an iterable => iterate over it, otherwise add the value to the output array
-                // if (curNextFnResult.done === true) {
-                //   return { done: true };
-                // } else if (/* curNextFnResult.done === false && */ curNextFnResult.iterable) {
-                //   // TODO support async iterable !!!
-                //   return { done: false, iterable: curNextFnResult.iterable };
-                // } else if (curNextFnResult.value) {
-                //   return { done: false, value: curNextFnResult.value };
-                // }
             }).src;
         }
         else {
@@ -346,7 +392,707 @@ const powerMap = function (nextFn, initialStateFactory) {
     };
     return transIt;
 };
-exports.powerMap = powerMap;
+/**
+ * An experimental version of powerMap using doAfterFactory
+ * (which is proven to be faster than thenable).
+ * It seems slightly faster than powerMap for synchronous code, but is slower for async.
+ *
+ * The most important optimization is probably the same as what doAfterFactory does:
+ * do a first run in order to figure out whether the first next() call is synchronous
+ * and then replace the next function by an entirely synchronous version.
+ * (And maybe the async version can be written with doAfterFactory (or a for-loop))
+ *
+ * Consequence: an iterable can only be async in a synchronous handler if it is used the first time
+ * otherwise the iterator will already be synchronous.
+ *
+ * how do you make the while loop work for both synchronous and asynchronous code?
+ * MAYBE I should reimplement the forLoop function using doAfter, and then use the powerMap version
+ * that is written using the for-loop (and drop this one)?
+ *
+ * @param nextFn
+ * @param initialStateFactory
+ * @returns
+ */
+const powerMapWithDoAfter = function (nextFn, initialStateFactory) {
+    const operatorFunction = (itIn, pState) => {
+        const operatorState = {
+            state: pState,
+            currentOutputIterator: undefined,
+            isLastOutputIterator: false,
+            done: false,
+        };
+        let nextInPromiseOrValue = undefined;
+        /**
+         * This very first scroll through the loop should give us all the info we need
+         * in order to establish whether the iterator will be synchronous or asynchronous.
+         *
+         * After this first call, we can then overwrite the next function with either a sync
+         * or an async version.
+         * @returns
+         */
+        const generateFirstReturnValIfPossible = () => {
+            return (0, index_js_2.pipe)(itIn.next(), (0, index_js_2.doAfter)((nextIn) => nextFn(nextIn, operatorState.state)), (0, index_js_2.doAfter)((curNextFnResult) => {
+                var _a;
+                if ("state" in curNextFnResult &&
+                    curNextFnResult.state !== undefined) {
+                    operatorState.state = curNextFnResult.state;
+                }
+                if (curNextFnResult.done) {
+                    operatorState.done = true;
+                    return { done: true, value: undefined };
+                }
+                else if ("value" in curNextFnResult) {
+                    if (curNextFnResult.isLast) {
+                        operatorState.done = true;
+                    }
+                    return {
+                        done: false,
+                        value: curNextFnResult.value,
+                    };
+                }
+                else if ("iterable" in curNextFnResult) {
+                    if (operatorState.currentOutputIterator !== undefined) {
+                        throw new Error("currentOutputIterator should be undefined at this point");
+                    }
+                    operatorState.currentOutputIterator = (0, index_js_1.itr8FromIterable)(curNextFnResult.iterable);
+                    operatorState.isLastOutputIterator = !!curNextFnResult.isLast;
+                    if (((_a = operatorState.currentOutputIterator) === null || _a === void 0 ? void 0 : _a.next) === undefined) {
+                        throw new Error("Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)");
+                    }
+                    return (0, index_js_2.pipe)(operatorState.currentOutputIterator.next(), (0, index_js_2.doAfter)((currentOutputIteratorNext) => currentOutputIteratorNext.done
+                        ? null
+                        : currentOutputIteratorNext));
+                }
+                else {
+                    return null;
+                }
+            }));
+        };
+        const generateNextReturnValSync = () => {
+            var _a;
+            // while loop instead of calling this function recursively (call stack can become too large)
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                if (operatorState.done) {
+                    return { value: undefined, done: true };
+                }
+                // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+                if (operatorState.currentOutputIterator) {
+                    const possibleNext = operatorState.currentOutputIterator.next();
+                    if (possibleNext.done) {
+                        operatorState.currentOutputIterator = undefined;
+                        if (operatorState.isLastOutputIterator) {
+                            operatorState.done = true;
+                            return { done: true, value: undefined };
+                        }
+                    }
+                    else {
+                        return possibleNext;
+                    }
+                }
+                // no running iterator, so we need to call nextFn again
+                const nextIn = itIn.next();
+                const curNextFnResult = nextFn(nextIn, operatorState.state);
+                if ("state" in curNextFnResult)
+                    operatorState.state = curNextFnResult.state;
+                if (curNextFnResult.done) {
+                    operatorState.done = true;
+                    return { done: true, value: undefined };
+                }
+                else if ("value" in curNextFnResult) {
+                    if (curNextFnResult.isLast) {
+                        operatorState.done = true;
+                    }
+                    return { done: false, value: curNextFnResult.value };
+                }
+                else if ("iterable" in curNextFnResult) {
+                    if (operatorState.currentOutputIterator !== undefined)
+                        throw new Error("currentOutputIterator should be undefined at this point");
+                    operatorState.currentOutputIterator = (0, index_js_1.itr8FromIterable)(curNextFnResult.iterable);
+                    operatorState.isLastOutputIterator = !!curNextFnResult.isLast;
+                    if (((_a = operatorState.currentOutputIterator) === null || _a === void 0 ? void 0 : _a.next) === undefined) {
+                        throw new Error("Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)");
+                    }
+                    // goto next round of while loop
+                }
+                else {
+                    // we need to call nextIn again
+                    // goto next round of while loop
+                }
+            }
+        };
+        const doAfters = {
+            /**
+             * This one handles when we have a current output iterator that is not done.
+             * It will generate the next value
+             */
+            currentOutputIteratorNextToNextOut: (0, index_js_2.doAfterFactory)((possibleNext) => {
+                if (possibleNext.done) {
+                    operatorState.currentOutputIterator = undefined;
+                    if (operatorState.isLastOutputIterator) {
+                        operatorState.done = true;
+                        return { done: true, value: undefined };
+                    }
+                }
+                else {
+                    return possibleNext;
+                }
+            }),
+            /**
+             * This will apply curNextFn to curNextIn
+             */
+            applyCurNextFnToNextIn: (0, index_js_2.doAfterFactory)((nextIn) => nextFn(nextIn, operatorState.state)),
+            /**
+             * This part will turn the result of applying nextFn to nextIn into
+             * an IteratorResult (or undefined if we need to go back to the top of
+             * the while loop
+             */
+            handleNextFnResult: (0, index_js_2.doAfterFactory)((curNextFnResult) => {
+                var _a;
+                if ("state" in curNextFnResult) {
+                    operatorState.state = curNextFnResult.state;
+                }
+                if (curNextFnResult.done) {
+                    operatorState.done = true;
+                    return { done: true, value: undefined };
+                }
+                else if ("value" in curNextFnResult) {
+                    if (curNextFnResult.isLast) {
+                        operatorState.done = true;
+                    }
+                    return { done: false, value: curNextFnResult.value };
+                }
+                else if ("iterable" in curNextFnResult) {
+                    if (operatorState.currentOutputIterator !== undefined)
+                        throw new Error("currentOutputIterator should be undefined at this point");
+                    operatorState.currentOutputIterator = (0, index_js_1.itr8FromIterable)(curNextFnResult.iterable);
+                    operatorState.isLastOutputIterator = !!curNextFnResult.isLast;
+                    if (((_a = operatorState.currentOutputIterator) === null || _a === void 0 ? void 0 : _a.next) === undefined) {
+                        throw new Error("Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)");
+                    }
+                    // goto next round of while loop
+                }
+                else {
+                    // we need to call nextIn again
+                    // goto next round of while loop
+                }
+            }),
+        };
+        const generateNextReturnValAsync = async () => {
+            // while loop instead of calling this function recursively (call stack can become too large)
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                if (operatorState.done) {
+                    return { value: undefined, done: true };
+                }
+                // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+                if (operatorState.currentOutputIterator) {
+                    const possibleNext = (0, index_js_2.pipe)(operatorState.currentOutputIterator.next(), doAfters.currentOutputIteratorNextToNextOut.doAfter);
+                    if ((await possibleNext) !== undefined) {
+                        return possibleNext;
+                    }
+                }
+                // no running iterator, so we need to call nextFn again
+                const possibleNext = (0, index_js_2.pipe)(itIn.next(), doAfters.applyCurNextFnToNextIn.doAfter, doAfters.handleNextFnResult.doAfter);
+                if ((await possibleNext) !== undefined) {
+                    // (async () => console.log("Return possibleNext:", await possibleNext))();
+                    return possibleNext;
+                }
+                // if return has not been called, return to the top of the while loop again
+            }
+        };
+        ////////////////////////////////////////////////////////////////////////////////
+        // Here is the returned IterableIterator
+        ////////////////////////////////////////////////////////////////////////////////
+        const retVal = {
+            // return the current (async?) iterator to make it an iterable iterator (so we can use for ... of)
+            // since we can only know whether the output will be sync or async after the first next call,
+            // we'll expose both iterator and asynciterator functions...
+            [Symbol.iterator]: () => retVal,
+            [Symbol.asyncIterator]: () => retVal,
+            // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
+            next: () => {
+                const n = generateFirstReturnValIfPossible();
+                const async = (0, index_js_2.isPromise)(n);
+                if ((0, index_js_2.isPromise)(n)) {
+                    // const array = [];
+                    retVal.next = generateNextReturnValAsync;
+                    // async () => {
+                    //   const n = await generateNextReturnValAsync();
+                    //   if (!n) {
+                    //     console.log("ASYNC next:", n);
+                    //     console.log(array);
+                    //     console.log(
+                    //       new Error("generateNextReturnValAsync returns undefined")
+                    //         .stack,
+                    //     );
+                    //   }
+                    //   return n;
+                    // }
+                    return n.then((n2) => (n2 !== null ? n2 : retVal.next()));
+                }
+                else {
+                    retVal.next = generateNextReturnValSync;
+                    return n !== null ? n : retVal.next();
+                }
+            },
+            // when the iterator is 'abandoned' (the user indicates no more next() calls will follow)
+            // we can do cleanup, but we also pass the message to our incoming iterator!
+            return: (value) => {
+                var _a;
+                (_a = itIn.return) === null || _a === void 0 ? void 0 : _a.call(itIn);
+                return retVal.next === generateNextReturnValSync
+                    ? { done: true, value }
+                    : Promise.resolve({ done: true, value });
+            },
+            // when the iterator get a throw() call
+            // (the user indicates no more next() calls will follow because of an error)
+            // we can do cleanup, but we also pass the message to our incoming iterator!
+            throw: (err) => {
+                var _a;
+                (_a = itIn.throw) === null || _a === void 0 ? void 0 : _a.call(itIn, err);
+                return retVal.next === generateNextReturnValSync
+                    ? { done: true, value: undefined }
+                    : Promise.resolve({ done: true, value: undefined });
+            },
+        };
+        return retVal;
+    };
+    const transIt = (itIn) => {
+        var _a;
+        try {
+            return operatorFunction(itIn, initialStateFactory());
+        }
+        catch (err) {
+            (_a = itIn.throw) === null || _a === void 0 ? void 0 : _a.call(itIn);
+            throw err;
+        }
+    };
+    // let cachedValueThenable:
+    //   | ((x: any | Promise<any>) => TThenable<any>)
+    //   | undefined = undefined;
+    /**
+     * Experiment: we could expose the "transNextFn" which is similar to a transducer:
+     * it is a function that transforms an existing nextFn, and by linking them all together
+     * we'll get a nextFn that combines multiple oeprations meaning we only need one 'intermediate'
+     * iterator. This might be more performant.
+     * But that can only be done if input and output match so they can be composed.
+     *
+     * So instead of getting (nextIn, state, params) as input (without the state) and
+     * TNextFnResult as output (without the state as well) we could create a function that
+     * gets TNextFnResult as input as well (or at least a subset of all the possibilities).
+     *
+     * By subset I mean: maybe only when they have a value or an iterable, and not when they
+     * have no value (meaning the element is skipped).
+     */
+    transIt.transNextFn = (input) => {
+        const operatorState = {
+            state: initialStateFactory(),
+            currentOutputIterator: undefined,
+            isLastOutputIterator: false,
+            done: false,
+        };
+        if (input.done === true) {
+            return input;
+        }
+        else if ( /* input.done === false && */"iterable" in input) {
+            const iterator = input.iterable[Symbol.iterator] || input.iterable[Symbol.asyncIterator];
+            const iterable = [];
+            const f = (0, index_js_2.forLoop)(() => iterator.next(), (n) => n.done !== true, (n) => iterator.next(), (nextIn) => {
+                (0, index_js_2.thenable)(nextFn(nextIn, operatorState.state)).then((curNextFnResult) => {
+                    // store the new state
+                    operatorState.state = curNextFnResult.state;
+                    // if it contains an iterable => iterate over it, otherwise add the value to the output array
+                    if (curNextFnResult.done === false && curNextFnResult.iterable) {
+                        // TODO support async iterable !!!
+                        iterable.push(...curNextFnResult.iterable);
+                    }
+                    else {
+                        iterable.push(curNextFnResult.value);
+                    }
+                }).src;
+            });
+            return (0, index_js_2.thenable)(f).then((_forLoopResult) => {
+                return { done: false, iterable };
+            }).src;
+        }
+        else if ( /* input.done === false && */"value" in input) {
+            // if (cachedValueThenable === undefined) {
+            //   cachedValueThenable = thenableFactory(input);
+            // }
+            // return cachedValueThenable(input)
+            // .then((input) =>
+            return (0, index_js_2.thenable)(nextFn(input, operatorState.state)).then((curNextFnResult) => {
+                const { newState, ...retVal } = curNextFnResult;
+                // store the new state
+                operatorState.state = curNextFnResult.state;
+                return retVal;
+            }).src;
+        }
+        else {
+            // no value nor iterable in input, meaning this element should be skipped
+            // so don't call any other transformers on this element
+            return input;
+        }
+    };
+    return transIt;
+};
+/**
+ * An experimental version of powerMap trying to learn from the lessons from
+ * the powerMapWithDoAfter version
+ * We'll remove doAfter again from the async version, and use simple ifs again.
+ *
+ * The most important optimization is probably the same as what doAfterFactory does:
+ * do a first run in order to figure out whether the first next() call is synchronous
+ * and then replace the next function by an entirely synchronous version.
+ * (And maybe the async version can be written with doAfterFactory (or a for-loop))
+ *
+ * Consequence: an iterable can only be async in a synchronous handler if it is used the first time
+ * otherwise the iterator will already be synchronous.
+ *
+ * how do you make the while loop work for both synchronous and asynchronous code?
+ * MAYBE I should reimplement the forLoop function using doAfter, and then use the powerMap version
+ * that is written using the for-loop (and drop this one)?
+ *
+ * @param nextFn
+ * @param initialStateFactory
+ * @returns
+ */
+const powerMapWithoutDoAfter = function (nextFn, initialStateFactory) {
+    const operatorFunction = (itIn, pState) => {
+        const operatorState = {
+            state: pState,
+            currentOutputIterator: undefined,
+            isLastOutputIterator: false,
+            // done: false,
+        };
+        /**
+         * This very first scroll through the loop should give us all the info we need
+         * in order to establish whether the iterator will be synchronous or asynchronous.
+         *
+         * After this first call, we can then overwrite the next function with either a sync
+         * or an async version.
+         * @returns
+         */
+        const generateFirstReturnValIfPossible = () => {
+            return (0, index_js_2.pipe)(itIn.next(), (0, index_js_2.doAfter)((nextIn) => nextFn(nextIn, operatorState.state)), (0, index_js_2.doAfter)((curNextFnResult) => {
+                var _a;
+                if ("state" in curNextFnResult &&
+                    curNextFnResult.state !== undefined) {
+                    operatorState.state = curNextFnResult.state;
+                }
+                if (curNextFnResult.done) {
+                    returnedIterator.next = generateDoneSync; // operatorState.done = true;
+                    return { done: true, value: undefined };
+                }
+                else if ("value" in curNextFnResult) {
+                    if (curNextFnResult.isLast) {
+                        returnedIterator.next = generateDoneSync; // operatorState.done = true;
+                    }
+                    return {
+                        done: false,
+                        value: curNextFnResult.value,
+                    };
+                }
+                else if ("iterable" in curNextFnResult) {
+                    if (operatorState.currentOutputIterator !== undefined) {
+                        throw new Error("currentOutputIterator should be undefined at this point");
+                    }
+                    operatorState.currentOutputIterator = (0, index_js_1.itr8FromIterable)(curNextFnResult.iterable);
+                    operatorState.isLastOutputIterator = !!curNextFnResult.isLast;
+                    if (((_a = operatorState.currentOutputIterator) === null || _a === void 0 ? void 0 : _a.next) === undefined) {
+                        throw new Error("Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)");
+                    }
+                    return (0, index_js_2.pipe)(operatorState.currentOutputIterator.next(), (0, index_js_2.doAfter)((currentOutputIteratorNext) => {
+                        if (currentOutputIteratorNext.done) {
+                            operatorState.currentOutputIterator = undefined;
+                            return null;
+                        }
+                        else {
+                            // Don't set it here...
+                            // returnedIterator.next = generateNextFromOutputIteratorAsync;
+                            return currentOutputIteratorNext;
+                        }
+                    }));
+                }
+                else {
+                    return null;
+                }
+            }));
+        };
+        const generateDoneSync = () => ({
+            done: true,
+            value: undefined,
+        });
+        const generateNextFromOutputIteratorSync = () => {
+            // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+            const possibleNext = operatorState.currentOutputIterator.next();
+            if (possibleNext.done) {
+                operatorState.currentOutputIterator = undefined;
+                if (operatorState.isLastOutputIterator) {
+                    returnedIterator.next = generateDoneSync; // operatorState.done = true;
+                    return { done: true, value: undefined };
+                }
+                else {
+                    returnedIterator.next = generateNextReturnValSync;
+                    return returnedIterator.next();
+                }
+            }
+            else {
+                return possibleNext;
+            }
+        };
+        const generateNextReturnValSync = () => {
+            var _a;
+            // while loop instead of calling this function recursively (call stack can become too large)
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                // no running iterator, so we need to call nextFn again
+                const curNextFnResult = nextFn(itIn.next(), operatorState.state);
+                if ("state" in curNextFnResult) {
+                    operatorState.state = curNextFnResult.state;
+                }
+                if (curNextFnResult.done) {
+                    returnedIterator.next = generateDoneSync; // operatorState.done = true;
+                    return { done: true, value: undefined };
+                }
+                else if ("value" in curNextFnResult) {
+                    if (curNextFnResult.isLast) {
+                        returnedIterator.next = generateDoneSync; // operatorState.done = true;
+                    }
+                    return { done: false, value: curNextFnResult.value };
+                }
+                else if ("iterable" in curNextFnResult) {
+                    if (operatorState.currentOutputIterator !== undefined)
+                        throw new Error("currentOutputIterator should be undefined at this point");
+                    operatorState.currentOutputIterator = (0, index_js_1.itr8FromIterable)(curNextFnResult.iterable);
+                    operatorState.isLastOutputIterator = !!curNextFnResult.isLast;
+                    if (((_a = operatorState.currentOutputIterator) === null || _a === void 0 ? void 0 : _a.next) === undefined) {
+                        throw new Error("Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)");
+                    }
+                    returnedIterator.next = generateNextFromOutputIteratorSync;
+                    return returnedIterator.next();
+                }
+                else {
+                    // we need to call nextIn again
+                    // goto next round of while loop
+                }
+            }
+        };
+        let outputIteratorIsAsync = undefined;
+        let inputIteratorIsAsync = undefined;
+        let nextFnIsAsync = undefined;
+        const generateDoneAsync = async () => ({
+            done: true,
+            value: undefined,
+        });
+        const generateNextFromOutputIteratorAsync = async () => {
+            // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+            if (operatorState.currentOutputIterator) {
+                const possibleNextValueOrPromise = operatorState.currentOutputIterator.next();
+                if (outputIteratorIsAsync === undefined)
+                    outputIteratorIsAsync = (0, index_js_2.isPromise)(possibleNextValueOrPromise);
+                const possibleNext = (outputIteratorIsAsync
+                    ? await possibleNextValueOrPromise
+                    : possibleNextValueOrPromise);
+                if (possibleNext.done) {
+                    operatorState.currentOutputIterator = undefined;
+                    if (operatorState.isLastOutputIterator) {
+                        returnedIterator.next = generateDoneAsync; // operatorState.done = true;
+                        return { done: true, value: undefined };
+                    }
+                    else {
+                        returnedIterator.next = generateNextReturnValAsync;
+                        return returnedIterator.next();
+                    }
+                }
+                else {
+                    return possibleNext;
+                }
+            }
+        };
+        const generateNextReturnValAsync = async () => {
+            var _a;
+            // while loop instead of calling this function recursively (call stack can become to large)
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                // no running iterator, so we need to possibly call nextFn again
+                const nextInPromiseOrValue = itIn.next();
+                if (inputIteratorIsAsync === undefined)
+                    inputIteratorIsAsync = (0, index_js_2.isPromise)(nextInPromiseOrValue);
+                const nextIn = inputIteratorIsAsync
+                    ? await nextInPromiseOrValue
+                    : nextInPromiseOrValue;
+                const curNextFnResultPromiseOrValue = nextFn(nextIn, operatorState.state);
+                if (nextFnIsAsync === undefined)
+                    nextFnIsAsync = (0, index_js_2.isPromise)(curNextFnResultPromiseOrValue);
+                const curNextFnResult = (nextFnIsAsync
+                    ? await curNextFnResultPromiseOrValue
+                    : curNextFnResultPromiseOrValue);
+                if ("state" in curNextFnResult)
+                    operatorState.state = curNextFnResult.state;
+                if (curNextFnResult.done) {
+                    // make sure we keep returning done
+                    returnedIterator.next = generateDoneAsync; // operatorState.done = true;
+                    return { done: curNextFnResult.done, value: undefined };
+                }
+                else if ("value" in curNextFnResult) {
+                    if (curNextFnResult.isLast) {
+                        returnedIterator.next = generateDoneAsync; // operatorState.done = true;
+                    }
+                    return { done: false, value: curNextFnResult.value };
+                }
+                else if ("iterable" in curNextFnResult) {
+                    if (operatorState.currentOutputIterator !== undefined)
+                        throw new Error("currentOutputIterator should be undefined at this point");
+                    operatorState.currentOutputIterator = (0, index_js_1.itr8FromIterable)(curNextFnResult.iterable);
+                    operatorState.isLastOutputIterator = !!curNextFnResult.isLast;
+                    if (((_a = operatorState.currentOutputIterator) === null || _a === void 0 ? void 0 : _a.next) === undefined) {
+                        throw new Error("Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)");
+                    }
+                    returnedIterator.next = generateNextFromOutputIteratorAsync;
+                    return returnedIterator.next();
+                }
+                else {
+                    // we need to call nextIn again
+                    // goto next round of while loop
+                    // return generateNextReturnValAsync();
+                }
+            }
+        };
+        ////////////////////////////////////////////////////////////////////////////////
+        // Here is the returned IterableIterator
+        ////////////////////////////////////////////////////////////////////////////////
+        const returnedIterator = {
+            // return the current (async?) iterator to make it an iterable iterator (so we can use for ... of)
+            // since we can only know whether the output will be sync or async after the first next call,
+            // we'll expose both iterator and asynciterator functions...
+            [Symbol.iterator]: () => returnedIterator,
+            [Symbol.asyncIterator]: () => returnedIterator,
+            // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
+            next: () => {
+                const n = generateFirstReturnValIfPossible();
+                if ((0, index_js_2.isPromise)(n)) {
+                    return (async () => {
+                        // make sure all is handled before we decide what the next() function will become
+                        const nResolved = await n;
+                        returnedIterator.next =
+                            operatorState.currentOutputIterator === undefined
+                                ? generateNextReturnValAsync
+                                : generateNextFromOutputIteratorAsync;
+                        return nResolved !== null ? nResolved : returnedIterator.next();
+                    })();
+                }
+                else {
+                    returnedIterator.next =
+                        operatorState.currentOutputIterator === undefined
+                            ? generateNextReturnValSync
+                            : generateNextFromOutputIteratorSync;
+                    return n !== null ? n : returnedIterator.next();
+                }
+            },
+            // when the iterator is 'abandoned' (the user indicates no more next() calls will follow)
+            // we can do cleanup, but we also pass the message to our incoming iterator!
+            return: (value) => {
+                var _a;
+                (_a = itIn.return) === null || _a === void 0 ? void 0 : _a.call(itIn);
+                return returnedIterator.next === generateNextReturnValSync
+                    ? { done: true, value }
+                    : Promise.resolve({ done: true, value });
+            },
+            // when the iterator get a throw() call
+            // (the user indicates no more next() calls will follow because of an error)
+            // we can do cleanup, but we also pass the message to our incoming iterator!
+            throw: (err) => {
+                var _a;
+                (_a = itIn.throw) === null || _a === void 0 ? void 0 : _a.call(itIn, err);
+                return returnedIterator.next === generateNextReturnValSync
+                    ? { done: true, value: undefined }
+                    : Promise.resolve({ done: true, value: undefined });
+            },
+        };
+        return returnedIterator;
+    };
+    const transIt = (itIn) => {
+        var _a;
+        try {
+            return operatorFunction(itIn, initialStateFactory());
+        }
+        catch (err) {
+            (_a = itIn.throw) === null || _a === void 0 ? void 0 : _a.call(itIn);
+            throw err;
+        }
+    };
+    // let cachedValueThenable:
+    //   | ((x: any | Promise<any>) => TThenable<any>)
+    //   | undefined = undefined;
+    /**
+     * Experiment: we could expose the "transNextFn" which is similar to a transducer:
+     * it is a function that transforms an existing nextFn, and by linking them all together
+     * we'll get a nextFn that combines multiple oeprations meaning we only need one 'intermediate'
+     * iterator. This might be more performant.
+     * But that can only be done if input and output match so they can be composed.
+     *
+     * So instead of getting (nextIn, state, params) as input (without the state) and
+     * TNextFnResult as output (without the state as well) we could create a function that
+     * gets TNextFnResult as input as well (or at least a subset of all the possibilities).
+     *
+     * By subset I mean: maybe only when they have a value or an iterable, and not when they
+     * have no value (meaning the element is skipped).
+     */
+    transIt.transNextFn = (input) => {
+        const operatorState = {
+            state: initialStateFactory(),
+            currentOutputIterator: undefined,
+            isLastOutputIterator: false,
+            // done: false,
+        };
+        if (input.done === true) {
+            return input;
+        }
+        else if ( /* input.done === false && */"iterable" in input) {
+            const iterator = input.iterable[Symbol.iterator] || input.iterable[Symbol.asyncIterator];
+            const iterable = [];
+            const f = (0, index_js_2.forLoop)(() => iterator.next(), (n) => n.done !== true, (n) => iterator.next(), (nextIn) => {
+                (0, index_js_2.thenable)(nextFn(nextIn, operatorState.state)).then((curNextFnResult) => {
+                    // store the new state
+                    operatorState.state = curNextFnResult.state;
+                    // if it contains an iterable => iterate over it, otherwise add the value to the output array
+                    if (curNextFnResult.done === false && curNextFnResult.iterable) {
+                        // TODO support async iterable !!!
+                        iterable.push(...curNextFnResult.iterable);
+                    }
+                    else {
+                        iterable.push(curNextFnResult.value);
+                    }
+                }).src;
+            });
+            return (0, index_js_2.thenable)(f).then((_forLoopResult) => {
+                return { done: false, iterable };
+            }).src;
+        }
+        else if ( /* input.done === false && */"value" in input) {
+            // if (cachedValueThenable === undefined) {
+            //   cachedValueThenable = thenableFactory(input);
+            // }
+            // return cachedValueThenable(input)
+            // .then((input) =>
+            return (0, index_js_2.thenable)(nextFn(input, operatorState.state)).then((curNextFnResult) => {
+                const { newState, ...retVal } = curNextFnResult;
+                // store the new state
+                operatorState.state = curNextFnResult.state;
+                return retVal;
+            }).src;
+        }
+        else {
+            // no value nor iterable in input, meaning this element should be skipped
+            // so don't call any other transformers on this element
+            return input;
+        }
+    };
+    return transIt;
+};
+exports.powerMap = powerMapWithoutDoAfter;
 /**
  * EXPERIMENTAL VERSION OF THIS FUNCTION written with forLoop and thenable, which might be easier
  * to read or maintain, and could be faster...

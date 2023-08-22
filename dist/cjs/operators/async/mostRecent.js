@@ -86,6 +86,21 @@ const mostRecent = (initalValue) => {
                 }
                 return nextOut;
             },
+            // when the iterator is 'abandoned' (the user indicates no more next() calls will follow)
+            // we can do cleanup, but we also pass the message to our incoming iterator!
+            return: async (value) => {
+                var _a;
+                (_a = it.return) === null || _a === void 0 ? void 0 : _a.call(it);
+                return { done: true, value };
+            },
+            // when the iterator get a throw() call
+            // (the user indicates no more next() calls will follow because of an error)
+            // we can do cleanup, but we also pass the message to our incoming iterator!
+            throw: async (err) => {
+                var _a;
+                (_a = it.throw) === null || _a === void 0 ? void 0 : _a.call(it, err);
+                return { done: true, value: undefined };
+            },
         };
         return retVal;
     };

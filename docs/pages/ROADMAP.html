@@ -21,9 +21,87 @@
 </a>
 <p>This is a bunch of ideas of things to add or change.</p>
 
+<a href="#improve-performance" id="improve-performance" style="color: inherit; text-decoration: none;">
+  <h2>Improve performance</h2>
+</a>
+<p><strong>IN PROGRESS</strong></p>
+<p>Stumbling upon vitality-t&#39;s iter-ops library, I got curious about performance, and startedworking on some performance improvements for the (very limited) test.</p>
+<p>These are the current results. With itr8 being about 3 times slower than iter-ops for the synchronous tests, but being slightly faster for the asynchronous tests.</p>
+<p>Synchronous test for 1e+7 items:</p>
+<table>
+<thead>
+<tr>
+<th>library</th>
+<th>duration</th>
+<th>length</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>array</td>
+<td>362</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>iter-ops</td>
+<td>224</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>rxjs</td>
+<td>531</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>rxjs + sub</td>
+<td>1183</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>itr8</td>
+<td>862</td>
+<td>5000000</td>
+</tr>
+</tbody></table>
+<p>Asynchronous test for 1e+7 items:</p>
+<table>
+<thead>
+<tr>
+<th>library</th>
+<th>duration</th>
+<th>length</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>iter-ops</td>
+<td>5383</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>rxjs</td>
+<td>2281</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>rxjs + sub</td>
+<td>5884</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>itr8</td>
+<td>3741</td>
+<td>5000000</td>
+</tr>
+</tbody></table>
+<p>I must point out though: itr8&#39;s map and filter functions are more powerful than the ones in iter-ops, because the mapping and filter functions can also be async, which is not the case in most other libraries!</p>
+<p>In order to simplify writing code that supports both sync and async inputs, I started out with a utility function called thenable(variable). This makes writing the code easier, but it is not a good fit for iterators, because once we&#39;ve established (during the first next() call) whether the resulting iterator will be synchronous or asynchronous, we can stick to that conclusion for all the other items of that iterator, allowing for some optimization.</p>
+<p>Currently I kind of hand-crafted the optimizations in the filter and map functions (both of which use the also optimized powerMap operator internally). I&#39;m still thinking about away to do the same without the manual labour behind it.</p>
+<p>Anyway, after these optimizations, the results are pretty decent, although not on par with iter-ops yet.</p>
+
 <a href="#support-the-full-iterator-protocol" id="support-the-full-iterator-protocol" style="color: inherit; text-decoration: none;">
   <h2>Support the full iterator protocol</h2>
 </a>
+<p>** IN PROGRESS **
+2023-08-22: Implemented in some places, but not everywhere and largely untested</p>
 
 <a href="#cleanup-methods-return-and-throw" id="cleanup-methods-return-and-throw" style="color: inherit; text-decoration: none;">
   <h3>Cleanup methods (return and throw)</h3>
@@ -55,6 +133,7 @@ promises to resolve. This makes a generic retry mechanism in the form of a trans
 <a href="#make-it-usable-both-in-nodejs-and-in-the-browser" id="make-it-usable-both-in-nodejs-and-in-the-browser" style="color: inherit; text-decoration: none;">
   <h2>Make it usable both in NodeJS and in the browser</h2>
 </a>
+<p>** DONE **</p>
 <p>Currently we use module: &quot;CommonJS&quot; in tsconfig.json, but ideally it should be ES2015
 or something (an Ecmascript module instead of a CommonJS module),
 so that the compiled typescript code can be used unmodified both in NodeJS and in the
@@ -71,6 +150,7 @@ I could also drop support for NodeJS &lt; 18 and older browsers and use the more
 <a href="#entirely-remove-all-oo-style-stuff-especially-pipe" id="entirely-remove-all-oo-style-stuff-especially-pipe" style="color: inherit; text-decoration: none;">
   <h2>Entirely remove all OO-style stuff (especially .pipe)</h2>
 </a>
+<p>** DONE ** in version 0.4.5</p>
 <p>I first implemented a .pipe function on every iterator that the library would return,
 but that makes the iterators returned by the lib &#39;special&#39; instead of being simple and plain
 (sync or async) iterators.

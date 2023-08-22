@@ -9,9 +9,9 @@ https://mrft.github.io/itr8/functions/interface.itr8FromArrayAsync.html
 https://mrft.github.io/itr8/functions/interface.itr8ToObject.html
 https://mrft.github.io/itr8/functions/interface.forEach.html
 https://mrft.github.io/itr8/functions/operators.prefetch.html
-https://mrft.github.io/itr8/functions/util.itr8Pipe.html
 https://mrft.github.io/itr8/functions/operators.skipWhile.html
 https://mrft.github.io/itr8/functions/operators.runningAverage.html
+https://mrft.github.io/itr8/functions/interface.itr8FromImpureFunction.html
 https://mrft.github.io/itr8/functions/operators.runningTotal.html
 https://mrft.github.io/itr8/functions/operators.total.html
 https://mrft.github.io/itr8/functions/operators.percentile.html
@@ -22,6 +22,7 @@ https://mrft.github.io/itr8/functions/operators.map.html
 https://mrft.github.io/itr8/functions/interface.itr8FromSingleValueAsync.html
 https://mrft.github.io/itr8/functions/peer.itr8FromObservable.html
 https://mrft.github.io/itr8/functions/operators.peek.html
+https://mrft.github.io/itr8/functions/util.compose.html
 https://mrft.github.io/itr8/functions/peer.itr8ToReadableStream.html
 https://mrft.github.io/itr8/functions/operators.dedup.html
 https://mrft.github.io/itr8/functions/interface.itr8Range.html
@@ -33,6 +34,7 @@ https://mrft.github.io/itr8/functions/operators.groupPer.html
 https://mrft.github.io/itr8/functions/util.pipe.html
 https://mrft.github.io/itr8/functions/operators.split.html
 https://mrft.github.io/itr8/functions/operators.debounce.html
+https://mrft.github.io/itr8/functions/util.doAfter.html
 https://mrft.github.io/itr8/functions/interface.itr8ToString.html
 https://mrft.github.io/itr8/functions/interface.itr8ToMultiIterable.html
 https://mrft.github.io/itr8/functions/operators.mostRecent.html
@@ -52,6 +54,7 @@ https://mrft.github.io/itr8/functions/operators.runningReduce.html
 https://mrft.github.io/itr8/functions/interface.itr8FromString.html
 https://mrft.github.io/itr8/functions/util.isPromise.html
 https://mrft.github.io/itr8/functions/interface.itr8Interval.html
+https://mrft.github.io/itr8/functions/util.thenableFactory.html
 https://mrft.github.io/itr8/functions/peer.parseJson.html
 https://mrft.github.io/itr8/functions/operators.delay.html
 https://mrft.github.io/itr8/functions/operators.zip.html
@@ -67,6 +70,7 @@ https://mrft.github.io/itr8/functions/operators.flatten.html
 https://mrft.github.io/itr8/functions/operators.reduce.html
 https://mrft.github.io/itr8/functions/interface.itr8FromArray.html
 https://mrft.github.io/itr8/functions/operators.filter.html
+https://mrft.github.io/itr8/functions/util.doAfterFactory.html
 https://mrft.github.io/itr8/functions/operators.parallel.html
 https://mrft.github.io/itr8/functions/operators.stringToChar.html
 https://mrft.github.io/itr8/functions/peer.itr8FromStream.html

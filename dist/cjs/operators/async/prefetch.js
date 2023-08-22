@@ -69,6 +69,25 @@ const prefetch = (amount) => {
                     ? Promise.resolve({ done: true, value: undefined })
                     : { done: true, value: undefined };
             },
+            // when the iterator is 'abandoned' (the user indicates no more next() calls will follow)
+            // we can do cleanup, but we also pass the message to our incoming iterator!
+            return: (value) => {
+                var _a;
+                (_a = it.return) === null || _a === void 0 ? void 0 : _a.call(it);
+                return isAsyncInput
+                    ? Promise.resolve({ done: true, value })
+                    : { done: true, value };
+            },
+            // when the iterator get a throw() call
+            // (the user indicates no more next() calls will follow because of an error)
+            // we can do cleanup, but we also pass the message to our incoming iterator!
+            throw: (err) => {
+                var _a;
+                (_a = it.throw) === null || _a === void 0 ? void 0 : _a.call(it, err);
+                return isAsyncInput
+                    ? Promise.resolve({ done: true, value: undefined })
+                    : { done: true, value: undefined };
+            },
         };
         return retVal;
     };

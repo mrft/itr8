@@ -51,6 +51,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./forEach.js"), exports);
 __exportStar(require("./itr8FromArray.js"), exports);
 __exportStar(require("./itr8FromArrayAsync.js"), exports);
+__exportStar(require("./itr8FromImpureFunction.js"), exports);
 __exportStar(require("./itr8FromIterable.js"), exports);
 __exportStar(require("./itr8FromSingleValue.js"), exports);
 __exportStar(require("./itr8FromSingleValueAsync.js"), exports);

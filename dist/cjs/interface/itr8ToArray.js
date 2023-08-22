@@ -25,11 +25,14 @@ function itr8ToArray(iterator) {
     else {
         // return Array.from(iterator);
         const result = [];
-        let nSync = n;
-        while (!nSync.done) {
+        for (let nSync = n; !nSync.done; nSync = iterator.next()) {
             result.push(nSync.value);
-            nSync = iterator.next();
         }
+        // let nSync = n as IteratorResult<T>;
+        // while (!nSync.done) {
+        //   result.push(nSync.value);
+        //   nSync = iterator.next() as IteratorResult<T>;
+        // }
         return result;
     }
 }

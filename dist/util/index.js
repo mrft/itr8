@@ -77,7 +77,7 @@ const AsyncFunction = Object.getPrototypeOf(async function () {
  * that checks whether it is a promise or not, and returns the result of the handler?
  * But without the pipe operator it would be a pain to chain them, unless it will return an object
  * with some properties like ```{ result, doAfter:... }```
- * or maybe thenable should always return a new object with poerties ```{ src, then, finally, ... }``` so
+ * or maybe thenable should always return a new object with properties ```{ src, then, finally, ... }``` so
  * that the interface resembles a promise, but if we need the actual promise or value
  * we should simply call src?
  *
@@ -89,6 +89,7 @@ const AsyncFunction = Object.getPrototypeOf(async function () {
  */
 const thenable = (x) => {
     if (isPromise(x)) {
+        // console.log(`[thenable] ASYNC: ${x}`);
         const newX = {
             src: x,
             then: (...args) => thenable(x.then(...args)),
@@ -98,6 +99,7 @@ const thenable = (x) => {
         return newX;
     }
     else {
+        // console.log(`[thenable] SYNC: ${x}`);
         if (typeof x?.then === "function") {
             return x;
         }
@@ -116,6 +118,191 @@ const thenable = (x) => {
             return newX;
         }
     }
+};
+/**
+ * After I created the thenable function, my code became easier, because I could write
+ * the same code regardless whether the input was synchronous or asynchronous.
+ * But by wrapping something with thenable, the check whether it was a Promise or not
+ * was done on every invocation.
+ *
+ * In a library that is about iterators, we expect this to be called many times.
+ * So it feels like it could make sense to create a version that 'remembers'
+ * the conclusions from the first run, and that will use that knowledge in the second run
+ * (assuming that every next element in an iterator will be a promise if the first was a promise
+ * and vice versa)
+ *
+ * A few tests seemed to indicate that calling isPromise often if about 10x slower than
+ * checking if a variable is true or false (or is a specific symbol), so there should be
+ * gain to be made with this.
+ *
+ * @example
+ * ```@typescript
+ * // instead of
+ * for (x of [1, 2, 3]) {
+ *   thenable(x).then((v) => console.log(v));
+ * }
+ * // do something like
+ * const cachedThenable = thenableFactory(1);
+ * for (x of [1, 2, 3]) {
+ *   cachedThenable(x).then((v) => console.log(v))
+ * }
+ * ```
+ *
+ * @param x a simple value or a promise, for which you need to execute some code
+ * @returns a thenable(...)-like function that has assumptions built-in based on the first x
+ */
+const thenableFactory = (y) => {
+    let cachedThenable;
+    let firstRun = true;
+    if (isPromise(y)) {
+        // console.log(`[thenableFactory] ASYNC: ${y}`);
+        // let genericThenAsync = (x: Promise<T>, ...args) => {
+        //   const thenResult = x.then(...args);
+        //   if (firstRun) {
+        //     firstRun = false;
+        //     cachedThenable = thenableFactory(thenResult);
+        //     genericThenAsync = (x2: Promise<T>, ...args) => cachedThenable(x2.then(...args));
+        //   }
+        //   return cachedThenable(thenResult);
+        // };
+        return function asyncThenable(x) {
+            const newX = {
+                src: x,
+                then: (...args) => {
+                    if (firstRun) {
+                        firstRun = false;
+                        const thenResult = x.then(...args);
+                        cachedThenable = thenableFactory(thenResult);
+                        return cachedThenable(thenResult);
+                    }
+                    return cachedThenable(x.then(...args));
+                },
+            };
+            // make sure the value gets added to this object after the promise resolves
+            x.then((value) => (newX["value"] = value));
+            return newX;
+        };
+        // .bind({}); // needed for 'this' to work
+    }
+    else {
+        // console.log(`[thenableFactory] SYNC: ${y}`);
+        // let genericThenSync = (x: T, okHandler: (v: unknown, isSync?: boolean) => unknown) => {
+        //   if (firstRun) {
+        //     firstRun = false;
+        //     // console.log(`[thenableFactory] set cached thenable = ${okHandlerResult}`);
+        //     cachedThenable = thenableFactory(okHandlerResult);
+        //     // overwrite genericThenSync with a version that does not need to check anymore
+        //     genericThenSync = (x2: T, okHandler2: (v: unknown, isSync?: boolean) => unknown) => {
+        //       const retVal2 = cachedThenable(okHandler2(x2, true));
+        //       // console.log(`genericThenSync ${x2} -> ${retVal2.value}`);
+        //       retVal2["value"] = retVal2.src;
+        //       return retVal2;
+        //     };
+        //   }
+        //   const retVal = cachedThenable(okHandlerResult);
+        //   retVal["value"] = retVal.src;
+        //   return retVal;
+        // };
+        return function syncThenable(x) {
+            firstRun = true;
+            if (typeof x?.then === "function") {
+                return x;
+            }
+            else {
+                // needed, because in strict mode it is impossble to set a property
+                // on a string primitive (and in non-strict mode the set value cannot be read again)
+                const newX = {
+                    src: x?.src !== undefined ? x.src : x,
+                    then: (okHandler) => {
+                        if (firstRun) {
+                            firstRun = false;
+                            // console.log(`[thenableFactory] set cached thenable = ${okHandlerResult}`);
+                            const okHandlerResult = okHandler(x, true);
+                            cachedThenable = thenableFactory(okHandlerResult);
+                            const retVal = cachedThenable(okHandlerResult);
+                            retVal["value"] = retVal.src;
+                            return retVal;
+                        }
+                        const retVal = cachedThenable(okHandler(x, true));
+                        retVal["value"] = retVal.src;
+                        return retVal;
+                    },
+                    value: x,
+                };
+                return newX;
+            }
+        };
+        // .bind({}); // needed for 'this' to work
+    }
+};
+/**
+ * doAfter() will create another function that expects a singoe argument which could either be
+ * a simple value or a promise, and doAfter will make sure that the given function is executed
+ * synchronously if it's a simple value, or asynchronously after the promise resolves.
+ *
+ * Like thenable, but trying to avoid the creation of all the intermediate objects.
+ * With our pipe function, it should be easy to use.
+ *
+ * @example
+ * ```
+ *  pipe(
+ *    promiseOrValue,
+ *    doAfter((v) => { do sync or async stuff with v and return the result }),
+ *    doAfter((w) => { do sync or async stuff and return the result }),
+ *  )
+ * ```
+ */
+const doAfter = (f) => {
+    return (valueOrPromise) => {
+        return isPromise(valueOrPromise)
+            ? valueOrPromise.then(f)
+            : f(valueOrPromise);
+    };
+};
+/**
+ * Like doAfter, but remembers whether the sync or the async route should be chosen
+ * based on the first call.
+ * This could speed up things by avoiding repeated isPromise calls.
+ * @example
+ * ```typescript
+ *  const incrementAfter = doAfterFactory((n) => n + 1);
+ *  const doubleAfter = doAfterFactory((n) => n * 2);
+ *
+ * for (let i = 1; i <= 1_000_000; i++) {
+ *  pipe(
+ *    i,
+ *    incrementAfter,
+ *    doubleAfter,
+ *    toArray,
+ *  );
+ * }
+ * ```
+ * @param f
+ * @returns
+ */
+const doAfterFactory = (f) => {
+    // let first = true;
+    // let isAsync;
+    const doAfterObj = {
+        asyncDoAfter: async (valueOrPromise) => f(await valueOrPromise),
+        syncDoAfter: f,
+        doAfter: (valueOrPromise) => {
+            if (isPromise(valueOrPromise)) {
+                doAfterObj.doAfter = doAfterObj.asyncDoAfter;
+            }
+            else {
+                doAfterObj.doAfter = doAfterObj.syncDoAfter;
+            }
+            return doAfterObj.doAfter(valueOrPromise);
+        },
+    };
+    return doAfterObj;
+    // return (valueOrPromise: TIn | Promise<TIn>) => {
+    //   if (first) {
+    //     isAsync = isPromise(valueOrPromise);
+    //   }
+    //   return isAsync ? (valueOrPromise as Promise<TIn>).then(f) : f(valueOrPromise as TIn);
+    // };
 };
 /**
  * This utility function will do a for loop, synchronously if all the parts are synchronous,
@@ -186,16 +373,6 @@ const forLoop = (initialStateFactory, testBeforeEach, afterEach, codeToExecute) 
         });
     });
 };
-/*export*/ function itr8Pipe(first, ...params) {
-    if (params.length === 0) {
-        return first;
-    }
-    else {
-        return params.reduce((acc, cur) => {
-            return (arg) => cur(acc(arg));
-        }, first);
-    }
-}
 function compose(first, ...params) {
     if (params.length === 0) {
         return first;
@@ -217,11 +394,11 @@ function pipe(input, fn1, ...functionsToApply) {
         return composedFn(input);
     }
 }
-export { 
+export { compose, 
 /**
  * @deprecated Use compose(...) instead!
  */
-compose as itr8Pipe, compose, pipe, isPromise, AsyncFunction, thenable, forLoop,
+compose as itr8Pipe, pipe, isPromise, AsyncFunction, thenable, thenableFactory, doAfter, doAfterFactory, forLoop,
 // itr8OperatorFactory,
  };
 //# sourceMappingURL=index.js.map
