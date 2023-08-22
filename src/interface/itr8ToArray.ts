@@ -24,11 +24,18 @@ function itr8ToArray<T>(
   } else {
     // return Array.from(iterator);
     const result: T[] = [];
-    let nSync = n as IteratorResult<T>;
-    while (!nSync.done) {
+    for (
+      let nSync = n as IteratorResult<T>;
+      !nSync.done;
+      nSync = iterator.next() as IteratorResult<T>
+    ) {
       result.push(nSync.value);
-      nSync = iterator.next() as IteratorResult<T>;
     }
+    // let nSync = n as IteratorResult<T>;
+    // while (!nSync.done) {
+    //   result.push(nSync.value);
+    //   nSync = iterator.next() as IteratorResult<T>;
+    // }
     return result;
   }
 }

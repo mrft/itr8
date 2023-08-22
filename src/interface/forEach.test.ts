@@ -79,8 +79,8 @@ describe("operators/general/forEach.ts", () => {
 
       // we'll put all elements in an array and check that
       let result1: any[] = [];
-      let counter = 0;
-      let maxCounter = 0;
+      let counter = 0; // how many concurrent handlers are running
+      let maxCounter = 0; // max nr of concurrent handlers seen
       let index = -1;
       const forEachHandler = async (x) => {
         index += 1;
@@ -103,7 +103,7 @@ describe("operators/general/forEach.ts", () => {
           ) as Promise<void>,
         );
 
-        assert.equal(maxCounter, 4);
+        assert.equal(maxCounter, 4, "maxCounter");
 
         assert.deepEqual(result1, [4, 9, 16, 25]);
 
@@ -121,7 +121,7 @@ describe("operators/general/forEach.ts", () => {
           ) as Promise<void>,
         );
 
-        assert.equal(maxCounter, 2);
+        assert.equal(maxCounter, 2, "maxCounter");
 
         assert.deepEqual(result1, [16, 25, 9, 4]);
       } finally {

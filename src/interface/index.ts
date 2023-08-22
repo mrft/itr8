@@ -39,6 +39,8 @@ export * from "./itr8FromArray.js";
 
 export * from "./itr8FromArrayAsync.js";
 
+export * from "./itr8FromImpureFunction.js";
+
 export * from "./itr8FromIterable.js";
 
 export * from "./itr8FromSingleValue.js";

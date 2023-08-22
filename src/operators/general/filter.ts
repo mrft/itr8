@@ -1,4 +1,5 @@
-import { thenable } from "../../util/index.js";
+import { TNextFnResult } from "../../types.js";
+import { isPromise, thenable } from "../../util/index.js";
 import { powerMap } from "./powerMap.js";
 
 /**
@@ -9,15 +10,43 @@ import { powerMap } from "./powerMap.js";
  *
  * @category operators/general
  */
-const filter = <TIn>(filterFn: (v: TIn) => boolean | Promise<boolean>) =>
-  powerMap<TIn, TIn, void>(
+const filter = <TIn>(filterFn: (v: TIn) => boolean | Promise<boolean>) => {
+  // EXPERIMENTAL: create a self-replacing function (depending on sync or async)
+  let generateNextFnResultFromFilterFnResult = function (
+    firstFilterFnResult: boolean | Promise<boolean>,
+    nextIn,
+  ): TNextFnResult<TIn, void> | Promise<TNextFnResult<TIn, void>> {
+    const f = (filterFnResult, nextIn: IteratorResult<TIn, TIn>) => {
+      if (filterFnResult) {
+        return { done: false, value: nextIn.value } as const;
+      } else {
+        return { done: false } as const;
+      }
+    };
+
+    generateNextFnResultFromFilterFnResult = isPromise(firstFilterFnResult)
+      ? (resultPromise, nextIn) =>
+          (resultPromise as Promise<boolean>).then((result) =>
+            f(result, nextIn),
+          )
+      : f;
+    return generateNextFnResultFromFilterFnResult(firstFilterFnResult, nextIn);
+  };
+
+  return powerMap<TIn, TIn, void>(
     (nextIn, _state) => {
       if (nextIn.done) return { done: true };
 
-      return thenable(filterFn(nextIn.value)).then((result) => {
-        if (result) return { done: false, value: nextIn.value };
-        return { done: false };
-      }).src;
+      return generateNextFnResultFromFilterFnResult(
+        filterFn(nextIn.value),
+        nextIn,
+      );
+
+      // OLD: thenable is simple to use, but not performant
+      // return thenable(filterFn(nextIn.value)).then((result) => {
+      //   if (result) return { done: false, value: nextIn.value };
+      //   return { done: false };
+      // }).src;
 
       // const result = filterFn(nextIn.value);
       // if (isPromise(result)) {
@@ -32,5 +61,6 @@ const filter = <TIn>(filterFn: (v: TIn) => boolean | Promise<boolean>) =>
     },
     () => undefined,
   );
+};
 
 export { filter };

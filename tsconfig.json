@@ -26,5 +26,12 @@
       // "moduleResolution": "node"
     }
   },
-  "exclude": ["dist", "dist_test", "dist_test_cjs", "node_modules", "test"]
+  "exclude": [
+    "dist",
+    "dist_test",
+    "dist_test_cjs",
+    "node_modules",
+    "test",
+    "benchmarks"
+  ]
 }

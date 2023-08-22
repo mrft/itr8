@@ -6,5 +6,11 @@
     "rootDir": ".",
     "outDir": "dist_test_cjs"
   },
-  "exclude": ["dist", "dist_test", "dist_test_cjs", "node_modules"]
+  "exclude": [
+    "dist",
+    "dist_test",
+    "dist_test_cjs",
+    "node_modules",
+    "benchmarks"
+  ]
 }

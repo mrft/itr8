@@ -1,5 +1,5 @@
 import { nextTick } from "process";
-import { thenable } from "../util";
+import { thenable } from "../util/index.js";
 
 /**
  * Turns a parameterless function into an Iterator that will produce results using

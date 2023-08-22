@@ -2,7 +2,45 @@
 
 This is a bunch of ideas of things to add or change.
 
+## Improve performance
+
+**IN PROGRESS**
+
+Stumbling upon vitality-t's iter-ops library, I got curious about performance, and startedworking on some performance improvements for the (very limited) test.
+
+These are the current results. With itr8 being about 3 times slower than iter-ops for the synchronous tests, but being slightly faster for the asynchronous tests.
+
+Synchronous test for 1e+7 items:
+
+| library    | duration | length  |
+| ---------- | -------- | ------- |
+| array      | 362      | 5000000 |
+| iter-ops   | 224      | 5000000 |
+| rxjs       | 531      | 5000000 |
+| rxjs + sub | 1183     | 5000000 |
+| itr8       | 862      | 5000000 |
+
+Asynchronous test for 1e+7 items:
+
+| library    | duration | length  |
+| ---------- | -------- | ------- |
+| iter-ops   | 5383     | 5000000 |
+| rxjs       | 2281     | 5000000 |
+| rxjs + sub | 5884     | 5000000 |
+| itr8       | 3741     | 5000000 |
+
+I must point out though: itr8's map and filter functions are more powerful than the ones in iter-ops, because the mapping and filter functions can also be async, which is not the case in most other libraries!
+
+In order to simplify writing code that supports both sync and async inputs, I started out with a utility function called thenable(variable). This makes writing the code easier, but it is not a good fit for iterators, because once we've established (during the first next() call) whether the resulting iterator will be synchronous or asynchronous, we can stick to that conclusion for all the other items of that iterator, allowing for some optimization.
+
+Currently I kind of hand-crafted the optimizations in the filter and map functions (both of which use the also optimized powerMap operator internally). I'm still thinking about away to do the same without the manual labour behind it.
+
+Anyway, after these optimizations, the results are pretty decent, although not on par with iter-ops yet.
+
 ## Support the full iterator protocol
+
+** IN PROGRESS **
+2023-08-22: Implemented in some places, but not everywhere and largely untested
 
 ### Cleanup methods (return and throw)
 
@@ -36,6 +74,8 @@ promises to resolve. This makes a generic retry mechanism in the form of a trans
 
 ## Make it usable both in NodeJS and in the browser
 
+** DONE **
+
 Currently we use module: "CommonJS" in tsconfig.json, but ideally it should be ES2015
 or something (an Ecmascript module instead of a CommonJS module),
 so that the compiled typescript code can be used unmodified both in NodeJS and in the
@@ -52,6 +92,8 @@ TODO: either move the gzip-related operators to the "peer" folder
 I could also drop support for NodeJS < 18 and older browsers and use the more modern [Compression Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API). So maybe it would always be better to keep it out of the core and put it in 'peer'.
 
 ## Entirely remove all OO-style stuff (especially .pipe)
+
+** DONE ** in version 0.4.5
 
 I first implemented a .pipe function on every iterator that the library would return,
 but that makes the iterators returned by the lib 'special' instead of being simple and plain

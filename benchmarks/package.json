@@ -1,0 +1,14 @@
+{
+  "name": "iter-ops-benchmarks",
+  "version": "0.0.4",
+  "description": "Benchmarks for iter-ops library",
+  "scripts": {
+    "async": "tsc -p src && node ./src/async.js",
+    "sync": "tsc -p src && node ./src/sync.js",
+    "test": "tsc -p src && node ./src/sync.js && node ./src/async.js"
+  },
+  "devDependencies": {
+    "iter-ops": "^3.1.1",
+    "rxjs": "^7.8.1"
+  }
+}

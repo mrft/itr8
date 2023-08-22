@@ -13,6 +13,7 @@
     "test",
     "./src/**/*.test.ts",
     "./src/**/*.mock.ts",
-    "./src/testUtils"
+    "./src/testUtils",
+    "benchmarks"
   ]
 }

@@ -964,7 +964,7 @@ const powerMapWithoutDoAfter = function <
     /** Means that we are done after this value or after finishing the currentOutputIterator */
     isLastOutputIterator: boolean;
     /** Means that we are done entirely */
-    done: boolean;
+    // done: boolean;
   };
 
   const operatorFunction = (
@@ -975,7 +975,7 @@ const powerMapWithoutDoAfter = function <
       state: pState,
       currentOutputIterator: undefined,
       isLastOutputIterator: false,
-      done: false,
+      // done: false,
     };
 
     /**
@@ -1002,11 +1002,11 @@ const powerMapWithoutDoAfter = function <
             operatorState.state = curNextFnResult.state;
           }
           if (curNextFnResult.done) {
-            operatorState.done = true;
+            returnedIterator.next = generateDoneSync; // operatorState.done = true;
             return { done: true, value: undefined } as IteratorResult<TOut>;
           } else if ("value" in curNextFnResult) {
             if (curNextFnResult.isLast) {
-              operatorState.done = true;
+              returnedIterator.next = generateDoneSync; // operatorState.done = true;
             }
             return {
               done: false,
@@ -1030,10 +1030,16 @@ const powerMapWithoutDoAfter = function <
             return pipe(
               operatorState.currentOutputIterator.next(),
               doAfter(
-                (currentOutputIteratorNext): IteratorResult<TOut> | null =>
-                  currentOutputIteratorNext.done
-                    ? null
-                    : currentOutputIteratorNext,
+                (currentOutputIteratorNext): IteratorResult<TOut> | null => {
+                  if (currentOutputIteratorNext.done) {
+                    operatorState.currentOutputIterator = undefined;
+                    return null;
+                  } else {
+                    // Don't set it here...
+                    // returnedIterator.next = generateNextFromOutputIteratorAsync;
+                    return currentOutputIteratorNext;
+                  }
+                },
               ),
             );
           } else {
@@ -1047,31 +1053,37 @@ const powerMapWithoutDoAfter = function <
         | Promise<null>;
     };
 
+    const generateDoneSync: () => IteratorResult<TOut> = () => ({
+      done: true,
+      value: undefined,
+    });
+    const generateNextFromOutputIteratorSync: () => IteratorResult<TOut> =
+      () => {
+        // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+        const possibleNext = (
+          operatorState.currentOutputIterator as Iterator<TOut>
+        ).next() as IteratorResult<TOut>;
+
+        if (possibleNext.done) {
+          operatorState.currentOutputIterator = undefined;
+          if (operatorState.isLastOutputIterator) {
+            returnedIterator.next = generateDoneSync; // operatorState.done = true;
+            return { done: true, value: undefined };
+          } else {
+            returnedIterator.next = generateNextReturnValSync;
+            return returnedIterator.next();
+          }
+        } else {
+          return possibleNext;
+        }
+      };
+
     const generateNextReturnValSync = ():
       | IteratorResult<TOut>
       | Promise<IteratorResult<TOut>> => {
       // while loop instead of calling this function recursively (call stack can become too large)
       // eslint-disable-next-line no-constant-condition
       while (true) {
-        if (operatorState.done) {
-          return { value: undefined, done: true };
-        }
-        // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
-        if (operatorState.currentOutputIterator) {
-          const possibleNext =
-            operatorState.currentOutputIterator.next() as IteratorResult<TOut>;
-
-          if (possibleNext.done) {
-            operatorState.currentOutputIterator = undefined;
-            if (operatorState.isLastOutputIterator) {
-              operatorState.done = true;
-              return { done: true, value: undefined };
-            }
-          } else {
-            return possibleNext;
-          }
-        }
-
         // no running iterator, so we need to call nextFn again
         const curNextFnResult = nextFn(
           itIn.next() as IteratorResult<TIn>,
@@ -1082,11 +1094,11 @@ const powerMapWithoutDoAfter = function <
         }
 
         if (curNextFnResult.done) {
-          operatorState.done = true;
+          returnedIterator.next = generateDoneSync; // operatorState.done = true;
           return { done: true, value: undefined };
         } else if ("value" in curNextFnResult) {
           if (curNextFnResult.isLast) {
-            operatorState.done = true;
+            returnedIterator.next = generateDoneSync; // operatorState.done = true;
           }
           return { done: false, value: curNextFnResult.value };
         } else if ("iterable" in curNextFnResult) {
@@ -1103,7 +1115,8 @@ const powerMapWithoutDoAfter = function <
               "Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)",
             );
           }
-          // goto next round of while loop
+          returnedIterator.next = generateNextFromOutputIteratorSync;
+          return returnedIterator.next();
         } else {
           // we need to call nextIn again
           // goto next round of while loop
@@ -1114,38 +1127,49 @@ const powerMapWithoutDoAfter = function <
     let outputIteratorIsAsync: boolean | undefined = undefined;
     let inputIteratorIsAsync: boolean | undefined = undefined;
     let nextFnIsAsync: boolean | undefined = undefined;
+
+    const generateDoneAsync: () => Promise<
+      IteratorResult<TOut>
+    > = async () => ({
+      done: true,
+      value: undefined,
+    });
+    const generateNextFromOutputIteratorAsync: () => Promise<
+      IteratorResult<TOut>
+    > = async () => {
+      // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
+      if (operatorState.currentOutputIterator) {
+        const possibleNextValueOrPromise =
+          operatorState.currentOutputIterator.next();
+        if (outputIteratorIsAsync === undefined)
+          outputIteratorIsAsync = isPromise(possibleNextValueOrPromise);
+        const possibleNext = (
+          outputIteratorIsAsync
+            ? await possibleNextValueOrPromise
+            : possibleNextValueOrPromise
+        ) as IteratorResult<TOut>;
+
+        if (possibleNext.done) {
+          operatorState.currentOutputIterator = undefined;
+          if (operatorState.isLastOutputIterator) {
+            returnedIterator.next = generateDoneAsync; // operatorState.done = true;
+            return { done: true, value: undefined };
+          } else {
+            returnedIterator.next = generateNextReturnValAsync;
+            return returnedIterator.next();
+          }
+        } else {
+          return possibleNext;
+        }
+      }
+    };
+
     const generateNextReturnValAsync = async (): Promise<
       IteratorResult<TOut>
     > => {
       // while loop instead of calling this function recursively (call stack can become to large)
       // eslint-disable-next-line no-constant-condition
       while (true) {
-        if (operatorState.done) {
-          return { value: undefined, done: true };
-        }
-        // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
-        if (operatorState.currentOutputIterator) {
-          const possibleNextValueOrPromise =
-            operatorState.currentOutputIterator.next();
-          if (outputIteratorIsAsync === undefined)
-            outputIteratorIsAsync = isPromise(possibleNextValueOrPromise);
-          const possibleNext = (
-            outputIteratorIsAsync
-              ? await possibleNextValueOrPromise
-              : possibleNextValueOrPromise
-          ) as IteratorResult<TOut>;
-
-          if (possibleNext.done) {
-            operatorState.currentOutputIterator = undefined;
-            if (operatorState.isLastOutputIterator) {
-              operatorState.done = true;
-              return { done: true, value: undefined };
-            }
-          } else {
-            return possibleNext;
-          }
-        }
-
         // no running iterator, so we need to possibly call nextFn again
         const nextInPromiseOrValue = itIn.next();
         if (inputIteratorIsAsync === undefined)
@@ -1169,11 +1193,12 @@ const powerMapWithoutDoAfter = function <
           operatorState.state = curNextFnResult.state as TState;
 
         if (curNextFnResult.done) {
-          operatorState.done = true; // make sure we keep returning done
+          // make sure we keep returning done
+          returnedIterator.next = generateDoneAsync; // operatorState.done = true;
           return { done: curNextFnResult.done, value: undefined };
         } else if ("value" in curNextFnResult) {
           if (curNextFnResult.isLast) {
-            operatorState.done = true;
+            returnedIterator.next = generateDoneAsync; // operatorState.done = true;
           }
           return { done: false, value: curNextFnResult.value };
         } else if ("iterable" in curNextFnResult) {
@@ -1190,8 +1215,8 @@ const powerMapWithoutDoAfter = function <
               "Error while trying to get output iterator, did you specify something that is not an Iterable to the 'iterable' property? (when using a generator function, don't forget to call it in order to return an IterableIterator!)",
             );
           }
-          // goto next round of while loop
-          // return generateNextReturnValAsync();
+          returnedIterator.next = generateNextFromOutputIteratorAsync;
+          return returnedIterator.next();
         } else {
           // we need to call nextIn again
           // goto next round of while loop
@@ -1203,43 +1228,38 @@ const powerMapWithoutDoAfter = function <
     ////////////////////////////////////////////////////////////////////////////////
     // Here is the returned IterableIterator
     ////////////////////////////////////////////////////////////////////////////////
-    const retVal = {
+    const returnedIterator = {
       // return the current (async?) iterator to make it an iterable iterator (so we can use for ... of)
       // since we can only know whether the output will be sync or async after the first next call,
       // we'll expose both iterator and asynciterator functions...
-      [Symbol.iterator]: () => retVal,
-      [Symbol.asyncIterator]: () => retVal,
+      [Symbol.iterator]: () => returnedIterator,
+      [Symbol.asyncIterator]: () => returnedIterator,
       // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
       next: () => {
         const n = generateFirstReturnValIfPossible();
-        const async = isPromise(n);
         if (isPromise(n)) {
-          // const array = [];
-          retVal.next = generateNextReturnValAsync;
-          // async () => {
-          //   const n = await generateNextReturnValAsync();
-          //   if (!n) {
-          //     console.log("ASYNC next:", n);
-          //     console.log(array);
-
-          //     console.log(
-          //       new Error("generateNextReturnValAsync returns undefined")
-          //         .stack,
-          //     );
-          //   }
-          //   return n;
-          // }
-          return n.then((n2) => (n2 !== null ? n2 : retVal.next()));
+          return (async () => {
+            // make sure all is handled before we decide what the next() function will become
+            const nResolved = await n;
+            returnedIterator.next =
+              operatorState.currentOutputIterator === undefined
+                ? generateNextReturnValAsync
+                : generateNextFromOutputIteratorAsync;
+            return nResolved !== null ? nResolved : returnedIterator.next();
+          })();
         } else {
-          retVal.next = generateNextReturnValSync;
-          return n !== null ? n : retVal.next();
+          returnedIterator.next =
+            operatorState.currentOutputIterator === undefined
+              ? generateNextReturnValSync
+              : generateNextFromOutputIteratorSync;
+          return n !== null ? n : returnedIterator.next();
         }
       },
       // when the iterator is 'abandoned' (the user indicates no more next() calls will follow)
       // we can do cleanup, but we also pass the message to our incoming iterator!
       return: (value?: any) => {
         itIn.return?.();
-        return retVal.next === generateNextReturnValSync
+        return returnedIterator.next === generateNextReturnValSync
           ? { done: true, value }
           : Promise.resolve({ done: true, value });
       },
@@ -1248,13 +1268,15 @@ const powerMapWithoutDoAfter = function <
       // we can do cleanup, but we also pass the message to our incoming iterator!
       throw: (err?: any) => {
         itIn.throw?.(err);
-        return retVal.next === generateNextReturnValSync
+        return returnedIterator.next === generateNextReturnValSync
           ? { done: true, value: undefined }
           : Promise.resolve({ done: true, value: undefined });
       },
     };
 
-    return retVal as IterableIterator<TOut> | AsyncIterableIterator<TOut>;
+    return returnedIterator as
+      | IterableIterator<TOut>
+      | AsyncIterableIterator<TOut>;
   };
 
   const transIt = (
@@ -1293,7 +1315,7 @@ const powerMapWithoutDoAfter = function <
       state: initialStateFactory(),
       currentOutputIterator: undefined,
       isLastOutputIterator: false,
-      done: false,
+      // done: false,
     };
 
     if (input.done === true) {
