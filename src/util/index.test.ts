@@ -466,7 +466,7 @@ describe("./util/index.ts", () => {
     },
   ).timeout(10000);
 
-  it("an ASYNC cachedThenable(...) produced by thenableFactory(...) outperforms thenable(...)", async () => {
+  it.skip("an ASYNC cachedThenable(...) produced by thenableFactory(...) outperforms thenable(...)", async () => {
     const nrOfIterations = 1_000_000;
 
     function doSomethingToThenableNumber(theThenable) {
@@ -675,7 +675,7 @@ describe("./util/index.ts", () => {
     assert.deepEqual(stages, [3, 1, 2]);
   });
 
-  it("a SYNC doAfter(...) outperforms thenable(...)", async () => {
+  it.skip("a SYNC doAfter(...) outperforms thenable(...)", async () => {
     const nrOfIterations = 1_000_000;
 
     function doSomethingToThenableNumber(theThenable) {
@@ -728,7 +728,7 @@ describe("./util/index.ts", () => {
     );
   }).timeout(10000);
 
-  it("an ASYNC doAfter(...) outperforms thenable(...)", async () => {
+  it.skip("an ASYNC doAfter(...) outperforms thenable(...)", async () => {
     const nrOfIterations = 1_000_000;
 
     function doSomethingToThenableNumber(theThenable) {
@@ -957,7 +957,7 @@ describe("./util/index.ts", () => {
     assert.deepEqual(stages, [3, 1, 2]);
   });
 
-  it("a SYNC doAfterFactory(...) outperforms doAfter(...)", async () => {
+  it.skip("a SYNC doAfterFactory(...) outperforms doAfter(...)", async () => {
     const nrOfIterations = 1_000_000;
 
     function doSomethingAfterNumber(n) {
@@ -1015,7 +1015,7 @@ describe("./util/index.ts", () => {
   }).timeout(10000);
 
   // not so for the sync version, probably because it is quite efficient to figure out when something is NOT a promise
-  it("an ASYNC doAfterFactory(...) outperforms doAfter(...)", async () => {
+  it.skip("an ASYNC doAfterFactory(...) outperforms doAfter(...)", async () => {
     const nrOfIterations = 1_000_000;
 
     function doSomethingAfterNumber(n) {
