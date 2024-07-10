@@ -14,18 +14,18 @@
     // "strict": true,
     // "isolatedModules": true,
   },
-  "ts-node": {
-    "compilerOptions": {
-      // "lib": ["ES2020", "DOM"],
-      // "target": "ES2020",
-      // "strictNullChecks": true,
-      "module": "ES2020" // "CommonJS", // ES2015
-      // "sourceMap": true,
-      // "declaration": true,
-      // "esModuleInterop": true,
-      // "moduleResolution": "node"
-    }
-  },
+  // "ts-node": {
+  //   "compilerOptions": {
+  //     // "lib": ["ES2020", "DOM"],
+  //     // "target": "ES2020",
+  //     // "strictNullChecks": true,
+  //     "module": "ES2020" // "CommonJS", // ES2015
+  //     // "sourceMap": true,
+  //     // "declaration": true,
+  //     // "esModuleInterop": true,
+  //     // "moduleResolution": "node"
+  //   }
+  // },
   "exclude": [
     "dist",
     "dist_test",

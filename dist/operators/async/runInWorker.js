@@ -7,6 +7,8 @@
  * (found in a comment on a page about using typescript in workers
  * https://wanago.io/2019/05/06/node-js-typescript-12-worker-threads/#comment-1549)
  *
+ * But what about deno and tsx???
+ *
  * @param filename
  * @returns the translated filename (if running under ts-node, it will return the same filename)
  */
@@ -26,8 +28,8 @@ export {};
  *
  * Since a worker always needs another file, I think we should tell this module which file,
  * and what is the name we should import (that way we could also point to the current file
- * and export the 'processing pipeline', but still have the clsely related code nearby, such
- * that there won't be a lot of difference between running it in the main thread of running it
+ * and export the 'processing pipeline', but still have the closely related code nearby, such
+ * that there won't be a lot of difference between running it in the main thread or running it
  * somewhere else)
  *
  * https://www.npmjs.com/package/callsite would even allow us to get the filename of the
@@ -48,6 +50,10 @@ export {};
 //     const worker = new Worker(`${__dirname}/worker.js`, {
 //       workerData: { fileName, thingToImport },
 //     });
+//     // AS FOUND ON https://github.com/vitest-dev/vitest/issues/3234, you can use tsx to load typescript files in workers
+//     // const worker = new Worker(new URL('worker.ts', import.meta.url), {
+//     //  execArgv: process.env.VITEST ? ['--loader', 'tsx'] : undefined,
+//     // });
 //     worker.on('message', (m) => {
 //       console.log('[MAIN]', `received`, m);
 //       itr8Out.push(m);

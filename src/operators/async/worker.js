@@ -14,6 +14,8 @@ const { isMainThread, parentPort, workerData } = require("worker_threads");
  * (found in a comment on a page about using typescript in workers
  * https://wanago.io/2019/05/06/node-js-typescript-12-worker-threads/#comment-1549)
  *
+ * But what about deno and tsx???
+ *
  * @param filename
  * @returns
  */

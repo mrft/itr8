@@ -1,7 +1,5 @@
 {
-  "node-option": [
-    "max-old-space-size=150",
-    "experimental-specifier-resolution=node",
-    "loader=ts-node/esm"
-  ]
+  "$schema": "https://json.schemastore.org/mocharc.json",
+  "node-option": ["max-old-space-size=150"],
+  "require": "tsx"
 }
