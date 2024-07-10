@@ -386,7 +386,7 @@ Knowing all this we can break down the example:
 Let's write an operator that repeats each value from the input iterator n times on the output iterator:
 
 ```typescript
-const opr8RepeatEach = <TIn,>(count: number) =>
+const opr8RepeatEach = <TIn>(count: number) =>
   powerMap<TIn, TIn>(
     (nextIn, _state) => {
       if (nextIn.done) {
@@ -410,7 +410,7 @@ As you can see, we use the 'iterable' property here, and in order to easily gene
 But you could also assign an array, because that is also an iterable. But beware that creating an intermediate array will use more memory (especially if the count is high)! I'll show you the same example with an array here:
 
 ```typescript
-const opr8RepeatEach = <TIn,>(count: number) =>
+const opr8RepeatEach = <TIn>(count: number) =>
   powerMap<TIn, TIn>(
     (nextIn, _state) => {
       if (nextIn.done) {

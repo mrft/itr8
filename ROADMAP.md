@@ -64,10 +64,12 @@ operators.
 
 It's not clear to me how iterators are supposed to behave on errors.
 Some informaton about it might be found in some gituhub issues online:
-* [Info about rejected promises in the async iterator protocol](https://github.com/mdn/content/issues/27636)
-* [about error handling](https://github.com/tc39/proposal-async-iterator-helpers/issues/5)
+
+- [Info about rejected promises in the async iterator protocol](https://github.com/mdn/content/issues/27636)
+- [about error handling](https://github.com/tc39/proposal-async-iterator-helpers/issues/5)
 
 A response to the first issue above:
+
 > The most useful thing to look at is for await. The behavior of for await is, if next returns a rejected promise, the loop will immediately stop, and will not call .return on the iterator (as it would if the loop early-exited any other way). In other words, for await treats next returning a rejected promise as indicating that the iterator is done.
 >
 > Also, when using an async generator, the only way for next to give a rejected promise is if the body of the generator throws an uncaught exception, in which case the generator is finished and any subsequent call to .next will resolve with { done: true }.

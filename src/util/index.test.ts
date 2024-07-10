@@ -466,55 +466,58 @@ describe("./util/index.ts", () => {
     },
   ).timeout(10000);
 
-  it.skip("an ASYNC cachedThenable(...) produced by thenableFactory(...) outperforms thenable(...)", async () => {
-    const nrOfIterations = 1_000_000;
+  it.skip(
+    "an ASYNC cachedThenable(...) produced by thenableFactory(...) outperforms thenable(...)",
+    async () => {
+      const nrOfIterations = 1_000_000;
 
-    function doSomethingToThenableNumber(theThenable) {
-      return theThenable.then((v) => v * 2).then((v) => v + 100);
-    }
-
-    // FRUSTRATINGLY ENOUGH: if I do the cahced version first, the test usually passes,
-    // nut if I do it the other way around, the test fails !?!?
-    let uncachedResult = 0;
-    const durationUncached = await duration(async () => {
-      let flipflop = true;
-      for (let i = 1; i < nrOfIterations; i++) {
-        const v = await doSomethingToThenableNumber(
-          thenable(Promise.resolve(i)),
-        );
-        uncachedResult = flipflop ? uncachedResult + v : uncachedResult - v;
-        flipflop = !flipflop;
+      function doSomethingToThenableNumber(theThenable) {
+        return theThenable.then((v) => v * 2).then((v) => v + 100);
       }
-    });
 
-    let cachedResult = 0;
-    const durationCached = await duration(async () => {
-      let flipflop = true;
-      const cachedThenable = thenableFactory(Promise.resolve(1));
-      for (let i = 1; i < nrOfIterations; i++) {
-        const v = await doSomethingToThenableNumber(
-          cachedThenable(Promise.resolve(i)),
-        );
-        cachedResult = flipflop ? cachedResult + v : cachedResult - v;
-        flipflop = !flipflop;
-      }
-    });
+      // FRUSTRATINGLY ENOUGH: if I do the cahced version first, the test usually passes,
+      // nut if I do it the other way around, the test fails !?!?
+      let uncachedResult = 0;
+      const durationUncached = await duration(async () => {
+        let flipflop = true;
+        for (let i = 1; i < nrOfIterations; i++) {
+          const v = await doSomethingToThenableNumber(
+            thenable(Promise.resolve(i)),
+          );
+          uncachedResult = flipflop ? uncachedResult + v : uncachedResult - v;
+          flipflop = !flipflop;
+        }
+      });
 
-    assert.equal(cachedResult, uncachedResult);
+      let cachedResult = 0;
+      const durationCached = await duration(async () => {
+        let flipflop = true;
+        const cachedThenable = thenableFactory(Promise.resolve(1));
+        for (let i = 1; i < nrOfIterations; i++) {
+          const v = await doSomethingToThenableNumber(
+            cachedThenable(Promise.resolve(i)),
+          );
+          cachedResult = flipflop ? cachedResult + v : cachedResult - v;
+          flipflop = !flipflop;
+        }
+      });
 
-    console.log(
-      "First one is the uncached version (using thenable), second one is cached (using thenableFactory)",
-    );
-    console.log(durationDiff(durationUncached, durationCached));
-    assert.isBelow(
-      Number(durationCached),
-      Number(durationUncached),
-      `For some reason thenableFactory produces a thenable that is SLOWER than the uncached thenable (that executes a lot of isPromise calls, even though we have proven above that isPromise calls are slower than boolean checks). ${durationDiff(
-        durationUncached,
-        durationCached,
-      )}`,
-    );
-  }).timeout(10000);
+      assert.equal(cachedResult, uncachedResult);
+
+      console.log(
+        "First one is the uncached version (using thenable), second one is cached (using thenableFactory)",
+      );
+      console.log(durationDiff(durationUncached, durationCached));
+      assert.isBelow(
+        Number(durationCached),
+        Number(durationUncached),
+        `For some reason thenableFactory produces a thenable that is SLOWER than the uncached thenable (that executes a lot of isPromise calls, even though we have proven above that isPromise calls are slower than boolean checks). ${durationDiff(
+          durationUncached,
+          durationCached,
+        )}`,
+      );
+    },
+  ).timeout(10000);
 
   it("doAfter(...) works properly", async () => {
     let stages: any[];
