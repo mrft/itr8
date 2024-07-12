@@ -9,7 +9,7 @@ import { isPromise } from "../../util/index.js";
 
 /**
  * This operator should make it easy to perform multiple calculations on the same input
- * operator, and returning a tuple containing the input and the multiple outputs.
+ * operator, and returning a tuple containing the multiple outputs.
  * This can be useful for example if you need to add a timestamp, get the running average,
  * the running max, and the running total of the same data, and you only want to iterate
  * over the data once.
@@ -36,14 +36,14 @@ import { isPromise } from "../../util/index.js";
  * └───────────────┘
  * ```
  *
- * The first argument allows us to output an object instead of a tuple, and specifying the keys.
- * All arguments after that are the transIterators that need to be run.
+ * All arguments are the transIterators that need to be run (use compose(for more complex operations)).
  *
  * @example
  * ```typescript
  * await pipe(
  *        itr8FromArray([ 1, 2, 3, 4 ])
  *        branchAndMerge(
+ *          identity(), // keep the original values as the first element of the tuple
  *          runningAverage(),
  *          runningTotal(),
  *        ),
@@ -124,33 +124,44 @@ function branchAndMerge<A, B>(
   return function (it) {
     const multiIterable = itr8ToMultiIterable(it);
     const itInput = itr8FromIterable(multiIterable);
-    const transIts = [transIt, ...moreTransIts];
-    const transItIterators = transIts.map((transIt) => pipe(itr8FromIterable(multiIterable), transIt));
+    // const transIts = [transIt, ...moreTransIts];
+    const moreTransItIterators = moreTransIts.map((transIt) =>
+      pipe(itr8FromIterable(multiIterable), transIt),
+    );
 
     let isAsync: boolean;
     const itOut = pipe(
       itInput,
       map((value) => {
-        const itrResultsPossiblePromises = transItIterators.map((transItIterator) => transItIterator.next());
+        const itrResultsPossiblePromises = moreTransItIterators.map(
+          (transItIterator) => transItIterator.next(),
+        );
         if (isAsync === undefined) {
-          isAsync = itrResultsPossiblePromises.some((result) => isPromise(result));
+          isAsync = itrResultsPossiblePromises.some((result) =>
+            isPromise(result),
+          );
         }
 
         if (isAsync === false) {
-          return [value, ...(itrResultsPossiblePromises as Array<IteratorResult<unknown>>).map((result) => result.value)];
+          return [
+            value,
+            ...(
+              itrResultsPossiblePromises as Array<IteratorResult<unknown>>
+            ).map((result) => result.value),
+          ];
         } else if (isAsync === true) {
-          let otherValues : Array<unknown> = [];
+          let otherValues: Array<unknown> = [];
           return (async () => {
             for await (const result of itrResultsPossiblePromises) {
               otherValues.push(result.value);
             }
-            return [value, ...otherValues]
+            return [value, ...otherValues];
           })();
         }
       }),
     );
     return itOut;
-  }
+  };
 }
 
 export { branchAndMerge };

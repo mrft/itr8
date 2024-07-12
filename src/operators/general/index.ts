@@ -8,6 +8,8 @@ export * from "./flatten.js";
 
 export * from "./groupPer.js";
 
+export * from "./identity.js";
+
 export * from "./intersperse.js";
 
 export * from "./map.js";

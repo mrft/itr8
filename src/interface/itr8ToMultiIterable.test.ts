@@ -44,7 +44,7 @@ describe("interface/itr8ToMultiIterable.ts", () => {
     const returnSpy = sinon.spy(it1, "return");
     const throwSpy = sinon.spy(it1, "throw");
 
-    const it2 = itr8FromIterable(['A', 'B', 'C', 'D']);
+    const it2 = itr8FromIterable(["A", "B", "C", "D"]);
 
     const subscribeable1 = pipe(it1, itr8ToMultiIterable);
     const subscribeable2 = pipe(it2, itr8ToMultiIterable);
@@ -93,7 +93,7 @@ describe("interface/itr8ToMultiIterable.ts", () => {
     const returnSpy = sinon.spy(it1, "return");
     const throwSpy = sinon.spy(it1, "throw");
 
-    const it2 = itr8FromIterable(['A', 'B', 'C', 'D']);
+    const it2 = itr8FromIterable(["A", "B", "C", "D"]);
 
     const subscribeable1 = pipe(it1, itr8ToMultiIterable);
     const subscribeable2 = pipe(it2, itr8ToMultiIterable);
@@ -104,35 +104,34 @@ describe("interface/itr8ToMultiIterable.ts", () => {
     const subscriber2A = subscribeable2[Symbol.asyncIterator]();
     const subscriber2B = subscribeable2[Symbol.asyncIterator]();
 
-    assert.equal((subscriber1A.next()).value, 1);
+    assert.equal(subscriber1A.next().value, 1);
 
-    assert.equal((subscriber1B.next()).value, 1);
+    assert.equal(subscriber1B.next().value, 1);
 
-    assert.equal((subscriber1A.next()).value, 2);
-    assert.equal((subscriber1A.next()).value, 3);
+    assert.equal(subscriber1A.next().value, 2);
+    assert.equal(subscriber1A.next().value, 3);
 
-    assert.equal((subscriber2A.next()).value, "A");
+    assert.equal(subscriber2A.next().value, "A");
 
-    assert.equal((subscriber1B.next()).value, 2);
+    assert.equal(subscriber1B.next().value, 2);
 
-    assert.equal((subscriber2A.next()).value, "B");
-    assert.equal((subscriber2A.next()).value, "C");
+    assert.equal(subscriber2A.next().value, "B");
+    assert.equal(subscriber2A.next().value, "C");
 
-    assert.equal((subscriber1A.next()).value, 4);
-    assert.equal((subscriber2B.next()).value, "A");
-    assert.equal((subscriber1A.next()).value, 5);
+    assert.equal(subscriber1A.next().value, 4);
+    assert.equal(subscriber2B.next().value, "A");
+    assert.equal(subscriber1A.next().value, 5);
 
-    assert.equal((subscriber2B.next()).value, "B");
-    assert.equal((subscriber2B.next()).value, "C");
-    assert.equal((subscriber2B.next()).value, "D");
+    assert.equal(subscriber2B.next().value, "B");
+    assert.equal(subscriber2B.next().value, "C");
+    assert.equal(subscriber2B.next().value, "D");
 
-    assert.equal((subscriber2A.next()).value, "D");
+    assert.equal(subscriber2A.next().value, "D");
 
     // when coming late to the party, the new subscriber will only be able to get values
     // startiung from the oldest unread value in the buffer, because the buffer throws away
     // values that have been served to every subscriber
     const subscriberC = subscribeable1[Symbol.asyncIterator](); // should start at 3
-    assert.equal((subscriberC.next()).value, 3);
+    assert.equal(subscriberC.next().value, 3);
   });
-
 });

@@ -9,6 +9,7 @@ import {
 } from "../../interface/index.js";
 import { powerMap } from "./powerMap.js";
 import { runningTotal } from "../numeric/runningTotal.js";
+import { identity } from "./identity.js";
 
 const repeatEach = <TIn>(count: number) =>
   powerMap<TIn, TIn, void>(
@@ -33,42 +34,82 @@ describe("operators/general/branchAndMerge.ts", () => {
     const resultAsyncSync = await pipe(
       itr8RangeAsync(1, 4),
       branchAndMerge(
+        identity(),
         map((x) => x * 2),
         runningTotal(),
       ),
       itr8ToArray,
     );
-    assert.deepEqual(resultAsyncSync, [[1, 2, 1], [2, 4, 3], [3, 6, 6], [4, 8, 10]], "async input iterator with sync transIts version");
+    assert.deepEqual(
+      resultAsyncSync,
+      [
+        [1, 2, 1],
+        [2, 4, 3],
+        [3, 6, 6],
+        [4, 8, 10],
+      ],
+      "async input iterator with sync transIts version",
+    );
 
     const resultAsyncAsync = await pipe(
       itr8RangeAsync(1, 4),
       branchAndMerge(
+        identity(),
         map(async (x) => x * 2),
         runningTotal(),
       ),
       itr8ToArray,
     );
-    assert.deepEqual(resultAsyncAsync, [[1, 2, 1], [2, 4, 3], [3, 6, 6], [4, 8, 10]], "async input iterator with async transIts version");
+    assert.deepEqual(
+      resultAsyncAsync,
+      [
+        [1, 2, 1],
+        [2, 4, 3],
+        [3, 6, 6],
+        [4, 8, 10],
+      ],
+      "async input iterator with async transIts version",
+    );
 
     const resultSyncAsync = await pipe(
       itr8Range(1, 4),
       branchAndMerge(
+        identity(),
         map(async (x) => x * 2),
         runningTotal(),
       ),
       itr8ToArray,
     );
-    assert.deepEqual(resultSyncAsync, [[1, 2, 1], [2, 4, 3], [3, 6, 6], [4, 8, 10]], "sync input iterator with async transIts version");
+    assert.deepEqual(
+      resultSyncAsync,
+      [
+        [1, 2, 1],
+        [2, 4, 3],
+        [3, 6, 6],
+        [4, 8, 10],
+      ],
+      "sync input iterator with async transIts version",
+    );
 
     const resultSyncSync = pipe(
       itr8Range(1, 4),
       branchAndMerge(
+        identity(),
         map((x) => x * 2),
         runningTotal(),
       ),
       itr8ToArray,
     );
-    assert.deepEqual(resultSyncSync, [[1, 2, 1], [2, 4, 3], [3, 6, 6], [4, 8, 10]], "sync input iterator with sync transIts version");
+    assert.deepEqual(
+      resultSyncSync,
+      [
+        [1, 2, 1],
+        [2, 4, 3],
+        [3, 6, 6],
+        [4, 8, 10],
+      ],
+      "sync input iterator with sync transIts version",
+    );
   });
 
   it.skip("branchAndMerge(...) operator works properly with transIterators that produce a different number of output values", async () => {
