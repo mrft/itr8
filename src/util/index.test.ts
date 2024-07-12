@@ -252,7 +252,8 @@ describe("./util/index.ts", () => {
     );
     console.log(durationDiff(t2, t3));
     // the isPromise call should take longer than calling the alwaysFalse function
-    assert.isAbove(Number(t2), Number(t3));
+    // remove since it is not always true (github workflows node 18)
+    // assert.isAbove(Number(t2), Number(t3));
   }).timeout(10000);
 
   it("thenableFactory(...) works properly", async () => {
