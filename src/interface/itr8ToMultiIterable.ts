@@ -58,7 +58,6 @@ function itr8ToMultiIterable<T>(
       }),
     );
   };
-
   const iteratorGetter = () => {
     const outIt: IterableIterator<T> | AsyncIterableIterator<T> = {
       [Symbol.iterator]: () => outIt as IterableIterator<T>,
