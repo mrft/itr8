@@ -42,7 +42,6 @@ services:
           rm -rf node_modules docs dist* package-lock.json &&
           echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
           npm install --foreground-scripts=true &&
-          echo "==== No ESM tests in Node12" &&
           npm run testInsideDocker && npm run testCjsInsideDocker
         '\''
       '
@@ -66,7 +65,6 @@ services:
           rm -rf node_modules docs dist* package-lock.json &&
           echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
           npm install --foreground-scripts=true &&
-          echo "==== No ESM tests in Node12" &&
           npm run testInsideDocker && npm run testCjsInsideDocker
         '\''
       '
@@ -90,7 +88,6 @@ services:
           rm -rf node_modules docs dist* package-lock.json &&
           echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
           npm install --foreground-scripts=true &&
-          echo "==== No ESM tests in Node12" &&
           npm run testInsideDocker && npm run testCjsInsideDocker
         '\''
       '
@@ -114,7 +111,6 @@ services:
           rm -rf node_modules docs dist* package-lock.json &&
           echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
           npm install --foreground-scripts=true &&
-          echo "==== No ESM tests in Node12" &&
           npm run testInsideDocker && npm run testCjsInsideDocker
         '\''
       '
@@ -138,8 +134,7 @@ services:
           rm -rf node_modules docs dist* package-lock.json &&
           echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
           npm install --foreground-scripts=true &&
-          echo "==== No ESM tests in Node12" &&
-          npm run testInsideDocker && npm run testCjsInsideDocker
+          npm run testInsideDocker && npm run testCjsInsideDocker && npm run testEsmInsideDocker
         '\''
       '
 

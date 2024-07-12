@@ -1,3 +1,5 @@
+export * from "./branchAndMerge.js";
+
 export * from "./dedup.js";
 
 export * from "./filter.js";
@@ -5,6 +7,8 @@ export * from "./filter.js";
 export * from "./flatten.js";
 
 export * from "./groupPer.js";
+
+export * from "./identity.js";
 
 export * from "./intersperse.js";
 

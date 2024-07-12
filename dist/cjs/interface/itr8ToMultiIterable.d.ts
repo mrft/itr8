@@ -16,10 +16,10 @@
  * In order to support the fact that not all output iterators will be pulled at the same time,
  * we need to keep a cache + the position that each iterator is at.
  *
- * TODO: In order to protect ourselves from 'abandoned' iterators, a timeout could be used
+ * @todo In order to protect ourselves from 'abandoned' iterators, a timeout could be used
  * to clean them up, so the cache can be emptied up to the oldest 'active' iterator.
  *
  * @category interface/standard
  */
-declare function itr8ToMultiIterable<T>(it: Iterator<T> | AsyncIterator<T>): AsyncIterable<T>;
+declare function itr8ToMultiIterable<T>(it: Iterator<T> | AsyncIterator<T>): AsyncIterable<T> | Iterable<T>;
 export { itr8ToMultiIterable };
