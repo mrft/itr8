@@ -1,3 +1,5 @@
+export * from "./branchAndMerge.js";
+
 export * from "./dedup.js";
 
 export * from "./filter.js";
