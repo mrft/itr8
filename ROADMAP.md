@@ -8,7 +8,7 @@ This is a bunch of ideas of things to add or change.
 
 Stumbling upon vitality-t's iter-ops library, I got curious about performance, and startedworking on some performance improvements for the (very limited) test.
 
-These are the current results. With itr8 being about 3 times slower than iter-ops for the synchronous tests, but being slightly faster for the asynchronous tests.
+These are the current results (2023-08-22). With itr8 being about 3 times slower than iter-ops for the synchronous tests, but being slightly faster for the asynchronous tests.
 
 Synchronous test for 1e+7 items:
 
@@ -33,9 +33,9 @@ I must point out though: itr8's map and filter functions are more powerful than 
 
 In order to simplify writing code that supports both sync and async inputs, I started out with a utility function called thenable(variable). This makes writing the code easier, but it is not a good fit for iterators, because once we've established (during the first next() call) whether the resulting iterator will be synchronous or asynchronous, we can stick to that conclusion for all the other items of that iterator, allowing for some optimization.
 
-Currently I kind of hand-crafted the optimizations in the filter and map functions (both of which use the also optimized powerMap operator internally). I'm still thinking about away to do the same without the manual labour behind it.
+Currently I kind of hand-crafted the optimizations in the filter and map functions (both of which use the also optimized powerMap operator internally). I'm still thinking about a way to do the same without the manual labour behind it.
 
-Anyway, after these optimizations, the results are pretty decent, although not on par with iter-ops yet.
+Anyway, after these optimizations, the results are pretty decent, although not on par with iter-ops yet for purely synchronous code.
 
 ## Support the full iterator protocol
 
@@ -64,8 +64,17 @@ operators.
 
 It's not clear to me how iterators are supposed to behave on errors.
 Some informaton about it might be found in some gituhub issues online:
-[Info about rejected promises in the async iterator protocol](https://github.com/mdn/content/issues/27636)
-[about error handling](https://github.com/tc39/proposal-async-iterator-helpers/issues/5)
+
+- [Info about rejected promises in the async iterator protocol](https://github.com/mdn/content/issues/27636)
+- [about error handling](https://github.com/tc39/proposal-async-iterator-helpers/issues/5)
+
+A response to the first issue above:
+
+> The most useful thing to look at is for await. The behavior of for await is, if next returns a rejected promise, the loop will immediately stop, and will not call .return on the iterator (as it would if the loop early-exited any other way). In other words, for await treats next returning a rejected promise as indicating that the iterator is done.
+>
+> Also, when using an async generator, the only way for next to give a rejected promise is if the body of the generator throws an uncaught exception, in which case the generator is finished and any subsequent call to .next will resolve with { done: true }.
+>
+> Now, of course, you can implement a different behavior if you want to. But if you want to match the behavior of the things in the language, "if the promise returned by .next() rejects then the iterator is finished" is the principle to follow, and I think that would be a reasonable thing to write down without getting into all of the edge cases around async-from-sync and so on.
 
 I wanted to create a retry() operator, naively assuming that if the next call's promise is rejected
 we could call next again, but every next call is supposed to return an actual next promise,
