@@ -30,10 +30,12 @@ function itr8ToMultiIterable<T>(
     | Iterator<T>
     | AsyncIterator<T> /*, abandonedTimeoutMilliseconds = Infinity */,
 ): AsyncIterable<T> | Iterable<T> {
-  const subscriberMap: Map<AsyncIterableIterator<T> | IterableIterator<T>, number> = new Map();
+  const subscriberMap: Map<
+    AsyncIterableIterator<T> | IterableIterator<T>,
+    number
+  > = new Map();
   const buffer: Map<number, IteratorResult<T> | Promise<IteratorResult<T>>> =
     new Map();
-
 
   /** Helper to remove old elements from buffer that all current subscribers have read */
   const cleanBuffer = () => {
@@ -56,7 +58,6 @@ function itr8ToMultiIterable<T>(
       }),
     );
   };
-  
   const iteratorGetter = () => {
     const outIt: IterableIterator<T> | AsyncIterableIterator<T> = {
       [Symbol.iterator]: () => outIt as IterableIterator<T>,
@@ -73,7 +74,7 @@ function itr8ToMultiIterable<T>(
         // if (isPromise(buffer.get(index))) {
         //   return (buffer.get(index) ?? { done: true }) as Promise<IteratorResult<T>>;
         // } else {
-          return (buffer.get(index) ?? { done: true }) as IteratorResult<T>;
+        return (buffer.get(index) ?? { done: true }) as IteratorResult<T>;
         // }
       },
       return: (value?: T) => {

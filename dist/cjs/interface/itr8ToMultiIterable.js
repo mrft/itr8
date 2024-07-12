@@ -22,7 +22,7 @@ const forEach_js_1 = require("./forEach.js");
  * In order to support the fact that not all output iterators will be pulled at the same time,
  * we need to keep a cache + the position that each iterator is at.
  *
- * TODO: In order to protect ourselves from 'abandoned' iterators, a timeout could be used
+ * @todo In order to protect ourselves from 'abandoned' iterators, a timeout could be used
  * to clean them up, so the cache can be emptied up to the oldest 'active' iterator.
  *
  * @category interface/standard
@@ -30,53 +30,61 @@ const forEach_js_1 = require("./forEach.js");
 function itr8ToMultiIterable(it /*, abandonedTimeoutMilliseconds = Infinity */) {
     const subscriberMap = new Map();
     const buffer = new Map();
-    const retVal = {
-        [Symbol.asyncIterator]: () => {
-            /** Helper to remove old elements from buffer that all current subscribers have read */
-            const cleanBuffer = () => {
-                const minIndex = Math.min(...subscriberMap.values());
-                // Maps are iterated in insertion order !
-                // ['IMPERATIVE' VERSION]
-                // for (const i of buffer.keys()) {
-                //   if (i < minIndex) {
-                //     buffer.delete(i);
-                //   } else {
-                //     break;
-                //   }
+    /** Helper to remove old elements from buffer that all current subscribers have read */
+    const cleanBuffer = () => {
+        const minIndex = Math.min(...subscriberMap.values());
+        // Maps are iterated in insertion order !
+        // ['IMPERATIVE' VERSION]
+        // for (const i of buffer.keys()) {
+        //   if (i < minIndex) {
+        //     buffer.delete(i);
+        //   } else {
+        //     break;
+        //   }
+        // }
+        // ['DECLARATIVE' VERSION]
+        (0, index_js_1.pipe)(buffer.keys(), (0, takeWhile_js_1.takeWhile)((i) => i < minIndex), (0, forEach_js_1.forEach)((i) => {
+            buffer.delete(i);
+        }));
+    };
+    const iteratorGetter = () => {
+        const outIt = {
+            [Symbol.iterator]: () => outIt,
+            [Symbol.asyncIterator]: () => outIt,
+            next: () => {
+                var _a;
+                const index = subscriberMap.get(outIt);
+                if (!buffer.has(index)) {
+                    buffer.set(index, it.next());
+                }
+                // remove old stuff in buffer
+                cleanBuffer();
+                subscriberMap.set(outIt, index + 1);
+                // if (isPromise(buffer.get(index))) {
+                //   return (buffer.get(index) ?? { done: true }) as Promise<IteratorResult<T>>;
+                // } else {
+                return ((_a = buffer.get(index)) !== null && _a !== void 0 ? _a : { done: true });
                 // }
-                // ['DECLARATIVE' VERSION]
-                (0, index_js_1.pipe)(buffer.keys(), (0, takeWhile_js_1.takeWhile)((i) => i < minIndex), (0, forEach_js_1.forEach)((i) => {
-                    buffer.delete(i);
-                }));
-            };
-            const outIt = {
-                [Symbol.asyncIterator]: () => outIt,
-                next: async () => {
-                    const index = subscriberMap.get(outIt);
-                    if (!buffer.has(index)) {
-                        buffer.set(index, it.next());
-                    }
-                    // remove old stuff in buffer
-                    cleanBuffer();
-                    subscriberMap.set(outIt, index + 1);
-                    return buffer.get(index);
-                },
-                return: async (value) => {
-                    subscriberMap.delete(outIt);
-                    cleanBuffer();
-                    return { done: true, value };
-                },
-                throw: async (error) => {
-                    subscriberMap.delete(outIt);
-                    cleanBuffer();
-                    return { done: true, value: undefined };
-                },
-            };
-            // add the new iterator to the subscriberMap
-            subscriberMap.set(outIt, buffer.size === 0 ? 0 : Math.min(...buffer.keys()));
-            // TODO: set a disconnect timeout (we'll need to store the last get time, or the timeout id)
-            return outIt;
-        },
+            },
+            return: (value) => {
+                subscriberMap.delete(outIt);
+                cleanBuffer();
+                return { done: true, value };
+            },
+            throw: (error) => {
+                subscriberMap.delete(outIt);
+                cleanBuffer();
+                return { done: true, value: undefined };
+            },
+        };
+        // add the new iterator to the subscriberMap
+        subscriberMap.set(outIt, buffer.size === 0 ? 0 : Math.min(...buffer.keys()));
+        // TODO: set a disconnect timeout (we'll need to store the last get time, or the timeout id)
+        return outIt;
+    };
+    const retVal = {
+        [Symbol.asyncIterator]: () => iteratorGetter(),
+        [Symbol.iterator]: () => iteratorGetter(),
     };
     // subscriberMap.set(outIt, buffer.size > 0 ? buffer.values.next().value : 0);
     return retVal;
