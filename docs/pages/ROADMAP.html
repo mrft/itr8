@@ -1,0 +1,457 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Roadmap | itr8</title><meta name="description" content="Documentation for itr8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script async src="../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../assets/pages.css"/></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base="..">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">itr8</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb">
+<li><a href="../modules.html">itr8</a></li>
+<li><a href="ROADMAP.html">Roadmap</a></li></ul>
+<h1> Roadmap</h1></div>
+<div class="tsd-panel tsd-typography">
+<a href="#roadmap" id="roadmap" style="color: inherit; text-decoration: none;">
+  <h1>ROADMAP</h1>
+</a>
+<p>This is a bunch of ideas of things to add or change.</p>
+
+<a href="#improve-performance" id="improve-performance" style="color: inherit; text-decoration: none;">
+  <h2>Improve performance</h2>
+</a>
+<p><strong>IN PROGRESS</strong></p>
+<p>Stumbling upon vitality-t&#39;s iter-ops library, I got curious about performance, and startedworking on some performance improvements for the (very limited) test.</p>
+<p>These are the current results (2023-08-22). With itr8 being about 3 times slower than iter-ops for the synchronous tests, but being slightly faster for the asynchronous tests.</p>
+<p>Synchronous test for 1e+7 items:</p>
+<table>
+<thead>
+<tr>
+<th>library</th>
+<th>duration</th>
+<th>length</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>array</td>
+<td>362</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>iter-ops</td>
+<td>224</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>rxjs</td>
+<td>531</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>rxjs + sub</td>
+<td>1183</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>itr8</td>
+<td>862</td>
+<td>5000000</td>
+</tr>
+</tbody></table>
+<p>Asynchronous test for 1e+7 items:</p>
+<table>
+<thead>
+<tr>
+<th>library</th>
+<th>duration</th>
+<th>length</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>iter-ops</td>
+<td>5383</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>rxjs</td>
+<td>2281</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>rxjs + sub</td>
+<td>5884</td>
+<td>5000000</td>
+</tr>
+<tr>
+<td>itr8</td>
+<td>3741</td>
+<td>5000000</td>
+</tr>
+</tbody></table>
+<p>I must point out though: itr8&#39;s map and filter functions are more powerful than the ones in iter-ops, because the mapping and filter functions can also be async, which is not the case in most other libraries!</p>
+<p>In order to simplify writing code that supports both sync and async inputs, I started out with a utility function called thenable(variable). This makes writing the code easier, but it is not a good fit for iterators, because once we&#39;ve established (during the first next() call) whether the resulting iterator will be synchronous or asynchronous, we can stick to that conclusion for all the other items of that iterator, allowing for some optimization.</p>
+<p>Currently I kind of hand-crafted the optimizations in the filter and map functions (both of which use the also optimized powerMap operator internally). I&#39;m still thinking about a way to do the same without the manual labour behind it.</p>
+<p>Anyway, after these optimizations, the results are pretty decent, although not on par with iter-ops yet for purely synchronous code.</p>
+
+<a href="#support-the-full-iterator-protocol" id="support-the-full-iterator-protocol" style="color: inherit; text-decoration: none;">
+  <h2>Support the full iterator protocol</h2>
+</a>
+<p>** IN PROGRESS **
+2023-08-22: Implemented in some places, but not everywhere and largely untested</p>
+
+<a href="#cleanup-methods-return-and-throw" id="cleanup-methods-return-and-throw" style="color: inherit; text-decoration: none;">
+  <h3>Cleanup methods (return and throw)</h3>
+</a>
+<p>The return(value) method indicates that the caller does not intend to make any more next calls.
+This way the iterator can run any cleanup methods.</p>
+<p>The throw(exception) indicates the caller detects an error condition, which also indicates that
+no more next calls will follow.</p>
+<p>My first intuition says that we&#39;d need to improve the powerMap operator, catching any errors in the
+handler, in order to call throw() on the input iterator, and we also need to add calls to the
+incomoing iterator&#39;s return() when we detect that the output oterator is done (if the output
+iterator is done, the input iterator can clean up as well).</p>
+<p>We&#39;ll also need to propagate these calls to the incoming iterator.</p>
+<p>If we create a generic test to check if these functions are called, we can add tests for all
+operators.</p>
+
+<a href="#error-handling" id="error-handling" style="color: inherit; text-decoration: none;">
+  <h3>Error handling</h3>
+</a>
+<p>It&#39;s not clear to me how iterators are supposed to behave on errors.
+Some informaton about it might be found in some gituhub issues online:</p>
+<ul>
+<li><a href="https://github.com/mdn/content/issues/27636">Info about rejected promises in the async iterator protocol</a></li>
+<li><a href="https://github.com/tc39/proposal-async-iterator-helpers/issues/5">about error handling</a></li>
+</ul>
+<p>A response to the first issue above:</p>
+<blockquote>
+<p>The most useful thing to look at is for await. The behavior of for await is, if next returns a rejected promise, the loop will immediately stop, and will not call .return on the iterator (as it would if the loop early-exited any other way). In other words, for await treats next returning a rejected promise as indicating that the iterator is done.</p>
+<p>Also, when using an async generator, the only way for next to give a rejected promise is if the body of the generator throws an uncaught exception, in which case the generator is finished and any subsequent call to .next will resolve with { done: true }.</p>
+<p>Now, of course, you can implement a different behavior if you want to. But if you want to match the behavior of the things in the language, &quot;if the promise returned by .next() rejects then the iterator is finished&quot; is the principle to follow, and I think that would be a reasonable thing to write down without getting into all of the edge cases around async-from-sync and so on.</p>
+</blockquote>
+<p>I wanted to create a retry() operator, naively assuming that if the next call&#39;s promise is rejected
+we could call next again, but every next call is supposed to return an actual next promise,
+never the same thing twice. Actually, you can call next() a few times without waiting for the
+promises to resolve. This makes a generic retry mechanism in the form of a transIterator impossible.</p>
+
+<a href="#make-it-usable-both-in-nodejs-and-in-the-browser" id="make-it-usable-both-in-nodejs-and-in-the-browser" style="color: inherit; text-decoration: none;">
+  <h2>Make it usable both in NodeJS and in the browser</h2>
+</a>
+<p>** DONE **</p>
+<p>Currently we use module: &quot;CommonJS&quot; in tsconfig.json, but ideally it should be ES2015
+or something (an Ecmascript module instead of a CommonJS module),
+so that the compiled typescript code can be used unmodified both in NodeJS and in the
+browser without forcing users to have build tools like webpack or browserify in between.</p>
+<p>We could release a &#39;dual&#39; module, by building the CJS files into a cjs subdirectory, and adding
+another package.json file in there, in order to make sure .js files under this folder are
+interpreted by NodeJS as CommonJS module,instead of Ecmascript Modules. Then, someone who is still
+using CommonJS modules could <code>require(&quot;itr8/cjs&quot;)</code>, whereas everyone else would simply
+<code>import { ... } from &quot;itr8&quot;</code>.</p>
+<p>TODO: either move the gzip-related operators to the &quot;peer&quot; folder
+(because they are currently NodeJS specific), or use a JS-only implementation of gzip (I remeber finding one).
+I could also drop support for NodeJS &lt; 18 and older browsers and use the more modern <a href="https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API">Compression Streams API</a>. So maybe it would always be better to keep it out of the core and put it in &#39;peer&#39;.</p>
+
+<a href="#entirely-remove-all-oo-style-stuff-especially-pipe" id="entirely-remove-all-oo-style-stuff-especially-pipe" style="color: inherit; text-decoration: none;">
+  <h2>Entirely remove all OO-style stuff (especially .pipe)</h2>
+</a>
+<p>** DONE ** in version 0.4.5</p>
+<p>I first implemented a .pipe function on every iterator that the library would return,
+but that makes the iterators returned by the lib &#39;special&#39; instead of being simple and plain
+(sync or async) iterators.
+This does not make sense if we state that we want to embrace this standard.
+It is also not necessary, because we only need a generic pipe(...) function instead of an object
+method. That way, we can pipe everything (not just things related to this library), and it will
+be easy to replace once the pipe syntax is finally added to javascript (possibly &#39;|&gt;&#39;).</p>
+<p>So instead of writing.</p>
+<pre><code class="language-typescript"><span class="hl-2">itr8FromIterator</span><span class="hl-0">(</span><span class="hl-5">standardIterator</span><span class="hl-0">).</span><span class="hl-2">pipe</span><span class="hl-0">(...)</span>
+</code></pre>
+<p>it will simply become:</p>
+<pre><code class="language-typescript"><span class="hl-2">pipe</span><span class="hl-0">(</span><span class="hl-5">standardIterator</span><span class="hl-0">, ...);</span><br/><span class="hl-1">// This is fully generic</span><br/><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-2">plusOne</span><span class="hl-0"> = (</span><span class="hl-5">x</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> </span><span class="hl-5">x</span><span class="hl-0"> + </span><span class="hl-13">1</span><span class="hl-0">;</span><br/><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-2">timesThree</span><span class="hl-0"> = (</span><span class="hl-5">x</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> </span><span class="hl-5">x</span><span class="hl-0"> * </span><span class="hl-13">3</span><span class="hl-0">;</span><br/><span class="hl-2">pipe</span><span class="hl-0">(</span><span class="hl-13">4</span><span class="hl-0">, </span><span class="hl-5">plusOne</span><span class="hl-0">, </span><span class="hl-5">timesThree</span><span class="hl-0">) === </span><span class="hl-2">timesThree</span><span class="hl-0">(</span><span class="hl-2">plusOne</span><span class="hl-0">(</span><span class="hl-13">4</span><span class="hl-0">)); </span><span class="hl-1">// returns the actual result (15)</span>
+</code></pre>
+<p>and a compose function wil also be added to easily create (without executing it) a new function
+that is the result of applying the second one to the output of the first one.</p>
+<pre><code class="language-typescript"><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-7">plusOneTimesThree</span><span class="hl-0"> = </span><span class="hl-2">compose</span><span class="hl-0">(</span><span class="hl-5">plusOne</span><span class="hl-0">, </span><span class="hl-5">timesThree</span><span class="hl-0">); </span><span class="hl-1">// returns a function!</span><br/><span class="hl-2">plusOneTimesThree</span><span class="hl-0">(</span><span class="hl-13">4</span><span class="hl-0">) === </span><span class="hl-13">15</span><span class="hl-0">;</span>
+</code></pre>
+<p>The current situation of the proposal about the
+<a href="https://github.com/tc39/proposal-pipeline-operator">pipe operator in Javascript</a>, suggests that
+the same thing would become:</p>
+<pre><code class="language-typescript"><span class="hl-13">4</span><span class="hl-0"> |&gt; </span><span class="hl-2">plusOne</span><span class="hl-0">(%) |&gt; </span><span class="hl-2">timesThree</span><span class="hl-0">(%) === </span><span class="hl-2">timesThree</span><span class="hl-0">(</span><span class="hl-2">plusOne</span><span class="hl-0">(</span><span class="hl-13">4</span><span class="hl-0">));</span>
+</code></pre>
+<p>This is unfortunate, as I was hoping that the proposal would gravitate towards the F# pipe operator
+that does not use the underscore to indicate where the value should be passed in.</p>
+<pre><code class="language-typescript"><span class="hl-13">4</span><span class="hl-0"> |&gt; </span><span class="hl-5">plusOne</span><span class="hl-0"> |&gt; </span><span class="hl-5">timesThree</span><span class="hl-0"> === </span><span class="hl-2">timesThree</span><span class="hl-0">(</span><span class="hl-2">plusOne</span><span class="hl-0">(</span><span class="hl-13">4</span><span class="hl-0">));</span>
+</code></pre>
+<p>It will make using itr8 a lot uglier than with the F# pipe operator...</p>
+<pre><code class="language-typescript"><span class="hl-0"># </span><span class="hl-5">Hack</span><span class="hl-0"> </span><span class="hl-5">pipes</span><br/><span class="hl-2">itr8Range</span><span class="hl-0">(</span><span class="hl-13">0</span><span class="hl-0">,</span><span class="hl-13">10</span><span class="hl-0">) |&gt; </span><span class="hl-2">map</span><span class="hl-0">(</span><span class="hl-5">plusOne</span><span class="hl-0">)(%) |&gt; </span><span class="hl-2">map</span><span class="hl-0">(</span><span class="hl-5">timesThree</span><span class="hl-0">)(%) |&gt; </span><span class="hl-2">filter</span><span class="hl-0">(</span><span class="hl-5">x</span><span class="hl-0"> </span><span class="hl-6">=&gt;</span><span class="hl-0"> </span><span class="hl-5">x</span><span class="hl-0"> &gt; </span><span class="hl-13">10</span><span class="hl-0">)(%);</span><br/><span class="hl-0"># </span><span class="hl-7">F</span><span class="hl-0"># </span><span class="hl-5">pipes</span><br/><span class="hl-2">itr8Range</span><span class="hl-0">(</span><span class="hl-13">0</span><span class="hl-0">,</span><span class="hl-13">10</span><span class="hl-0">) |&gt; </span><span class="hl-2">map</span><span class="hl-0">(</span><span class="hl-5">plusOne</span><span class="hl-0">) |&gt; </span><span class="hl-2">map</span><span class="hl-0">(</span><span class="hl-5">timesThree</span><span class="hl-0">) |&gt; </span><span class="hl-2">filter</span><span class="hl-0">(</span><span class="hl-5">x</span><span class="hl-0"> </span><span class="hl-6">=&gt;</span><span class="hl-0"> </span><span class="hl-5">x</span><span class="hl-0"> &gt; </span><span class="hl-13">10</span><span class="hl-0">);</span>
+</code></pre>
+<p>but if that bothers anyone, they can keep using the current pipe(...) function.</p>
+
+<a href="#provide-a-cli-tool" id="provide-a-cli-tool" style="color: inherit; text-decoration: none;">
+  <h2>Provide a cli-tool?</h2>
+</a>
+<p>Just an idea: when a user does <code>npm i -g mrft/itr8</code> he should be able to run itr8 on the command-line.
+Then all operators should be available to him, so it can be used as a CLI tool to manipulate data.
+By default stdin could be used for input (maybe parsed lineByLine by default?)</p>
+<p>Think something like:</p>
+<pre><code class="language-bash"><span class="hl-5">FILE</span><span class="hl-0">=</span><span class="hl-3">&quot;myLargeFile.jsonl.gz&quot;</span><br/><span class="hl-2">zcat</span><span class="hl-0"> </span><span class="hl-3">&quot;</span><span class="hl-5">$FILE</span><span class="hl-3">&quot;</span><span class="hl-0"> | </span><span class="hl-2">itr8</span><span class="hl-0"> </span><span class="hl-3">&quot;[ filter(l =&gt; l.length), map(l =&gt; JSON.parse(l)), map(o =&gt; o.key)]&quot;</span><br/><span class="hl-1"># or we could make it more &#39;CLI-like&#39; and allow parameters to be used with the names of the operators</span><br/><span class="hl-2">zcat</span><span class="hl-0"> </span><span class="hl-3">&quot;</span><span class="hl-5">$FILE</span><span class="hl-3">&quot;</span><span class="hl-0"> | </span><span class="hl-2">itr8</span><span class="hl-0"> </span><span class="hl-6">--filter</span><span class="hl-0"> </span><span class="hl-3">&quot;l =&gt; l.length&quot;</span><span class="hl-0"> </span><span class="hl-6">--map</span><span class="hl-0"> </span><span class="hl-3">&quot;JSON.parse&quot;</span><span class="hl-0"> </span><span class="hl-6">--map</span><span class="hl-0"> </span><span class="hl-3">&quot;o =&gt; o.key&quot;</span><br/><span class="hl-1"># or maybe use a, b, c as default param names and only write the function body for function arguments?</span><br/><span class="hl-2">zcat</span><span class="hl-0"> </span><span class="hl-3">&quot;</span><span class="hl-5">$FILE</span><span class="hl-3">&quot;</span><span class="hl-0"> | </span><span class="hl-2">itr8</span><span class="hl-0"> </span><span class="hl-6">--filter</span><span class="hl-0"> </span><span class="hl-3">&quot;a.length&quot;</span><span class="hl-0"> </span><span class="hl-6">--map</span><span class="hl-0"> </span><span class="hl-3">&quot;JSON.parse(a)&quot;</span><span class="hl-0"> </span><span class="hl-6">--map</span><span class="hl-0"> </span><span class="hl-3">&quot;a.key&quot;</span>
+</code></pre>
+
+<a href="#maybe-we-can-use-asciiflow-to-add-some-schema39s-to-the-documentation" id="maybe-we-can-use-asciiflow-to-add-some-schema39s-to-the-documentation" style="color: inherit; text-decoration: none;">
+  <h2>Maybe we can use asciiflow to add some schema&#39;s to the documentation?</h2>
+</a>
+<p><a href="https://asciiflow.com">https://asciiflow.com</a></p>
+
+<a href="#support-the-39official39-transducertransformer-spec" id="support-the-39official39-transducertransformer-spec" style="color: inherit; text-decoration: none;">
+  <h2>Support the &#39;official&#39; transducer/transformer spec?</h2>
+</a>
+<p>The way transducers have been implemented in Ramda and a few other libraries has always confused
+me (as in you really have to dig into it to really understand how they work).</p>
+<p>James Long has a great explanation about <strong>separation of concerns</strong> in <a href="https://archive.jlongster.com/Transducers.js--A-JavaScript-Library-for-Transformation-of-Data">his article about Transducers.js</a>.
+He argues that <strong>iterate, transform and build</strong> are three separate problems, and that transducers decouple this in such away that the transform can be used on any data structure.
+To quote him:</p>
+<blockquote>
+<p>These are completely separate concerns, and yet most transformations in JavaScript are tightly coupled with specific data structures. Transducers decouples this and you can apply all the available transformations on any data structure.</p>
+</blockquote>
+<p>Something he also mentions in the final notes of the post that is <a href="https://archive.jlongster.com/Transducers.js--A-JavaScript-Library-for-Transformation-of-Data#Final-Notes">introducing his transducers.js library</a></p>
+<blockquote>
+<p>Lazy sequences are something I think should be added to transducers.js in the future. (edit: well, this paragraph isn&#39;t exactly true, but we&#39;ll have to explain laziness more in the future)</p>
+</blockquote>
+<p>I think that itr8 also decouples this, but in a different way: with transducers you&#39;d need to implement another protocol (the most important method being &#39;step&#39;)</p>
+<p>The <a href="https://github.com/cognitect-labs/transducers-js#transformer-protocol">transformer protocol</a> requires you to add these methods on any data structure that wants to play along, or to define a transformation:</p>
+<pre><code><span class="hl-0">{</span><br/><span class="hl-0">  </span><span class="hl-3">&#39;@@transducer/init&#39;</span><span class="hl-0">: () </span><span class="hl-6">=&gt;</span><span class="hl-0"> </span><span class="hl-3">&#39;some inital value&#39;</span><span class="hl-0">;</span><br/><span class="hl-0">  </span><span class="hl-3">&#39;@@transducer/result&#39;</span><span class="hl-0">: (</span><span class="hl-5">r</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> </span><span class="hl-5">r</span><span class="hl-0">;</span><br/><span class="hl-0">  </span><span class="hl-3">&#39;@@transducer/step&#39;</span><span class="hl-0">: (</span><span class="hl-5">acc</span><span class="hl-0">, </span><span class="hl-5">cur</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> ...;</span><br/><span class="hl-0">}</span>
+</code></pre>
+<p>In itr8, we assume that anything can be made iterable (even push-streams, by buffering). The thing about push-streams is: if a stream is push-based and the receiving end can&#39;t handle the speed, you&#39;d get in trouble eventually, so we can safely assume that any push-based stream, can be buffered and pulled from, because the puller will be fast enough, and the buffer will always be near-empty anyway.</p>
+<p>With this assumption in mind, we actually don&#39;t decouple iteration from transformation, but we do decouple iteration from &#39;build&#39;.
+First of all: maybe you don&#39;t want to &#39;build something&#39; in the end, but simply perform actions based on each item, and secondly: it feels like everything can easily be made iterable, and I think it&#39;s equally easy to build something from an iterator in most cases. Besides: with transducers it also looks as if you somehow have to make it compatible with some kind of spec to make it iterable, so we might as well agree that that protocol will always be the iterator protocol. The &#39;step&#39; function feels very much like the &#39;next&#39; function of an iterator anyway.</p>
+<p>So for me personally, I feel like there is less new things to learn - given you know how the iterator protocol works (it&#39;s simple, well-supported and widely used, so we might as well embrace it).</p>
+<p>So instead of trying to be entirely agnostic about the source, I think we end up with something that&#39;s even easier to understand (maybe that&#39;s just me of course) because we assume the source to always be the same thing, an iterator. It gives us one less degree of freedom, which makes for one less thing to explain or worry about in my opinion.</p>
+<p>Another post trying to explain transducers: <a href="https://medium.com/@shaadydawood/transducers-functional-transducers-async-transducers-e0ec65964fc2">https://medium.com/@shaadydawood/transducers-functional-transducers-async-transducers-e0ec65964fc2</a>
+Check out: <a href="https://www.npmjs.com/package/functional-pipelines">https://www.npmjs.com/package/functional-pipelines</a></p>
+
+<a href="#what-are-the-consequences-for-itr8" id="what-are-the-consequences-for-itr8" style="color: inherit; text-decoration: none;">
+  <h3>What are the consequences for itr8?</h3>
+</a>
+<p>It looks like itr8 has chosen a different path, by composing iterators instead of operators.</p>
+<p>Could we think of another protocol that allows us to compose &#39;operators&#39; that looks more like the iterator protocol?
+I mean: if the signature would be</p>
+<pre><code class="language-typescript"><span class="hl-0">(</span><span class="hl-5">inValue</span><span class="hl-0">: [{ </span><span class="hl-5">done</span><span class="hl-0">: </span><span class="hl-14">boolean</span><span class="hl-0">; </span><span class="hl-5">value</span><span class="hl-0">?: </span><span class="hl-14">any</span><span class="hl-0"> }, </span><span class="hl-14">state</span><span class="hl-0">]) </span><span class="hl-6">=&gt;</span><span class="hl-0"> [</span><br/><span class="hl-0">  { </span><span class="hl-5">done:</span><span class="hl-0"> </span><span class="hl-5">boolean</span><span class="hl-0">, </span><span class="hl-5">value:</span><span class="hl-0"> </span><span class="hl-5">any</span><span class="hl-0"> },</span><br/><span class="hl-0">  </span><span class="hl-5">state</span><span class="hl-0">,</span><br/><span class="hl-0">];</span>
+</code></pre>
+<p>they could very easily be composed, but unfortunately our output format is more complex
+as in: we also allow &#39;iterable&#39;.
+Of course we could change that to disallow iterable, and put that responsibility in the hands of
+the developer =&gt; he should keep the iterator in the state and return all values as long as there are any?
+It could be done, and if we do that, we&#39;d have operators that are as easy to compose as the ones from the transducer protocol, and some people might find that easier to understand than the way transducers are implemented, because both done (or &#39;reduced&#39; in transducer terms) and the value
+are returned.
+There&#39;s still a problem with &#39;state&#39; being inside the inValue and outValue, because it belongs to a specific operator, so state should be kept &#39;locally&#39; somehow in that case (this.state).</p>
+
+<a href="#some-ideas-to-also-make-our-39transformers39-the-nextfn-we-currently-pass-to-itr8operatorfactory-composable" id="some-ideas-to-also-make-our-39transformers39-the-nextfn-we-currently-pass-to-itr8operatorfactory-composable" style="color: inherit; text-decoration: none;">
+  <h3>Some ideas to also make our &#39;transformers&#39; (the nextFn we currently pass to itr8OperatorFactory) composable</h3>
+</a>
+<p>If we compose the transformations rather than the iterators, we might be able to gain some performance, but I find writing transducers cumbersome, because you have to think about &#39;writing a function that gets another function as input&#39; and how to combine them.
+When writing the nextFn for the itr8OperatorFactory, we don&#39;t care about how they will be composed
+as that will be done for us, so we only have to think about what an input element produces on the output side, which is quite easy most of the time. Adding that extra complexity of havng to call &quot;the other function&quot; somewhere adds a mental burden that I find too high, which might be part of the reason transducers haven&#39;t really been embraced by the masses.</p>
+<p><strong>Why would I try composing the transformers then instead of the iterators?</strong></p>
+<p>For performance reasons: once 1 element in the chain is async, every iterator that comes behind it will necessarily become async, causing for a lot of functions being put onto the event loop (This also means that each &#39;transIterator&#39; is running a lot of code to check whether the input iterator is sync or async). I have actually proven (in the &#39;transduce&#39; operator tests) that transducer based version of the same operations (filter, map, repeat, ...) was quite a lot faster (probably because of the single intermediate iterator, and probably also because all the transducers are synchronous, so there are way less isPromise checks, but maybe in general, because the transducers call the next transducer there are less intermediate allocations of new data structures?)
+If we combine the transformations into 1 single method, we&#39;d end up with a single &#39;intermediate&#39; iterator that executes a single function - in case everything is synchronous - for every element in the stream.</p>
+<p>So I have been trying to figure out a way to also make our &#39;transformers&#39; composable, without changing how they work. So instead of relying on a theoretical model, I would provide helper functions to make composing possible, while maintaining the easy-to-use interface. So while (or maybe just because) theoretically less advanced than transducers, we might end up with something that is easier to use, which in my view is really important. (if we find a way to compose them, we might also find a way to turn them into actual transformers for a transducer as well, in which case we might also have helped the transducer-loving world forward)</p>
+<pre><code class="language-typescript"><span class="hl-1">// Transformer spec defines these methods on an object</span><br/><span class="hl-1">// init:</span><br/><span class="hl-1">// step:</span><br/><span class="hl-1">// result:</span><br/><span class="hl-1">// reduced:</span><br/><span class="hl-1">// value:</span><br/><br/><span class="hl-1">// processing fn:</span><br/><span class="hl-0">  </span><span class="hl-2">step</span><span class="hl-0">(</span><span class="hl-5">prevOut</span><span class="hl-0">, </span><span class="hl-5">curIn</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> </span><span class="hl-5">newOut</span><br/><br/><span class="hl-1">// map:</span><br/><span class="hl-0">  </span><span class="hl-2">nextFn</span><span class="hl-0">(</span><span class="hl-5">nextIn</span><span class="hl-0">, </span><span class="hl-5">state</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-4">return</span><span class="hl-0"> { </span><span class="hl-5">done:</span><span class="hl-0"> </span><span class="hl-6">false</span><span class="hl-0">, </span><span class="hl-5">value:</span><span class="hl-0"> </span><span class="hl-5">state</span><span class="hl-0">.</span><span class="hl-2">mapFn</span><span class="hl-0">(</span><span class="hl-5">nextIn</span><span class="hl-0">.</span><span class="hl-5">value</span><span class="hl-0">) }</span><br/><span class="hl-0">  }</span><br/><span class="hl-1">// filter</span><br/><span class="hl-0">  </span><span class="hl-2">nextFn</span><span class="hl-0">(</span><span class="hl-5">nextIn</span><span class="hl-0">, </span><span class="hl-5">state</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-4">return</span><span class="hl-0"> </span><span class="hl-5">state</span><span class="hl-0">.</span><span class="hl-2">filterFn</span><span class="hl-0">(</span><span class="hl-5">nextIn</span><span class="hl-0">.</span><span class="hl-5">value</span><span class="hl-0">) ? </span><span class="hl-5">nextIn</span><span class="hl-0"> : { </span><span class="hl-5">done:</span><span class="hl-0"> </span><span class="hl-6">false</span><span class="hl-0"> }</span><br/><span class="hl-0">  }</span><br/><br/><span class="hl-1">// nextFn returns a nextIn and to compose we&#39;d need a function</span><br/><span class="hl-1">// that takes a nextFn and produces another nextFn</span><br/><br/><span class="hl-1">// composing a map, then filter would be written manually as</span><br/><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-7">result1</span><span class="hl-0"> = </span><span class="hl-1">/* await is some cases */</span><span class="hl-0"> </span><span class="hl-2">nextFnMap</span><span class="hl-0">(</span><span class="hl-5">nextIn</span><span class="hl-0">, </span><span class="hl-5">stateOfMap</span><span class="hl-0">)</span><br/><span class="hl-4">return</span><span class="hl-0"> </span><span class="hl-2">nextFnFilter</span><span class="hl-0">(</span><span class="hl-5">result1</span><span class="hl-0">, </span><span class="hl-5">stateOfFilter</span><span class="hl-0">)</span><br/><br/><span class="hl-2">itr8OperDefFactory</span><span class="hl-0">(</span><span class="hl-5">nextFn</span><span class="hl-0">, </span><span class="hl-5">initFn</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> </span><span class="hl-1">// we could produce a &#39;stateful&#39; nextFn()?</span><br/><span class="hl-1">// or a nextFn, that already has state applied? and thus only takes 1 argument</span><br/><span class="hl-1">// which is an input next?</span><br/><span class="hl-1">// and if input and output would be compatible,</span><br/><span class="hl-1">// this would create functions that can be composed/piped</span><br/><span class="hl-1">// unfortunately they are not 100% compatible right currently because the output</span><br/><span class="hl-1">// 1. can contain iterable instead of value and  2. can be a promise</span><br/><span class="hl-1">// which means that we&#39;d need tooling to link them together</span><br/><span class="hl-1">// 1. could be replaced by always returning an iterator or by adding a boolean</span><br/><span class="hl-1">//    to the state (which we &#39;internalized&#39;) informing the &#39;engine&#39; whether</span><br/><span class="hl-1">//    a new next is needed already</span><br/><span class="hl-1">// so if we want to &#39;compose&#39; the nextFns (turning the &#39;pull&#39; into a &#39;push&#39; to the next nextFn)</span><br/><span class="hl-1">// so that we can create a single transIterator from multiple &#39;transformers&#39; combined,</span><br/><span class="hl-1">// we&#39;d need a composer function to do that for us so it can interpret for example the iterable field</span><br/><span class="hl-1">// and as a result call the next one multiple times?</span><br/><span class="hl-1">// all this should produce another nextFn that is the combination of all the others</span><br/><span class="hl-1">// so then we could have a method called transIt(nextFn, nextFn, nextFn) that turns that list into</span><br/><span class="hl-1">// a single transIterator, instead of a chain of many</span><br/><span class="hl-1">// OH AND I GUESS MAYBE WE CAN USE SOMETHING LIKE MONADS TO TURN NEXTFN INTO A FUNCTION THAT CAN BE COMPOSED???</span><br/><span class="hl-1">// (instead of writing a manual function to do it?) state will always be a problem when it&#39;s an argument I guess</span><br/><span class="hl-0">(...</span><span class="hl-5">args</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> { </span><span class="hl-1">// each arg is a &#39;transform&#39; function (nextFn)</span><br/><span class="hl-0">  </span><span class="hl-1">// return another nextFn function that is the combination of all the arguments</span><br/><span class="hl-0">  </span><span class="hl-4">return</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-2">nextFn</span><span class="hl-5">:</span><span class="hl-0"> (</span><span class="hl-5">nextIn</span><span class="hl-0">, </span><span class="hl-5">state</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">      </span><span class="hl-6">let</span><span class="hl-0"> </span><span class="hl-5">curPrevOut</span><span class="hl-0"> = </span><span class="hl-5">nextIn</span><span class="hl-0">; </span><span class="hl-1">// a &#39;normal&#39; IteratorResult is compatible with a nextOut value</span><br/><span class="hl-0">      </span><span class="hl-6">let</span><span class="hl-0"> </span><span class="hl-5">result</span><span class="hl-0">;</span><br/><span class="hl-0">      </span><span class="hl-4">for</span><span class="hl-0"> (</span><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-7">aFn</span><span class="hl-0"> </span><span class="hl-6">of</span><span class="hl-0"> </span><span class="hl-5">args</span><span class="hl-0">) {</span><br/><span class="hl-0">        </span><span class="hl-4">if</span><span class="hl-0"> (</span><span class="hl-5">curPrevOut</span><span class="hl-0">.</span><span class="hl-5">iterable</span><span class="hl-0">) {</span><br/><span class="hl-0">          </span><span class="hl-5">result</span><span class="hl-0"> = { </span><span class="hl-5">done:</span><span class="hl-0"> </span><span class="hl-6">false</span><span class="hl-0">, </span><span class="hl-5">iterable:</span><span class="hl-0"> [] };</span><br/><span class="hl-0">          </span><span class="hl-6">let</span><span class="hl-0"> </span><span class="hl-5">count</span><span class="hl-0"> = </span><span class="hl-13">0</span><span class="hl-0">;</span><br/><span class="hl-0">          </span><span class="hl-4">for</span><span class="hl-0"> (</span><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-7">c</span><span class="hl-0"> </span><span class="hl-6">of</span><span class="hl-0"> </span><span class="hl-5">curPrevOut</span><span class="hl-0">.</span><span class="hl-5">iterable</span><span class="hl-0">) {</span><br/><span class="hl-0">            </span><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-7">r</span><span class="hl-0"> =  </span><span class="hl-2">aFn</span><span class="hl-0">(</span><span class="hl-5">c</span><span class="hl-0">, </span><span class="hl-5">state</span><span class="hl-0">[</span><span class="hl-5">aFn</span><span class="hl-0">.</span><span class="hl-5">id</span><span class="hl-0">]);</span><br/><span class="hl-0">            </span><span class="hl-4">if</span><span class="hl-0"> (</span><span class="hl-5">r</span><span class="hl-0">.</span><span class="hl-5">done</span><span class="hl-0">) </span><span class="hl-4">break</span><span class="hl-0">;</span><br/><span class="hl-0">            </span><span class="hl-5">result</span><span class="hl-0">.</span><span class="hl-5">iterable</span><span class="hl-0">.</span><span class="hl-2">push</span><span class="hl-0">(</span><span class="hl-5">r</span><span class="hl-0">.</span><span class="hl-5">value</span><span class="hl-0">); </span><span class="hl-1">// iterable should be created with a generator function</span><br/><span class="hl-0">            </span><span class="hl-5">count</span><span class="hl-0"> += </span><span class="hl-13">1</span><span class="hl-0">;</span><br/><span class="hl-0">          }</span><br/><span class="hl-0">          </span><span class="hl-4">if</span><span class="hl-0"> ( </span><span class="hl-5">count</span><span class="hl-0"> &lt;= </span><span class="hl-13">0</span><span class="hl-0"> ) {</span><br/><span class="hl-0">            </span><span class="hl-5">result</span><span class="hl-0"> = { </span><span class="hl-5">done:</span><span class="hl-0"> </span><span class="hl-6">true</span><span class="hl-0">, </span><span class="hl-5">iterable:</span><span class="hl-0"> [] };</span><br/><span class="hl-0">          }</span><br/><span class="hl-0">        } </span><span class="hl-4">else</span><span class="hl-0"> {</span><br/><span class="hl-0">          </span><span class="hl-5">result</span><span class="hl-0"> = </span><span class="hl-2">aFn</span><span class="hl-0">(</span><span class="hl-5">curPrevOut</span><span class="hl-0">, </span><span class="hl-5">state</span><span class="hl-0">[</span><span class="hl-5">aFn</span><span class="hl-0">.</span><span class="hl-5">id</span><span class="hl-0">]) </span><span class="hl-1">// state thing is pseudo code to get the idea across</span><br/><span class="hl-0">        }</span><br/><span class="hl-0">        </span><span class="hl-4">if</span><span class="hl-0"> (</span><span class="hl-5">result</span><span class="hl-0">.</span><span class="hl-5">done</span><span class="hl-0">) {</span><br/><span class="hl-0">          </span><span class="hl-4">return</span><span class="hl-0"> </span><span class="hl-5">result</span><span class="hl-0">;</span><br/><span class="hl-0">        }</span><br/><span class="hl-0">        </span><span class="hl-5">curPrevOut</span><span class="hl-0"> = </span><span class="hl-5">result</span><span class="hl-0">;</span><br/><span class="hl-0">      }</span><br/><span class="hl-0">      </span><span class="hl-4">return</span><span class="hl-0"> </span><span class="hl-5">result</span><span class="hl-0">;</span><br/><span class="hl-0">    },</span><br/><span class="hl-0">    </span><span class="hl-2">initStateFn</span><span class="hl-5">:</span><span class="hl-0"> () </span><span class="hl-6">=&gt;</span><span class="hl-0"> {} </span><span class="hl-1">// combine all the init-states of all the args?</span><br/><span class="hl-0">  }</span><br/><span class="hl-0">}</span><br/><br/><span class="hl-1">/**</span><br/><span class="hl-1"> * the &quot;monad-inspired&quot; version would have a &quot;bind&quot; function to turn</span><br/><span class="hl-1"> * ```(nextIn:IteratorResult, state) =&gt; nextFnResult```</span><br/><span class="hl-1"> * into an ```(nextFnResult) =&gt; nextFnResult``` version</span><br/><span class="hl-1"> * state from the output is kept for next time</span><br/><span class="hl-1"> * (the &#39;state&#39; will be &#39;against pure functional programming&#39;, but I see no way around it</span><br/><span class="hl-1"> * in order to create some truly useful operations)</span><br/><span class="hl-1"> *</span><br/><span class="hl-1"> * The &#39;unity&#39; function and the &#39;lift&#39; function - lift(f, x) = unit(f(x)) - to</span><br/><span class="hl-1"> * the &quot;lift&quot; function should make sure the right part of the input is handed over</span><br/><span class="hl-1"> * to the original function.</span><br/><span class="hl-1"> * So in short (ignoring the iterable property) unit should be like IteratorResult =&gt; NextFnOutputResult</span><br/><span class="hl-1"> */</span><br/><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-2">unity</span><span class="hl-0"> = (</span><span class="hl-5">nextIn</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">  </span><span class="hl-6">let</span><span class="hl-0"> </span><span class="hl-5">state</span><span class="hl-0">;</span><br/><span class="hl-0">  </span><span class="hl-6">let</span><span class="hl-0"> </span><span class="hl-5">done</span><span class="hl-0"> = </span><span class="hl-6">false</span><span class="hl-0">;</span><br/><span class="hl-0">  </span><span class="hl-4">return</span><span class="hl-0"> (</span><span class="hl-5">nextFnFormattedNextIn</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-4">if</span><span class="hl-0"> (</span><span class="hl-5">nextFnFormattedNextIn</span><span class="hl-0">.</span><span class="hl-5">iterable</span><span class="hl-0">) {</span><br/><span class="hl-0">      </span><span class="hl-1">// call nextIn on every element from the iterable, and return</span><br/><span class="hl-0">      </span><span class="hl-1">// a response also containing an iterable with all the results</span><br/><span class="hl-0">      </span><span class="hl-1">// from calling</span><br/><span class="hl-0">      </span><span class="hl-1">// watch out: when it returns done: true on one, we&#39;d need to keep some state</span><br/><span class="hl-0">      </span><span class="hl-1">// so we can tell we are &#39;done&#39; the next time</span><br/><span class="hl-0">    } </span><span class="hl-4">else</span><span class="hl-0"> {</span><br/><span class="hl-0">      </span><span class="hl-4">return</span><span class="hl-0"> </span><span class="hl-2">nextIn</span><span class="hl-0">(</span><span class="hl-5">nextFnFormattedNextIn</span><span class="hl-0"> </span><span class="hl-1">/* without the state */</span><span class="hl-0">, </span><span class="hl-5">state</span><span class="hl-0">)</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">  }</span><br/><span class="hl-0">}</span>
+</code></pre>
+
+<a href="#how-to-handle-failures" id="how-to-handle-failures" style="color: inherit; text-decoration: none;">
+  <h2>How to handle failures?</h2>
+</a>
+<p>Some of our operators (for example &#39;map&#39;) allow async methods to be run, so they can be used for things that
+are prone to failure (I am not considering the synchronous case because that can be controlled entirely by the user).</p>
+<p>The question is: if we know that things can potentially fail, are we going to add a specific
+protocol to handle these failures? Right now: if something fails that means that the next call
+will reject its promise, and the entire processing chain will break.</p>
+<p>We could say: it&#39;s up to the user to make sure that his function always resolves, and so it&#39;s up
+to him to invent a data format that can express failures, so that they can be handled further
+down the line.</p>
+<p>But I recently viewed this youtube video about the <a href="https://www.youtube.com/watch?v=xDuwrtwYHu8">Saga pattern</a> which essentially means: on failure take compensating measures for every action
+that already happened (kind of like &#39;rollback&#39; if possible, but in some cases - like sending an email - things cannot be undone and you have to send another message explaining that the previous
+email should be ignored).</p>
+<p>It could be that we can agree on a way to enforce (or at least support) people to implement this
+kind of pattern, which also helps in being aware of whatever can go wrong, in order to build more
+robust systems.</p>
+
+<a href="#piping-should-have-better-typing" id="piping-should-have-better-typing" style="color: inherit; text-decoration: none;">
+  <h2>Piping should have better typing</h2>
+</a>
+<p>Piping should have better typing (like RxJS does it?) to make sure you get hints if you are trying to pipe functions together whose output and input types do not match.</p>
+
+<a href="#general-code-cleanup" id="general-code-cleanup" style="color: inherit; text-decoration: none;">
+  <h2>General code cleanup</h2>
+</a>
+<ul>
+<li>Should we create &#39;categories&#39; of operators so people do not have to include the entire library?
+(for example delay, throttle, debounce under operators/timeBased and maybe max, min, average, pctl(...), total, ... under operators/numeric)</li>
+<li>This is done in the jsdoc by adding @category, but all the operators currently atre still in the same file. Maybe one file per operator would make sense, and maybe also one file per category, and one file exposing all operators. This way, people who don&#39;t need to worry about bundle size can simply import
+itr8/operators, and people with a strict bundle size can import /itr8/operators/general/map</li>
+</ul>
+
+<a href="#writing-more-and-better-documentation-and-examples-to-show-what-can-be-done" id="writing-more-and-better-documentation-and-examples-to-show-what-can-be-done" style="color: inherit; text-decoration: none;">
+  <h2>Writing more and better documentation and examples to show what can be done.</h2>
+</a>
+<ul>
+<li>Show how an &#39;The Elm Architecture&#39;-like or appRun-like app engine could be implemented<ul>
+<li>1 way is to use something similar to CSP, where multiple processes push messages to each other by using itr8Pushables.<ul>
+<li>a zip operation would zip the event and the current state together</li>
+<li>push the new state to the state iterator</li>
+<li>push the new state also to the view-iterator that transforms state into html</li>
+<li>push the generated html to the render-iterator that will update the screen</li>
+</ul>
+</li>
+<li>another way is to view the entire application as 1 single transIterator where the input is &#39;events&#39; and the output is html (or lit-html templateresult).<ul>
+<li>a zip operation would zip that event and the current state together</li>
+<li>a tap operation would send the newState back into the pushable state iterator</li>
+<li>A for each at the end would take the html and use it to update the DOM</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Explain how an ASYNC iterator is actually an extremely simple 2-way protocol:<ul>
+<li>every next() call informs the sender that we&#39;re ready to receive another value</li>
+<li>every resolved promise hands the new message to the receiver</li>
+<li>despite its simplicity, there is a fair amount of problems that can be solved with it.
+Imagine for example a round-robin scheme: each handler will indicate when it&#39;s ready to process
+another message by a next() call. The round robin engine will send every new message
+to the first of the round robin circle that is ready to receive that new message
+(it would be a waste of time to send it to the next regardless whether it&#39;s ready or not)</li>
+</ul>
+</li>
+</ul>
+
+<a href="#add-some-more-useful-operators" id="add-some-more-useful-operators" style="color: inherit; text-decoration: none;">
+  <h2>Add some more useful operators</h2>
+</a>
+<ul>
+<li>gzip/gunzip?</li>
+<li>we&#39;ll probably find some inspiration in the RxJS library and also in <a href="https://hexdocs.pm/elixir/Stream.html">Elxir&#39;s Streams</a></li>
+<li>implement the equivalent of json-stream that works on a single-character or string iterator<ul>
+<li>first I was looking at jsonstream which is built upon jsonparse which is really old</li>
+<li>then I came across streamparser-json, which is an OO-style library that defines a separate
+&#39;tokenizer&#39; and &#39;tokenParser&#39;, which when combined would produce a jsonParser.<ul>
+<li>The write() method of the tokenizer feels &#39;wrong&#39; because it does 3 things: add the incoming data
+to the internal buffer, go through the buffer to produce new tokens, on every token found, call
+a callback function with that token.</li>
+<li>I think we should be able to extract the main algorithm (parsing into a token) into the operatorFactory (using the &#39;state&#39; to hold the part of the buffer that didn&#39;t produce an
+entire new token yet and other state needed by a tokenizer). That would be the first &#39;operator&#39;,
+the second operator would take
+a stream of tokens, and produce objects (only selecting the ones we&#39;re interested in).</li>
+<li>The tokenizer holds the entire parent object in memory which is a problem for large arrays
+and the way to &#39;fix&#39; this (from the examples on their website) is to manipulate that object!</li>
+<li>The alternative would be to just build a transIterator that wraps this other library,
+and although it would require less code changes, I feel that the library would benefit
+from a better seperation of concerns.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Use <a href="https://nodejs.org/docs/latest-v16.x/api/cluster.html">cluster</a> and/or <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Web Workers</a> to allow CSP style
+programming and make communicating from one process to another (at least from master to slaves and the other way around) easy. If we do it properly (detect or by passing in a flag to choose whether we are in node or in the browser), the user only needs to pass a single parameter, which is the file containing the transIterator that will translate input messages to output messages, and then the same code could be used on the server as well as in the browser.
+A <a href="https://github.com/hunterloftis/throng">throng</a> feature that I like is that it respawns a worker if one dies, and ideally the new one would get the same channel so the master can keep sending commands to it, maybe without even realising that one has crashed and has been restarted. (Maybe we need to create a new transIterator that has an &#39;ack&#39; channel (another iterator) sa input to confirm that processing has been finished, so it can retry on failure, could maybe be written by using the &#39;mostRecent&#39; operator combined with a pushable iterator somehow?)<ul>
+<li>For CLUSTER: a worker.send method exists that allows to send messages from worker to parent and the other way around. Maybe we can wrap these into an itr8Pushable, in such a way that people can write exactly the same CSP-style code, and easily have it running on multiple cores when they wish to. So the &#39;worker&#39; could be defined as &#39;a function that takes an iterator as input (the incoming messages) and produces an iterator (the responses to master)&#39;. Sounds familiar? Yes, because it&#39;s a simple transIterator!
+And the code around it (which is always the same) should make sure that these results are being pushed back using worker.send, inside a forEach that actively drains the iterator...</li>
+<li>For WEB WORKERS: we can use the postMessage interface to send messages back and forth.</li>
+<li>There are some examples online to allow for ts files to be loaded (by using ts-node, which would make it a runtime dependency rather than a dev dependency)</li>
+</ul>
+</li>
+</ul>
+
+<a href="#other-39generators39" id="other-39generators39" style="color: inherit; text-decoration: none;">
+  <h2>Other &#39;generators&#39;</h2>
+</a>
+<ul>
+<li><p>for typical cases like file input, db paga-per-page processing, ...</p>
+</li>
+<li><p>how about an &#39;itr8ToMultiIterable&#39; to handle the case where you want to &#39;split&#39; the stream into multiple streams for separate further processing?</p>
+<ul>
+<li>because it is pull based, you&#39;d need state to know about the &#39;subscribed&#39; iterators, so we can keep track of what their next element would be</li>
+<li>it should buffer when 1 child-iterator gets the next, so the same element can be given to all the other subscribers on their next call</li>
+<li>the buffer should be kept as long as one subscriber didn&#39;t ask for that next()</li>
+<li>there should be a way to &#39;disconnect&#39;, tell the iterable that we are not interested in more, so it won&#39;t keep buffering for no reason because we stop asking for next stuff.</li>
+<li>we could add a timeout to automatically clean up the buffer if a subscriber didn&#39;t ask for a next element within a certain time (1 minute default?)</li>
+</ul>
+</li>
+</ul>
+
+<a href="#use-iterators-everywhere" id="use-iterators-everywhere" style="color: inherit; text-decoration: none;">
+  <h2>use iterators everywhere</h2>
+</a>
+<p>Think about how to make it easy to use operator parameters that are iterators themselves.</p>
+<ul>
+<li>Would make it easier to implement the zip operator (less boilerplate)</li>
+<li>Would in general allow for operator parameters that &#39;change over time&#39;.</li>
+<li>Can we make this generic in such away that <em>any</em> parameter of type T could be replaced
+by an (Async)Iterator<T>?<ul>
+<li>The most powerful would be if the writer of the operator is in charge of calling next()
+on the parameter, BUT it would also make writing operators more complex, because then
+the authors would also need to use thenable in order to handle sync and async iterators
+properly, which adds a lot of complexity.</li>
+<li>So we could also do as we already do for the nextIn param: call next on it ourselves
+and passing the response into the function, but that way we loose the freedom to not call
+next on every next call to the incoming iterator.</li>
+<li>It might make things so complex that nobody knows how to write an operator anymore.</li>
+<li>Of course: if we do it implicitly, all operators would be able to change their paramaters
+over time without any code changes for existing operators!</li>
+<li>Maybe we could have an advanced operator factory where the responsibility lies with the user</li>
+</ul>
+</li>
+<li>Can we abstract the handling of sync versus async iterators away in an elegant manner?
+That means that if the input iterator is sync, all handling stays sychronous and will only
+become asynchronous when the iterator is asynchronous. But all this without the user having
+to alter the code...</li>
+</ul>
+<p>I created 2 helper functions called thenable and forLoop for this.
+Thenable will make any value thenable, to make sure we can use the same code regardless whether the input is a promise or not, and guaranteeing that the handling will also be synchronous if the input
+is not a promise.
+forLoop is like a for loop that will be synchronous if the input is synchronous and synchronous otherwise.</p>
+
+<a href="#batch-support" id="batch-support" style="color: inherit; text-decoration: none;">
+  <h2>batch support</h2>
+</a>
+<p>Currently I don&#39;t see a lot of performance benefits of the batch support, so it could be that we might as well remove the support for that, because it complicates building new operators.</p>
+<p>1 thing is important: <strong>&#39;itr8batch&#39; should not be a property (literally a JS property now) of the iterator, nor should it make the itr8OperatorFactory more complex (as it currently does). That code should be removed ASAP</strong>.
+If we would still want to support it, it should be done as an operator that has a transIterator as its argument (or maybe support multiple arguments in order to avoid needing another compose)</p>
+<p>Example:</p>
+<pre><code class="language-typescript"><span class="hl-1">// Instead of</span><br/><span class="hl-5">myIt</span><span class="hl-0">.</span><span class="hl-2">pipe</span><span class="hl-0">(</span><br/><span class="hl-0">  </span><span class="hl-2">asBatch</span><span class="hl-0">(),</span><br/><span class="hl-0">  </span><span class="hl-2">someOp</span><span class="hl-0">(),</span><br/><span class="hl-0">  </span><span class="hl-2">someOtherOp</span><span class="hl-0">(),</span><br/><span class="hl-0">  </span><span class="hl-2">asNoBatch</span><span class="hl-0">(),</span><br/><span class="hl-0">)</span><br/><br/><span class="hl-1">// it would become something like below (so the asBatch operator would make sure all its</span><br/><span class="hl-1">// transIt arguments would be applied to each array element separately)</span><br/><span class="hl-5">myIt</span><span class="hl-0">.</span><span class="hl-2">pipe</span><span class="hl-0">(</span><br/><span class="hl-0">  </span><span class="hl-2">asBatch</span><span class="hl-0">(,</span><br/><span class="hl-0">    </span><span class="hl-2">someOp</span><span class="hl-0">(),</span><br/><span class="hl-0">    </span><span class="hl-2">someOtherOp</span><span class="hl-0">(),</span><br/><span class="hl-0">  ),</span><br/><span class="hl-0">)</span><br/><br/><span class="hl-1">// or if the batch operator would only support a single argument it would become a bit less</span><br/><span class="hl-1">// elegant as we&#39;d need &#39;itr8Pipe&#39; to compose the transIterators.</span><br/><span class="hl-5">myIt</span><span class="hl-0">.</span><span class="hl-2">pipe</span><span class="hl-0">(</span><br/><span class="hl-0">  </span><span class="hl-2">asBatch</span><span class="hl-0">(,</span><br/><span class="hl-0">    </span><span class="hl-2">itr8Pipe</span><span class="hl-0">(</span><br/><span class="hl-0">      </span><span class="hl-2">someOp</span><span class="hl-0">(),</span><br/><span class="hl-0">      </span><span class="hl-2">someOtherOp</span><span class="hl-0">(),</span><br/><span class="hl-0">    ),</span><br/><span class="hl-0">  ),</span><br/><span class="hl-0">)</span>
+</code></pre>
+<p>Other questions about how the batch things should work:
+Improve batch support: current implementation will grow and shrink batch size depending on the operation (filter could shrink batches significantly for example, but batches with only a few elements don&#39;t have a very big advantage performance wise). Of course you could always <code>unBatch |&gt; batch(size)</code> to force a new batch size, but it could be more efficient if the itr8OperatorFactory handles the batch size and keeps it constant throughtout the chain???</p>
+</div></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current"><a href="../modules.html">itr8</a>
+<ul>
+<li class="current selected pages-entry pages-entry-page pages-entry-depth-1"><a href="ROADMAP.html">Roadmap</a></li>
+<li class="tsd-kind-module"><a href="../modules/index.html">index</a></li>
+<li class="tsd-kind-module"><a href="../modules/interface.html">interface</a></li>
+<li class="tsd-kind-module"><a href="../modules/operators.html">operators</a></li>
+<li class="tsd-kind-module"><a href="../modules/peer.html">peer</a></li>
+<li class="tsd-kind-module"><a href="../modules/util.html">util</a></li></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky"></nav></div></div>
+<div class="container tsd-generator">
+<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
+<div class="overlay"></div><script src="../assets/main.js"></script></body></html>
