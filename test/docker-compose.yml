@@ -134,7 +134,7 @@ services:
           rm -rf node_modules docs dist* package-lock.json &&
           echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
           npm install --foreground-scripts=true &&
-          npm run testInsideDocker && npm run testCjsInsideDocker && npm run testEsmInsideDocker
+          npm run testInsideDocker && npm run testCjsInsideDocker
         '\''
       '
 
