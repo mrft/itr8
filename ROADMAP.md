@@ -72,7 +72,7 @@ A response to the first issue above:
 
 > The most useful thing to look at is for await. The behavior of for await is, if next returns a rejected promise, the loop will immediately stop, and will not call .return on the iterator (as it would if the loop early-exited any other way). In other words, for await treats next returning a rejected promise as indicating that the iterator is done.
 >
-> Also, when using an async generator, the only way for next to give a rejected promise is if the body of the generator throws an uncaught exception, in which case the generator is finished and any subsequent call to .next will resolve with { done: true }.
+> Also, when using an async generator, the only way for next to give a rejected promise is if the body of the generator throws an uncaught exception, in which case the generator is finished and any subsequent call to .next will resolve with `{ done: true }`
 >
 > Now, of course, you can implement a different behavior if you want to. But if you want to match the behavior of the things in the language, "if the promise returned by .next() rejects then the iterator is finished" is the principle to follow, and I think that would be a reasonable thing to write down without getting into all of the edge cases around async-from-sync and so on.
 
