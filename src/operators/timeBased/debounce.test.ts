@@ -1,11 +1,17 @@
 import { assert } from "chai";
 import FakeTimers from "@sinonjs/fake-timers";
-import { itr8Pushable, itr8ToArray, pipe } from "../../index.js";
+import {
+  itr8FromIterable,
+  itr8Pushable,
+  itr8ToArray,
+  map,
+  pipe,
+} from "../../index.js";
 import { sleep } from "../../testUtils/index.js";
 import { debounce } from "./debounce.js";
 
 describe("operators/timeBased/debounce.ts", () => {
-  it("debounce(...) operator works properly", async () => {
+  it("debounce(...) operator without second argument works properly", async () => {
     const clock = FakeTimers.install(); // don't forget to uninstall the clock in a finally block !
     try {
       const pushIt = itr8Pushable();
@@ -42,5 +48,29 @@ describe("operators/timeBased/debounce.ts", () => {
     } finally {
       clock.uninstall();
     }
+  });
+
+  it("debounce(...) operator with second argument works properly", () => {
+    const valueTimestampTuples = [
+      [1, 0],
+      [2, 10],
+      [3, 10],
+      [4, 40],
+      [5, 50],
+      [6, 60],
+      [7, 60],
+      [8, 60],
+      [9, 60],
+      [10, 100],
+    ];
+
+    const result = pipe(
+      itr8FromIterable(valueTimestampTuples),
+      debounce(20, ([_v, ts]) => ts),
+      map(([v, _ts]) => v),
+      itr8ToArray,
+    );
+
+    assert.deepEqual(result, [1, 4, 10]);
   });
 });
