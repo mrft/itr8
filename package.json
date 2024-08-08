@@ -80,7 +80,7 @@
   "homepage": "https://mrft.github.io/itr8",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mrft/itr8.git"
+    "url": "git+https://github.com/mrft/itr8.git"
   },
   "bugs": {
     "url": "https://github.com/mrft/itr8/issues"
