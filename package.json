@@ -1,6 +1,6 @@
 {
   "name": "itr8",
-  "version": "0.4.7",
+  "version": "0.4.8",
   "description": "An experiment to create a unified interface such that the same reducers can be used in various contexts.",
   "type": "module",
   "// about main and types": "they are not pointing to dist/ folder because the prepare script copies everything to root after the build!!!",
@@ -57,7 +57,7 @@
     "testInsideDocker": "echo \"==== start EcmaScript Module mocha tests on node $( node --version )\" &&\n  npm run testCompiled &&\n  echo \"==== Successfully finished EcmaScript Module mocha tests on node $( node --version )\"",
     "// pretestCjsInsideDocker": "rm -rf node_modules docs build package-lock.json && echo \"==== start npm install (using node $( node --version ) and npm $( npm --version ))\" && npm install --foreground-scripts=true",
     "testCjsInsideDocker": "echo \"==== start CommonJS mocha tests on node $( node --version )\" &&  \n  npm run testCjsCompiled &&\n  echo \"==== Successfully finished CommonJS mocha tests on node $( node --version )\"",
-    "testOnDocker": "testOnDocker() { local NODEVERSIONS=$@; if [ \"$NODEVERSIONS\" = \"\" ]; then echo 'Error: pass node versions as argument'; exit 1; fi\n ( cd $( npm prefix )/test && ( docker compose down --rmi=local --remove-orphans || true ) && for NODEVERSION in $NODEVERSIONS; do echo && echo \"======== Running tests on node ${NODEVERSION} ========\" && echo; docker compose run itr8node${NODEVERSION}tests; EXITCODE=$?; echo; if [ ${EXITCODE} -eq 0 ]; then echo \"======== Tests on node ${NODEVERSION} were successful ========\"; else echo \"======== Tests on node ${NODEVERSION} FAILED with exit code $EXITCODE ========\"; echo; exit $EXITCODE; fi; done; ) }\n testOnDocker",
+    "testOnDocker": "testOnDocker() {\n    NODEVERSIONS=$@;\n    if [ \"$NODEVERSIONS\" = \"\" ]; then\n        echo 'Error: pass node versions as argument';\n        exit 1;\n    fi\n    (\n        cd $( npm prefix )/test &&\n        ( docker compose down --rmi=local --remove-orphans || true ) &&\n        for NODEVERSION in $NODEVERSIONS; do\n            echo && echo \"======== Running tests on node ${NODEVERSION} ========\" && echo;\n            docker compose run itr8node${NODEVERSION}tests;\n            EXITCODE=$?;\n            echo;\n            if [ ${EXITCODE} -eq 0 ]; then\n                echo \"======== Tests on node ${NODEVERSION} were successful ========\";\n            else\n                echo \"======== Tests on node ${NODEVERSION} FAILED with exit code $EXITCODE ========\";\n                echo;\n                exit $EXITCODE;\n            fi;\n        done;\n    )\n}\ntestOnDocker",
     "prettier:fix": "npx prettier --write .",
     "prettier:check": "npx prettier --check .",
     "// to 'release' things, we need to use npm version": "npm version patch || npm version minor || npm version major",
@@ -80,7 +80,7 @@
   "homepage": "https://mrft.github.io/itr8",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mrft/itr8.git"
+    "url": "git+https://github.com/mrft/itr8.git"
   },
   "bugs": {
     "url": "https://github.com/mrft/itr8/issues"
