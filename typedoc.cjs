@@ -16,7 +16,14 @@ module.exports = {
   pluginPages: {
     pages: [
       {
-        title: "Roadmap",
+        name: "Change Log",
+        source: "./CHANGELOG.md",
+        // children: [
+        //   { title: 'Configuration', source: 'configuration.md' },
+        // ],
+      },
+      {
+        name: "Roadmap",
         source: "./ROADMAP.md",
         // children: [
         //   { title: 'Configuration', source: 'configuration.md' },
