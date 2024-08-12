@@ -8,7 +8,7 @@ import { powerMap } from "./powerMap.js";
  *
  * @category operators/general
  */
-const tap = <TIn>(tapFn: (TIn) => void) =>
+const tap = <TIn>(tapFn: (value: TIn) => void) =>
   powerMap<TIn, TIn, void>(
     (nextIn, _state) => {
       if (nextIn.done) {
