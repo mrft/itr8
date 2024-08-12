@@ -1,11 +1,17 @@
 import { assert } from "chai";
 import FakeTimers from "@sinonjs/fake-timers";
-import { itr8Pushable, itr8ToArray, pipe } from "../../index.js";
+import {
+  itr8FromIterable,
+  itr8Pushable,
+  itr8ToArray,
+  map,
+  pipe,
+} from "../../index.js";
 import { sleep } from "../../testUtils/index.js";
 import { throttle } from "./throttle.js";
 
 describe("operators/timeBased/throttle.ts", () => {
-  it("throttle(...) operator works properly", async () => {
+  it("throttle(...) operator works properly without second argument", async () => {
     const clock = FakeTimers.install(); // don't forget to uninstall the clock in a finally block !
     try {
       const pushIt = itr8Pushable();
@@ -37,5 +43,28 @@ describe("operators/timeBased/throttle.ts", () => {
     } finally {
       clock.uninstall();
     }
+  });
+
+  it("throttle(...) operator works properly with second argument", () => {
+    const valueTimestampTuples = [
+      [1, 0],
+      [2, 5],
+      [3, 5],
+      [4, 20],
+      [5, 25],
+      [6, 30],
+      [7, 40],
+      [8, 45],
+    ];
+
+    const result = pipe(
+      itr8FromIterable(valueTimestampTuples),
+      throttle(15, ([_v, ts]) => ts),
+      map(([v, _ts]) => v),
+      itr8ToArray,
+    );
+
+    // and then run the assertions
+    assert.deepEqual(result, [1, 4, 7]);
   });
 });
