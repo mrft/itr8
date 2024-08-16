@@ -18,7 +18,7 @@ const filter = <TIn>(filterFn: (v: TIn) => boolean | Promise<boolean>) => {
   ): TNextFnResult<TIn, void> | Promise<TNextFnResult<TIn, void>> {
     const f = (filterFnResult, nextIn: IteratorResult<TIn, TIn>) => {
       if (filterFnResult) {
-        return { done: false, value: nextIn.value } as const;
+        return nextIn as TNextFnResult<TIn, void>;
       } else {
         return { done: false } as const;
       }
