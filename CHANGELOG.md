@@ -23,10 +23,10 @@ cfr. [keepachangelog.com](https://keepachangelog.com/en/1.1.0/)
 
 ### Security
 
-
 ## version 0.4.8 (2024-08-08)
 
 ### Added
+
 - a getTimestamp(value) function argument to both the 'debounce' and the 'throttle' operators,
   so the timestamps can be 'prerecorded' inside the values
 - a CHANGELOG.md file to track notable changes
@@ -54,4 +54,4 @@ cfr. [keepachangelog.com](https://keepachangelog.com/en/1.1.0/)
   - removed a (performance related) test that was failing on github workflow node 18
   - Updated ts-node + formatting fixes
   - Upgraded sinon from 15 to 1`
-  - package.json: improved ```npm run gitDiff``` to allow comparing with another branch
+  - package.json: improved `npm run gitDiff` to allow comparing with another branch

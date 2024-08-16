@@ -1,7 +1,4 @@
-import { pipe } from "../../util/index.js";
 import { TTransIteratorSyncOrAsync } from "../../types.js";
-import { map } from "./map.js";
-import { isPromise } from "../../util/index.js";
 
 /**
  * This operator returns the same iterator, but makes sure it
