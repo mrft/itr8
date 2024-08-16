@@ -14,6 +14,8 @@ import {
 } from "./index.js";
 import { hrtime } from "process";
 
+import * as operators from "./operators/index.js"; // import all operators
+
 /**
  * A function that will produce a readable NodeJS stream based on an
  * array, where a new item will be pushed every 10ms.
@@ -245,4 +247,17 @@ describe("itr8 test suite", () => {
       }).timeout(8_000);
     });
   });
+
+  // describe("Tests that should hold true for all operators", () => {
+  //   for (const opName of Object.getOwnPropertyNames(operators)) {
+  //     it(`the ${opName} operator should be passive`, () => {
+  //       const op = (operators as any)[opName];
+  //       const input = itr8Range(0, 5);
+  //       assert.deepEqual(input.next().value, 0);
+  //       // const it = pipe(input, op()) as Iterator<unknown>;
+  //       // assert.deepEqual(input.next().value, 1);
+  //       // it.next();
+  //     });
+  //   }
+  // });
 });
