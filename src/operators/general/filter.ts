@@ -1,5 +1,5 @@
 import { TNextFnResult } from "../../types.js";
-import { isPromise } from "../../util/index.js";
+import { createSelfReplacingFunction, isPromise } from "../../util/index.js";
 import { powerMap } from "./powerMap.js";
 
 /**
@@ -33,14 +33,29 @@ const filter = <TIn>(filterFn: (v: TIn) => boolean | Promise<boolean>) => {
     return generateNextFnResultFromFilterFnResult(firstFilterFnResult, nextIn);
   };
 
+  const generateNextFnResultFromFilterFnResultContainer =
+    createSelfReplacingFunction(
+      (filterFnResult, nextIn: IteratorResult<TIn, TIn>) => {
+        if (filterFnResult) {
+          return nextIn as TNextFnResult<TIn, void>;
+        } else {
+          return { done: false } as const;
+        }
+      },
+    );
+
   return powerMap<TIn, TIn, void>(
     (nextIn, _state) => {
       if (nextIn.done) return { done: true };
 
-      return generateNextFnResultFromFilterFnResult(
+      return generateNextFnResultFromFilterFnResultContainer.call(
         filterFn(nextIn.value),
         nextIn,
       );
+      // return generateNextFnResultFromFilterFnResult(
+      //   filterFn(nextIn.value),
+      //   nextIn,
+      // );
 
       // OLD: thenable is simple to use, but not performant
       // return thenable(filterFn(nextIn.value)).then((result) => {

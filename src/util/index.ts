@@ -419,6 +419,58 @@ const forLoop = <State>(
   });
 };
 
+/**
+ * Another attempt to make optimization easier, while trying to avoid code duplication.
+ *
+ * We have created manual optimizations in the past, where a function would be replaced
+ * by another version once we found out whether the input was a promise or not.
+ *
+ * Here I have tried to create a function that will simplify this process.
+ *
+ * @example
+ * ```typescript
+ * const plusOne = (v) => v + 1;
+ * const fnContainer = createSelfReplacingFunction(plusOne);
+ *
+ * fnContainer.func(1); // 2, and the second call will be faster because by now fnContainer.func has been replaced by fnToApply
+ * fnContainer.func(2); // 3, without any isPromise checks
+ *
+ * const fnContainer2 = createSelfReplacingFunction(plusOne);
+ * fnContainer2.func(Promise.resolve(1)); // Promise<2>, and the second call will be faster because by now fnContainer2.func has been replaced by (promise) => promise.then(plusOne)
+ * fnContainer2.func(Promise.resolve(2)); // Promise<3>, without any isPromise checks
+ * ```
+ *
+ * The reason this actually makes a difference is because we avoid the isPromise check,
+ * but mainly because we avoid a few function calls that isPromise would require.
+ * This is a huge difference with 'thenable', that would add an extra function call
+ * even in the synchronous case.
+ *
+ * This makes sense in the world of iterators, where the first call will determine
+ * the nature of the rest of the calls.
+ *
+ * @param fnToApply the first argument of this function should be the possible promise
+ * @returns
+ */
+function createSelfReplacingFunction(
+  fnToApply: (
+    possiblePromise: unknown | Promise<unknown>,
+    ...otherArgs: unknown[]
+  ) => unknown,
+) {
+  let container = {
+    call: (possiblePromise, ...otherArgs) => {
+      if (isPromise(possiblePromise)) {
+        container.call = (promise, ...otherArgs) =>
+          promise.then((promiseVal) => fnToApply(promiseVal, ...otherArgs));
+      } else {
+        container.call = fnToApply;
+      }
+      return container.call(possiblePromise, ...otherArgs);
+    },
+  };
+  return container;
+}
+
 // /**
 //  * A more generic pipe function that takes multiple functions as input
 //  * and outputs a single function where input = input of the first function
@@ -709,5 +761,6 @@ export {
   doAfter,
   doAfterFactory,
   forLoop,
+  createSelfReplacingFunction,
   // itr8OperatorFactory,
 };

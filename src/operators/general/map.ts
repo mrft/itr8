@@ -67,13 +67,18 @@ const map = <TIn, TOut>(mapFn: (v: TIn) => TOut | Promise<TOut>) => {
   //   () => undefined,
   // );
 
-  const transIt: TTransIteratorSyncOrAsync<TIn, TOut> = (inputIterator: Iterator<TIn> | AsyncIterator<TIn>) => {
-    const asyncNext = () => (inputIterator as AsyncIterator<TIn>).next().then((nextIn2) => {
-      if (nextIn2.done) {
-        return nextIn2;
-      }
-      return returnIteratorResult(mapFn(nextIn2.value)) as Promise<IteratorResult<TOut>>;
-    });
+  const transIt: TTransIteratorSyncOrAsync<TIn, TOut> = (
+    inputIterator: Iterator<TIn> | AsyncIterator<TIn>,
+  ) => {
+    const asyncNext = () =>
+      (inputIterator as AsyncIterator<TIn>).next().then((nextIn2) => {
+        if (nextIn2.done) {
+          return nextIn2;
+        }
+        return returnIteratorResult(mapFn(nextIn2.value)) as Promise<
+          IteratorResult<TOut>
+        >;
+      });
 
     const syncNext = () => {
       const nextIn = (inputIterator as Iterator<TIn>).next();
@@ -96,7 +101,9 @@ const map = <TIn, TOut>(mapFn: (v: TIn) => TOut | Promise<TOut>) => {
             if (nextIn2.done) {
               return nextIn2;
             }
-            return returnIteratorResult(mapFn(nextIn2.value)) as IteratorResult<TOut>;
+            return returnIteratorResult(
+              mapFn(nextIn2.value),
+            ) as IteratorResult<TOut>;
           });
         } else {
           retVal.next = syncNext;
