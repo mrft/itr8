@@ -1,4 +1,4 @@
-import { isPromise } from "../../util/index.js";
+import { createSelfReplacingFunction, isPromise } from "../../util/index.js";
 import { powerMap } from "./powerMap.js";
 import { TNextFnResult, TTransIteratorSyncOrAsync } from "../../types.js";
 
@@ -37,89 +37,95 @@ const map = <TIn, TOut>(mapFn: (v: TIn) => TOut | Promise<TOut>) => {
     return returnIteratorResult(mapFnResult);
   };
 
-  // return powerMap<TIn, TOut, void>(
-  //   (nextIn, _state) => {
-  //     if (nextIn.done) {
-  //       return { done: true };
-  //     } else {
-  //       return returnIteratorResult(mapFn(nextIn.value));
-  //       // return thenable(mapFn(nextIn.value)).then((value) => ({
-  //       //   done: false,
-  //       //   value,
-  //       // })).src; // return the 'raw' value or promise, not the 'wrapped' version
+  const returnIteratorResultContainer = createSelfReplacingFunction(
+    returnIteratorResultSync,
+  );
 
-  //       // const nextValOrPromise = mapFn(nextIn.value);
-  //       // if (isPromise(nextValOrPromise)) {
-  //       //   return (async () => {
-  //       //     return {
-  //       //       done: false,
-  //       //       value: await nextValOrPromise,
-  //       //     }
-  //       //   })();
-  //       // } else {
-  //       //   return {
-  //       //     done: false,
-  //       //     value: nextValOrPromise,
-  //       //   }
-  //       // }
-  //     }
-  //   },
-  //   () => undefined,
-  // );
-
-  const transIt: TTransIteratorSyncOrAsync<TIn, TOut> = (
-    inputIterator: Iterator<TIn> | AsyncIterator<TIn>,
-  ) => {
-    const asyncNext = () =>
-      (inputIterator as AsyncIterator<TIn>).next().then((nextIn2) => {
-        if (nextIn2.done) {
-          return nextIn2;
-        }
-        return returnIteratorResult(mapFn(nextIn2.value)) as Promise<
-          IteratorResult<TOut>
-        >;
-      });
-
-    const syncNext = () => {
-      const nextIn = (inputIterator as Iterator<TIn>).next();
+  return powerMap<TIn, TOut, void>(
+    (nextIn, _state) => {
       if (nextIn.done) {
-        return nextIn;
+        return { done: true };
+      } else {
+        return returnIteratorResultContainer.call(mapFn(nextIn.value));
+        // return returnIteratorResult(mapFn(nextIn.value));
+        // return thenable(mapFn(nextIn.value)).then((value) => ({
+        //   done: false,
+        //   value,
+        // })).src; // return the 'raw' value or promise, not the 'wrapped' version
+
+        // const nextValOrPromise = mapFn(nextIn.value);
+        // if (isPromise(nextValOrPromise)) {
+        //   return (async () => {
+        //     return {
+        //       done: false,
+        //       value: await nextValOrPromise,
+        //     }
+        //   })();
+        // } else {
+        //   return {
+        //     done: false,
+        //     value: nextValOrPromise,
+        //   }
+        // }
       }
-      return returnIteratorResult(mapFn(nextIn.value));
-      // const mapFnResult = mapFn(nextIn.value);
-      // return (mapFnResult as any).then ? (mapFnResult as Promise<TOut>).then((value) => ({ value, done: false })) as Promise<IteratorResult<TOut>> : { value: mapFnResult, done: false } as IteratorResult<TOut>;
-    };
+    },
+    () => undefined,
+  );
 
-    const retVal = {
-      [Symbol.asyncIterator]: () => retVal,
-      [Symbol.iterator]: () => retVal,
-      next: () => {
-        const nextIn = inputIterator.next();
-        if (isPromise(nextIn)) {
-          retVal.next = asyncNext;
-          return nextIn.then((nextIn2) => {
-            if (nextIn2.done) {
-              return nextIn2;
-            }
-            return returnIteratorResult(
-              mapFn(nextIn2.value),
-            ) as IteratorResult<TOut>;
-          });
-        } else {
-          retVal.next = syncNext;
-          if (nextIn.done) {
-            return nextIn;
-          }
-          return returnIteratorResult(mapFn(nextIn.value));
-          // const mapFnResult = mapFn(nextIn.value);
-          // return (mapFnResult as any).then ? (mapFnResult as Promise<TOut>).then((value) => ({ value, done: false })) as Promise<IteratorResult<TOut>> : { value: mapFnResult, done: false } as IteratorResult<TOut>;
-        }
-      },
-    };
-    return retVal as unknown as IterableIterator<TOut>;
-  };
+  /// WITH THIS VERSION, THE TESTS FAIL (not the tests about map itself, but some other tests)
+  // const transIt: TTransIteratorSyncOrAsync<TIn, TOut> = (
+  //   inputIterator: Iterator<TIn> | AsyncIterator<TIn>,
+  // ) => {
+  //   const asyncNext = () =>
+  //     (inputIterator as AsyncIterator<TIn>).next().then((nextIn2) => {
+  //       if (nextIn2.done) {
+  //         return nextIn2;
+  //       }
+  //       return returnIteratorResult(mapFn(nextIn2.value)) as Promise<
+  //         IteratorResult<TOut>
+  //       >;
+  //     });
 
-  return transIt;
+  //   const syncNext = () => {
+  //     const nextIn = (inputIterator as Iterator<TIn>).next();
+  //     if (nextIn.done) {
+  //       return nextIn;
+  //     }
+  //     return returnIteratorResult(mapFn(nextIn.value));
+  //     // const mapFnResult = mapFn(nextIn.value);
+  //     // return (mapFnResult as any).then ? (mapFnResult as Promise<TOut>).then((value) => ({ value, done: false })) as Promise<IteratorResult<TOut>> : { value: mapFnResult, done: false } as IteratorResult<TOut>;
+  //   };
+
+  //   const retVal = {
+  //     [Symbol.asyncIterator]: () => retVal,
+  //     [Symbol.iterator]: () => retVal,
+  //     next: () => {
+  //       const nextIn = inputIterator.next();
+  //       if (isPromise(nextIn)) {
+  //         retVal.next = asyncNext;
+  //         return nextIn.then((nextIn2) => {
+  //           if (nextIn2.done) {
+  //             return nextIn2;
+  //           }
+  //           return returnIteratorResult(
+  //             mapFn(nextIn2.value),
+  //           ) as IteratorResult<TOut>;
+  //         });
+  //       } else {
+  //         retVal.next = syncNext;
+  //         if (nextIn.done) {
+  //           return nextIn;
+  //         }
+  //         return returnIteratorResult(mapFn(nextIn.value));
+  //         // const mapFnResult = mapFn(nextIn.value);
+  //         // return (mapFnResult as any).then ? (mapFnResult as Promise<TOut>).then((value) => ({ value, done: false })) as Promise<IteratorResult<TOut>> : { value: mapFnResult, done: false } as IteratorResult<TOut>;
+  //       }
+  //     },
+  //   };
+  //   return retVal as unknown as IterableIterator<TOut>;
+  // };
+  //
+  // return transIt;
 };
 
 export { map };
