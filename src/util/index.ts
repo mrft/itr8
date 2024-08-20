@@ -385,7 +385,7 @@ const forLoop = <State>(
                   // from a string and some clever guy found a way to create an AsyncFunction
                   // equivalent of that!
                   // So using isSyncInit, isSyncTest, isSyncBody, isSyncAfterBody to decide
-                  // whether a value shouldbe awaited, we can solve it like this
+                  // whether a value should be awaited, we can solve it like this
                   return new AsyncFunction(
                     "firstStateAfterEach",
                     "testBeforeEach",
@@ -446,7 +446,7 @@ const forLoop = <State>(
  * even in the synchronous case.
  *
  * This makes sense in the world of iterators, where the first call will determine
- * the nature of the rest of the calls.
+ * the nature of the rest of the calls (synchronous or asynchronous).
  *
  * @param fnToApply the first argument of this function should be the possible promise
  * @returns
@@ -469,6 +469,39 @@ function createSelfReplacingFunction(
     },
   };
   return container;
+}
+
+/**
+ * Let us try another way to optimize the code.
+ *
+ * What if we could create the synchronous version of the function, and tell which calls inside
+ * that function could potentially be asynchronous.
+ *
+ * Then we could create a function that would rewrite the function's code to include the necessary
+ * await keywords. I guess this would cause problems when the function is minified, because then
+ * names could be changed. If we pass in the function c
+ *
+ * ```typescript
+ * function plusOne(value) { return value + 1; }
+ * // => could be minified as
+ * function plusOne(a){return a+1;}
+ * // which would be hard to alter into 'await a' when we use 'value' as the function name
+ * ```
+ *
+ * @example
+ * ```typescript
+ * const retVal.next = () => {
+ *  retVal.value)) {
+ * }
+ * ```
+ *
+ * @param fn
+ * @returns
+ */
+function syncFunctionToAsyncFunction<A, B>(
+  fn: (a: A) => B,
+): (a: A) => Promise<B> {
+  return (a: A) => Promise.resolve(fn(a));
 }
 
 // /**

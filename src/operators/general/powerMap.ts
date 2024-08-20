@@ -142,6 +142,10 @@ const powerMap = function <TIn = unknown, TOut = unknown, TState = void>(
             isPromise(possibleNextValueOrPromise)
           ) {
             isAsyncCurrentOutputIterator = true;
+            // this should work and avoid an if
+            // retVal.next = generateNextReturnValAsync as () => Promise<
+            //   IteratorResult<TOut>
+            // >;
             return generateNextReturnValAsync(
               true,
               undefined,
