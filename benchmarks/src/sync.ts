@@ -13,10 +13,10 @@ for (let i = 0; i < maxItems; i++) {
 
 (async function testSync() {
   const result = {
-    ...(await testArray(input)),
+    // ...(await testArray(input)),
     ...(await testIterOps(input)),
-    ...(await testRXJS(input)),
-    ...(await testRXJS(input, true)),
+    // ...(await testRXJS(input)),
+    // ...(await testRXJS(input, true)),
     ...(await testItr8(input)),
   };
   console.log(`Synchronous test for ${maxItems.toExponential()} items:`);

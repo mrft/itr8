@@ -1,0 +1,373 @@
+{
+  "_": ["./src/sync.js"],
+  "open": false,
+  "o": false,
+  "version": false,
+  "v": false,
+  "help": false,
+  "h": false,
+  "quiet": false,
+  "q": false,
+  "silent": false,
+  "s": false,
+  "treeDebug": false,
+  "tree-debug": false,
+  "kernelTracingDebug": false,
+  "kernel-tracing-debug": false,
+  "kernelTracing": false,
+  "kernel-tracing": false,
+  "collectOnly": false,
+  "collect-only": false,
+  "writeTicks": false,
+  "write-ticks": false,
+  "--": [],
+  "workingDir": "/home/frederik/workspace_personal/itr8/benchmarks",
+  "argv": ["./src/sync.js"],
+  "pathToNodeBinary": "/home/frederik/.asdf/installs/nodejs/22.6.0/bin/node",
+  "name": "flamegraph",
+  "collectDelay": 0,
+  "title": "node ./src/sync.js",
+  "pid": 1377396,
+  "inlined": {
+    "isPosixPathSeparator node:path": [
+      {
+        "file": "node:path",
+        "fn": "isPosixPathSeparator",
+        "id": "5",
+        "ix": "0",
+        "pos": "1978",
+        "caller": {
+          "file": "node:path",
+          "fn": "normalizeString",
+          "id": "5",
+          "ix": "-1",
+          "pos": "2285",
+          "key": "normalizeString node:path"
+        }
+      },
+      {
+        "file": "node:path",
+        "fn": "isPosixPathSeparator",
+        "id": "5",
+        "ix": "0",
+        "pos": "1978",
+        "caller": {
+          "file": "node:path",
+          "fn": "normalizeString",
+          "id": "5",
+          "ix": "-1",
+          "pos": "2285",
+          "key": "normalizeString node:path"
+        }
+      }
+    ],
+    "next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js": [
+      {
+        "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+        "fn": "next",
+        "id": "20",
+        "ix": "1",
+        "pos": "33579",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+          "fn": "next",
+          "id": "20",
+          "ix": "-1",
+          "pos": "48317",
+          "key": "next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+        "fn": "next",
+        "id": "20",
+        "ix": "3",
+        "pos": "3560",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+          "fn": "next",
+          "id": "20",
+          "ix": "-1",
+          "pos": "48317",
+          "key": "next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+        "fn": "next",
+        "id": "22",
+        "ix": "0",
+        "pos": "48317",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+          "fn": "next",
+          "id": "22",
+          "ix": "-1",
+          "pos": "92576",
+          "key": "next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+        "fn": "next",
+        "id": "22",
+        "ix": "2",
+        "pos": "33579",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+          "fn": "next",
+          "id": "22",
+          "ix": "-1",
+          "pos": "92576",
+          "key": "next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+        "fn": "next",
+        "id": "22",
+        "ix": "4",
+        "pos": "3560",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+          "fn": "next",
+          "id": "22",
+          "ix": "-1",
+          "pos": "92576",
+          "key": "next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+        "fn": "next",
+        "id": "24",
+        "ix": "1",
+        "pos": "3560",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+          "fn": "next",
+          "id": "24",
+          "ix": "-1",
+          "pos": "33579",
+          "key": "next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+        "fn": "next",
+        "id": "27",
+        "ix": "0",
+        "pos": "48317",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+          "fn": "next",
+          "id": "27",
+          "ix": "-1",
+          "pos": "92576",
+          "key": "next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+        "fn": "next",
+        "id": "27",
+        "ix": "2",
+        "pos": "33579",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+          "fn": "next",
+          "id": "27",
+          "ix": "-1",
+          "pos": "92576",
+          "key": "next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+        "fn": "next",
+        "id": "27",
+        "ix": "4",
+        "pos": "3560",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js",
+          "fn": "next",
+          "id": "27",
+          "ix": "-1",
+          "pos": "92576",
+          "key": "next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js"
+        }
+      }
+    ],
+    "generateNextReturnValSync /home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js": [
+      {
+        "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js",
+        "fn": "generateNextReturnValSync",
+        "id": "36",
+        "ix": "0",
+        "pos": "43743",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js",
+          "fn": "itr8ToArray",
+          "id": "36",
+          "ix": "-1",
+          "pos": "293",
+          "key": "itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js",
+        "fn": "generateNextReturnValSync",
+        "id": "39",
+        "ix": "0",
+        "pos": "43743",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js",
+          "fn": "itr8ToArray",
+          "id": "39",
+          "ix": "-1",
+          "pos": "293",
+          "key": "itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js"
+        }
+      }
+    ],
+    "returnIteratorResultSync /home/frederik/workspace_personal/itr8/dist/cjs/operators/general/map.js": [
+      {
+        "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/map.js",
+        "fn": "returnIteratorResultSync",
+        "id": "36",
+        "ix": "3",
+        "pos": "570",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js",
+          "fn": "itr8ToArray",
+          "id": "36",
+          "ix": "-1",
+          "pos": "293",
+          "key": "itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/map.js",
+        "fn": "returnIteratorResultSync",
+        "id": "37",
+        "ix": "2",
+        "pos": "570",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js",
+          "fn": "generateNextReturnValSync",
+          "id": "37",
+          "ix": "-1",
+          "pos": "43743",
+          "key": "generateNextReturnValSync /home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/map.js",
+        "fn": "returnIteratorResultSync",
+        "id": "41",
+        "ix": "1",
+        "pos": "570",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/map.js",
+          "fn": "(anonymous)",
+          "id": "41",
+          "ix": "-1",
+          "pos": "1228",
+          "key": "(anonymous) /home/frederik/workspace_personal/itr8/dist/cjs/operators/general/map.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/map.js",
+        "fn": "returnIteratorResultSync",
+        "id": "39",
+        "ix": "3",
+        "pos": "570",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js",
+          "fn": "itr8ToArray",
+          "id": "39",
+          "ix": "-1",
+          "pos": "293",
+          "key": "itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/map.js",
+        "fn": "returnIteratorResultSync",
+        "id": "43",
+        "ix": "2",
+        "pos": "570",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js",
+          "fn": "generateNextReturnValSync",
+          "id": "43",
+          "ix": "-1",
+          "pos": "43743",
+          "key": "generateNextReturnValSync /home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js"
+        }
+      }
+    ],
+    "retVal.next /home/frederik/workspace_personal/itr8/dist/cjs/operators/general/filter.js": [
+      {
+        "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/filter.js",
+        "fn": "retVal.next",
+        "id": "36",
+        "ix": "4",
+        "pos": "5956",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js",
+          "fn": "itr8ToArray",
+          "id": "36",
+          "ix": "-1",
+          "pos": "293",
+          "key": "itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/filter.js",
+        "fn": "retVal.next",
+        "id": "37",
+        "ix": "3",
+        "pos": "5956",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js",
+          "fn": "generateNextReturnValSync",
+          "id": "37",
+          "ix": "-1",
+          "pos": "43743",
+          "key": "generateNextReturnValSync /home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/filter.js",
+        "fn": "retVal.next",
+        "id": "39",
+        "ix": "4",
+        "pos": "5956",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js",
+          "fn": "itr8ToArray",
+          "id": "39",
+          "ix": "-1",
+          "pos": "293",
+          "key": "itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js"
+        }
+      },
+      {
+        "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/filter.js",
+        "fn": "retVal.next",
+        "id": "43",
+        "ix": "3",
+        "pos": "5956",
+        "caller": {
+          "file": "/home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js",
+          "fn": "generateNextReturnValSync",
+          "id": "43",
+          "ix": "-1",
+          "pos": "43743",
+          "key": "generateNextReturnValSync /home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js"
+        }
+      }
+    ]
+  }
+}

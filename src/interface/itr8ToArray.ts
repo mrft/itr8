@@ -22,7 +22,6 @@ function itr8ToArray<T>(
       return asyncResult;
     })();
   } else {
-    // return Array.from(iterator);
     const result: T[] = [];
     for (
       let nSync = n as IteratorResult<T>;
@@ -31,6 +30,21 @@ function itr8ToArray<T>(
     ) {
       result.push(nSync.value);
     }
+
+    // const iterable: IterableIterator<T> = {
+    //   [Symbol.iterator]: () => iterable,
+    //   next: () => {
+    //     iterable.next = iterator.next() as unknown as () => IteratorResult<T>;
+    //     return n as IteratorResult<T>;
+    //   },
+    // };
+    // return Array.from(iterable);
+
+    // result.push(n.value);
+    // while (!(n = iterator.next() as IteratorResult<T>).done) {
+    //     result.push(n.value);
+    // }
+
     // let nSync = n as IteratorResult<T>;
     // while (!nSync.done) {
     //   result.push(nSync.value);

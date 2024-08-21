@@ -1,0 +1,286 @@
+Statistical profiling result from isolate-0x8221000-1377396-1377396-v8.log, (513 ticks, 207 unaccounted, 0 excluded).
+
+ [Shared libraries]:
+   ticks  total  nonlib   name
+     36    7.0%          /usr/lib/x86_64-linux-gnu/libc.so.6
+
+ [JavaScript]:
+   ticks  total  nonlib   name
+     93   18.1%   19.5%  JS: *itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js:13:21
+     55   10.7%   11.5%  JS: *next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:2804:21
+     15    2.9%    3.1%  Builtin: ArrayIteratorPrototypeNext
+      6    1.2%    1.3%  JS: *<anonymous> /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:1:1
+      2    0.4%    0.4%  JS: +generateNextReturnValSync /home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js:849:43
+      1    0.2%    0.2%  JS: +next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:2804:21
+      1    0.2%    0.2%  JS: +next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:1082:21
+      1    0.2%    0.2%  JS: +<anonymous> /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:1:1
+      1    0.2%    0.2%  Builtin: Call_ReceiverIsNotNullOrUndefined_Baseline_Compact
+      1    0.2%    0.2%  Builtin: CallWithArrayLike
+      1    0.2%    0.2%  Builtin: ArrayPrototypePush
+
+ [C++]:
+   ticks  total  nonlib   name
+     61   11.9%   12.8%  __write@@GLIBC_2.2.5
+      8    1.6%    1.7%  _IO_fwrite@@GLIBC_2.2.5
+      4    0.8%    0.8%  std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, long)@@GLIBCXX_3.4.9
+      4    0.8%    0.8%  _IO_file_xsputn@@GLIBC_2.2.5
+      3    0.6%    0.6%  std::ostream& std::ostream::_M_insert<long>(long)@@GLIBCXX_3.4.9
+      3    0.6%    0.6%  __mmap@@GLIBC_PRIVATE
+      2    0.4%    0.4%  pthread_cond_signal@@GLIBC_2.3.2
+      1    0.2%    0.2%  syscall@@GLIBC_2.2.5
+      1    0.2%    0.2%  std::ostream::sentry::sentry(std::ostream&)@@GLIBCXX_3.4
+      1    0.2%    0.2%  __read@@GLIBC_2.2.5
+      1    0.2%    0.2%  __pthread_mutex_lock@GLIBC_2.2.5
+      1    0.2%    0.2%  __mprotect@@GLIBC_PRIVATE
+      1    0.2%    0.2%  __madvise@@GLIBC_PRIVATE
+      1    0.2%    0.2%  __lll_lock_wake_private@@GLIBC_PRIVATE
+      1    0.2%    0.2%  __libc_free@@GLIBC_2.2.5
+
+ [Summary]:
+   ticks  total  nonlib   name
+    177   34.5%   37.1%  JavaScript
+     93   18.1%   19.5%  C++
+    127   24.8%   26.6%  GC
+     36    7.0%          Shared libraries
+    207   40.4%          Unaccounted
+
+ [C++ entry points]:
+   ticks    cpp   total   name
+     30   55.6%    5.8%  __write@@GLIBC_2.2.5
+      8   14.8%    1.6%  _IO_fwrite@@GLIBC_2.2.5
+      4    7.4%    0.8%  std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, long)@@GLIBCXX_3.4.9
+      4    7.4%    0.8%  _IO_file_xsputn@@GLIBC_2.2.5
+      3    5.6%    0.6%  std::ostream& std::ostream::_M_insert<long>(long)@@GLIBCXX_3.4.9
+      1    1.9%    0.2%  syscall@@GLIBC_2.2.5
+      1    1.9%    0.2%  std::ostream::sentry::sentry(std::ostream&)@@GLIBCXX_3.4
+      1    1.9%    0.2%  pthread_cond_signal@@GLIBC_2.3.2
+      1    1.9%    0.2%  __read@@GLIBC_2.2.5
+      1    1.9%    0.2%  __pthread_mutex_lock@GLIBC_2.2.5
+
+ [Bottom up (heavy) profile]:
+  Note: percentage shows a share of a particular caller in the total
+  amount of its parent calls.
+  Callers occupying less than 1.0% are not shown.
+
+   ticks parent  name
+    207   40.4%  UNKNOWN
+     49   23.7%    JS: *<anonymous> /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:1:1
+     49  100.0%      JS: ~Module._compile node:internal/modules/cjs/loader:1486:37
+     49  100.0%        JS: ~Module._extensions..js node:internal/modules/cjs/loader:1650:37
+     49  100.0%          JS: ~Module.load node:internal/modules/cjs/loader:1298:33
+     49  100.0%            JS: ~Module._load node:internal/modules/cjs/loader:1039:24
+     25   12.1%    JS: *itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js:13:21
+     25  100.0%      JS: ~<anonymous> /home/frederik/workspace_personal/itr8/dist/cjs/util/index.js:481:20
+     25  100.0%        JS: ~pipe /home/frederik/workspace_personal/itr8/dist/cjs/util/index.js:475:14
+     25  100.0%          JS: ~testItr8 /home/frederik/workspace_personal/itr8/benchmarks/src/tests/itr8.js:5:24
+     25  100.0%            JS: ~testSync /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:11:25
+     19    9.2%    JS: *next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:2804:21
+     19  100.0%      JS: ~get /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:489:46
+     19  100.0%        JS: ~testIterOps /home/frederik/workspace_personal/itr8/benchmarks/src/tests/iter-ops.js:5:27
+     19  100.0%          JS: ~testSync /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:11:25
+     19  100.0%            JS: ~<anonymous> /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:1:1
+     12    5.8%    JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+     12  100.0%      JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      3   25.0%        JS: ~<anonymous> node:internal/child_process:1:1
+      3  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      3  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      2   16.7%        JS: ~resolveExports node:internal/modules/cjs/loader:629:24
+      2  100.0%          JS: ~Module._findPath node:internal/modules/cjs/loader:689:28
+      2  100.0%            JS: ~Module._resolveFilename node:internal/modules/cjs/loader:1162:35
+      1    8.3%        JS: ~table node:internal/console/constructor:504:8
+      1  100.0%          Builtin: CallApiCallbackGeneric
+      1  100.0%            JS: ~testSync /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:11:25
+      1    8.3%        JS: ~lazyUtilColors node:internal/console/constructor:75:24
+      1  100.0%          JS: ~value node:internal/console/constructor:316:20
+      1  100.0%            JS: ~value node:internal/console/constructor:336:20
+      1    8.3%        JS: ~<anonymous> node:worker_threads:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ~compileForPublicLoader node:internal/bootstrap/realm:332:25
+      1    8.3%        JS: ~<anonymous> node:internal/streams/operators:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1    8.3%        JS: ~<anonymous> node:internal/streams/end-of-stream:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1    8.3%        JS: ~<anonymous> node:internal/streams/duplex:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1    8.3%        JS: ~<anonymous> node:internal/perf/observe:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      4    1.9%    JS: ~setupNavigator node:internal/process/pre_execution:342:24
+      4  100.0%      JS: ~prepareExecution node:internal/process/pre_execution:100:26
+      4  100.0%        JS: ~prepareMainThreadExecution node:internal/process/pre_execution:56:36
+      4  100.0%          JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      3    1.4%    JS: ^wrapSafe node:internal/modules/cjs/loader:1437:18
+      3  100.0%      JS: ^Module._compile node:internal/modules/cjs/loader:1486:37
+      3  100.0%        JS: ^Module._extensions..js node:internal/modules/cjs/loader:1650:37
+      3  100.0%          JS: ^Module.load node:internal/modules/cjs/loader:1298:33
+      3  100.0%            JS: ^Module._load node:internal/modules/cjs/loader:1039:24
+
+     93   18.1%  JS: *itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js:13:21
+     93  100.0%    JS: ~<anonymous> /home/frederik/workspace_personal/itr8/dist/cjs/util/index.js:481:20
+     93  100.0%      JS: ~pipe /home/frederik/workspace_personal/itr8/dist/cjs/util/index.js:475:14
+     93  100.0%        JS: ~testItr8 /home/frederik/workspace_personal/itr8/benchmarks/src/tests/itr8.js:5:24
+     93  100.0%          JS: ~testSync /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:11:25
+     93  100.0%            Builtin: AsyncFunctionAwaitResolveClosure
+
+     61   11.9%  __write@@GLIBC_2.2.5
+      9   14.8%    JS: +generateNextReturnValSync /home/frederik/workspace_personal/itr8/dist/cjs/operators/general/powerMap.js:849:43
+      9  100.0%      JS: +itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js:13:21
+      9  100.0%        JS: ~<anonymous> /home/frederik/workspace_personal/itr8/dist/cjs/util/index.js:481:20
+      9  100.0%          JS: ~pipe /home/frederik/workspace_personal/itr8/dist/cjs/util/index.js:475:14
+      9  100.0%            JS: ~testItr8 /home/frederik/workspace_personal/itr8/benchmarks/src/tests/itr8.js:5:24
+      5    8.2%    JS: ^wrapSafe node:internal/modules/cjs/loader:1437:18
+      4   80.0%      JS: ^Module._compile node:internal/modules/cjs/loader:1486:37
+      4  100.0%        JS: ^Module._extensions..js node:internal/modules/cjs/loader:1650:37
+      4  100.0%          JS: ^Module.load node:internal/modules/cjs/loader:1298:33
+      4  100.0%            JS: ^Module._load node:internal/modules/cjs/loader:1039:24
+      1   20.0%      JS: ~Module._compile node:internal/modules/cjs/loader:1486:37
+      1  100.0%        JS: ~Module._extensions..js node:internal/modules/cjs/loader:1650:37
+      1  100.0%          JS: ~Module.load node:internal/modules/cjs/loader:1298:33
+      1  100.0%            JS: ^Module._load node:internal/modules/cjs/loader:1039:24
+      4    6.6%    JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      4  100.0%      JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1   25.0%        JS: ~<anonymous> node:net:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1   25.0%        JS: ~<anonymous> node:internal/worker:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1   25.0%        JS: ~<anonymous> node:internal/streams/pipeline:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1   25.0%        JS: ~<anonymous> node:child_process:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      3    4.9%    JS: *next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:142:21
+      3  100.0%      JS: +next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:2804:21
+      3  100.0%        JS: ~get /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:489:46
+      3  100.0%          JS: ~testIterOps /home/frederik/workspace_personal/itr8/benchmarks/src/tests/iter-ops.js:5:27
+      3  100.0%            JS: ~testSync /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:11:25
+      2    3.3%    JS: ~normalizeString node:path:73:25
+      2  100.0%      JS: ~resolve node:path:1122:10
+      2  100.0%        JS: ~patchProcessObject node:internal/process/pre_execution:226:28
+      2  100.0%          JS: ~prepareExecution node:internal/process/pre_execution:100:26
+      2  100.0%            JS: ~prepareMainThreadExecution node:internal/process/pre_execution:56:36
+      1    1.6%    JS: ~toRealPath node:internal/modules/helpers:51:20
+      1  100.0%      JS: ~tryFile node:internal/modules/cjs/loader:520:17
+      1  100.0%        JS: ~tryExtensions node:internal/modules/cjs/loader:535:23
+      1  100.0%          JS: ~Module._findPath node:internal/modules/cjs/loader:689:28
+      1  100.0%            JS: ~Module._resolveFilename node:internal/modules/cjs/loader:1162:35
+      1    1.6%    JS: ~realpathSync node:fs:2627:22
+      1  100.0%      JS: ~toRealPath node:internal/modules/helpers:51:20
+      1  100.0%        JS: ~tryFile node:internal/modules/cjs/loader:520:17
+      1  100.0%          JS: ~tryExtensions node:internal/modules/cjs/loader:535:23
+      1  100.0%            JS: ~Module._findPath node:internal/modules/cjs/loader:689:28
+      1    1.6%    JS: ~prepareExecution node:internal/process/pre_execution:100:26
+      1  100.0%      JS: ~prepareMainThreadExecution node:internal/process/pre_execution:56:36
+      1  100.0%        JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    1.6%    JS: ~patchProcessObject node:internal/process/pre_execution:226:28
+      1  100.0%      JS: ~prepareExecution node:internal/process/pre_execution:100:26
+      1  100.0%        JS: ~prepareMainThreadExecution node:internal/process/pre_execution:56:36
+      1  100.0%          JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    1.6%    JS: ~Module._findPath node:internal/modules/cjs/loader:689:28
+      1  100.0%      JS: ~Module._resolveFilename node:internal/modules/cjs/loader:1162:35
+      1  100.0%        JS: ~Module._load node:internal/modules/cjs/loader:1039:24
+      1  100.0%          JS: ~traceSync node:diagnostics_channel:313:12
+      1  100.0%            JS: ~wrapModuleLoad node:internal/modules/cjs/loader:210:24
+      1    1.6%    JS: ~Duplex node:internal/streams/duplex:65:16
+      1  100.0%      JS: ~Socket node:net:353:16
+      1  100.0%        JS: ~<anonymous> /home/frederik/.npm/_npx/157372ca833166ed/node_modules/0x/lib/preload/redir-stdout.js:1:1
+      1  100.0%          JS: ~Module._compile node:internal/modules/cjs/loader:1486:37
+      1  100.0%            JS: ~Module._extensions..js node:internal/modules/cjs/loader:1650:37
+      1    1.6%    JS: ~<anonymous> node:internal/abort_controller:1:1
+      1  100.0%      JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%        JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1  100.0%          JS: ~<anonymous> node:internal/streams/operators:1:1
+      1  100.0%            JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+
+     55   10.7%  JS: *next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:2804:21
+     55  100.0%    JS: ~get /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:489:46
+     55  100.0%      JS: ~testIterOps /home/frederik/workspace_personal/itr8/benchmarks/src/tests/iter-ops.js:5:27
+     55  100.0%        JS: ~testSync /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:11:25
+     55  100.0%          JS: ~<anonymous> /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:1:1
+     55  100.0%            JS: ~Module._compile node:internal/modules/cjs/loader:1486:37
+
+     36    7.0%  /usr/lib/x86_64-linux-gnu/libc.so.6
+      6   16.7%    JS: *<anonymous> /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:1:1
+      6  100.0%      JS: ~Module._compile node:internal/modules/cjs/loader:1486:37
+      6  100.0%        JS: ~Module._extensions..js node:internal/modules/cjs/loader:1650:37
+      6  100.0%          JS: ~Module.load node:internal/modules/cjs/loader:1298:33
+      6  100.0%            JS: ~Module._load node:internal/modules/cjs/loader:1039:24
+      3    8.3%    JS: *next /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:2804:21
+      3  100.0%      JS: ~get /home/frederik/workspace_personal/itr8/benchmarks/node_modules/iter-ops/dist/index.js:489:46
+      3  100.0%        JS: ~testIterOps /home/frederik/workspace_personal/itr8/benchmarks/src/tests/iter-ops.js:5:27
+      3  100.0%          JS: ~testSync /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:11:25
+      3  100.0%            JS: ~<anonymous> /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:1:1
+      3    8.3%    JS: *itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js:13:21
+      3  100.0%      JS: ~<anonymous> /home/frederik/workspace_personal/itr8/dist/cjs/util/index.js:481:20
+      3  100.0%        JS: ~pipe /home/frederik/workspace_personal/itr8/dist/cjs/util/index.js:475:14
+      3  100.0%          JS: ~testItr8 /home/frederik/workspace_personal/itr8/benchmarks/src/tests/itr8.js:5:24
+      3  100.0%            JS: ~testSync /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:11:25
+      1    2.8%    JS: ~wrapSafe node:internal/modules/cjs/loader:1437:18
+      1  100.0%      JS: ~Module._compile node:internal/modules/cjs/loader:1486:37
+      1  100.0%        JS: ~Module._extensions..js node:internal/modules/cjs/loader:1650:37
+      1  100.0%          JS: ~Module.load node:internal/modules/cjs/loader:1298:33
+      1  100.0%            JS: ~Module._load node:internal/modules/cjs/loader:1039:24
+      1    2.8%    JS: ^wrapSafe node:internal/modules/cjs/loader:1437:18
+      1  100.0%      JS: ^Module._compile node:internal/modules/cjs/loader:1486:37
+      1  100.0%        JS: ^Module._extensions..js node:internal/modules/cjs/loader:1650:37
+      1  100.0%          JS: ^Module.load node:internal/modules/cjs/loader:1298:33
+      1  100.0%            JS: ^Module._load node:internal/modules/cjs/loader:1039:24
+      1    2.8%    JS: ^internalBinding node:internal/bootstrap/realm:185:45
+      1  100.0%      JS: ~<anonymous> node:child_process:1:1
+      1  100.0%        JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%          JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1  100.0%            JS: ~<anonymous> node:internal/cluster/primary:1:1
+
+     15    2.9%  Builtin: ArrayIteratorPrototypeNext
+     15  100.0%    JS: *itr8ToArray /home/frederik/workspace_personal/itr8/dist/cjs/interface/itr8ToArray.js:13:21
+     15  100.0%      JS: ~<anonymous> /home/frederik/workspace_personal/itr8/dist/cjs/util/index.js:481:20
+     15  100.0%        JS: ~pipe /home/frederik/workspace_personal/itr8/dist/cjs/util/index.js:475:14
+     15  100.0%          JS: ~testItr8 /home/frederik/workspace_personal/itr8/benchmarks/src/tests/itr8.js:5:24
+     15  100.0%            JS: ~testSync /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:11:25
+
+      8    1.6%  _IO_fwrite@@GLIBC_2.2.5
+      3   37.5%    JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      3  100.0%      JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1   33.3%        JS: ~<anonymous> node:internal/streams/duplex:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1   33.3%        JS: ~<anonymous> node:internal/cluster/primary:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1   33.3%        JS: ~<anonymous> node:child_process:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:384:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:421:24
+      1   12.5%    JS: ~value node:internal/console/constructor:336:20
+      1  100.0%      JS: ~log node:internal/console/constructor:383:6
+      1  100.0%        Builtin: CallApiCallbackGeneric
+      1  100.0%          JS: ~testSync /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:11:25
+      1  100.0%            Builtin: AsyncFunctionAwaitResolveClosure
+      1   12.5%    JS: ~toRealPath node:internal/modules/helpers:51:20
+      1  100.0%      JS: ~tryFile node:internal/modules/cjs/loader:520:17
+      1  100.0%        JS: ~tryExtensions node:internal/modules/cjs/loader:535:23
+      1  100.0%          JS: ~Module._findPath node:internal/modules/cjs/loader:689:28
+      1  100.0%            JS: ~Module._resolveFilename node:internal/modules/cjs/loader:1162:35
+      1   12.5%    JS: ~realpathSync node:fs:2627:22
+      1  100.0%      JS: ~toRealPath node:internal/modules/helpers:51:20
+      1  100.0%        JS: ~tryFile node:internal/modules/cjs/loader:520:17
+      1  100.0%          JS: ~tryExtensions node:internal/modules/cjs/loader:535:23
+      1  100.0%            JS: ~Module._findPath node:internal/modules/cjs/loader:689:28
+      1   12.5%    JS: ~initializeCJSLoader node:internal/process/pre_execution:686:29
+      1  100.0%      JS: ~setupUserModules node:internal/process/pre_execution:193:26
+      1  100.0%        JS: ~prepareExecution node:internal/process/pre_execution:100:26
+      1  100.0%          JS: ~prepareMainThreadExecution node:internal/process/pre_execution:56:36
+      1  100.0%            JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1   12.5%    JS: ~<anonymous> node:internal/main/run_main_module:1:1
+
+      6    1.2%  JS: *<anonymous> /home/frederik/workspace_personal/itr8/benchmarks/src/sync.js:1:1
+      6  100.0%    JS: ~Module._compile node:internal/modules/cjs/loader:1486:37
+      6  100.0%      JS: ~Module._extensions..js node:internal/modules/cjs/loader:1650:37
+      6  100.0%        JS: ~Module.load node:internal/modules/cjs/loader:1298:33
+      6  100.0%          JS: ~Module._load node:internal/modules/cjs/loader:1039:24
+      6  100.0%            JS: ~traceSync node:diagnostics_channel:313:12
+

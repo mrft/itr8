@@ -27,8 +27,8 @@ const input: AsyncIterable<number> = {
 (async function testAsync() {
   const result = {
     ...(await testIterOps(toAsync(data))),
-    ...(await testRXJS(input)),
-    ...(await testRXJS(input, true)),
+    // ...(await testRXJS(input)),
+    // ...(await testRXJS(input, true)),
     ...(await testItr8(toAsync(data))),
   };
   console.log(`Asynchronous test for ${maxItems.toExponential()} items:`);
