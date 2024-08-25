@@ -7,3 +7,6 @@ env.js
 # only add these on a version bump (npm run version)
 dist*/
 docs/
+.github/
+coverage/
+benchmarks/*0x/
