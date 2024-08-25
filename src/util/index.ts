@@ -780,6 +780,118 @@ function pipe<IN, A>(
   }
 }
 
+//#region from iter-tools
+// the code below is taken from iter-ops, I found it while trying to figure out
+// why iter-ops was so much faster with synchronous iterators,
+// and then I found this 'hidden' optimisation in its pipe function !!!
+// This made the comparison between iter-ops and itr8 or RxJS somewhat unfair.
+
+/**
+ * Determines if the value is an indexed type.
+ */
+function isIndexed<T, CastGeneric = unknown>(
+  value: T,
+): value is T & ArrayLike<CastGeneric> {
+  return (
+    Array.isArray(value) ||
+    isTypedArray(value) ||
+    typeof value === "string" ||
+    value instanceof String
+  );
+}
+
+/**
+ * Determines if the given object has the given set property.
+ */
+function has<T, K extends PropertyKey>(
+  object: T,
+  key: K,
+): object is T & Record<K, unknown> {
+  return key in Object(object);
+}
+
+/**
+ * Determines if the given object has a property with the given name of type number.
+ */
+function hasOfType<T, K extends PropertyKey>(
+  object: T,
+  key: K,
+  type: "number",
+): object is T & Record<K, number>;
+
+function hasOfType<T, K extends PropertyKey>(
+  object: T,
+  key: K,
+  type:
+    | "string"
+    | "number"
+    | "bigint"
+    | "boolean"
+    | "symbol"
+    | "undefined"
+    | "object"
+    | "function",
+): object is T & Record<K, unknown> {
+  return has(object, key) && typeof object[key] === type;
+}
+
+/**
+ * Determines if the value is a buffer-like array.
+ */
+function isArrayBufferLike<T>(value: T): value is T & ArrayBufferLike {
+  return hasOfType(value, "byteLength", "number");
+}
+
+/**
+ * A Typed array.
+ */
+type TypedArray = ArrayBufferView & ArrayLike<unknown>;
+
+/**
+ * Determines if the value is a typed array.
+ */
+function isTypedArray<T>(value: T): value is T & TypedArray {
+  return (
+    has(value, "BYTES_PER_ELEMENT") &&
+    has(value, "buffer") &&
+    isArrayBufferLike(value.buffer)
+  );
+}
+
+/**
+ * Wraps an indexed iterable into an Iterable<T> object
+ */
+function indexedIterable<T>(input: ArrayLike<T>): Iterable<T> {
+  return {
+    [Symbol.iterator](): IterableIterator<T> {
+      const len = input.length;
+      let i = 0;
+      const retVal = {
+        [Symbol.iterator]: () => retVal,
+        next(): IteratorResult<T> {
+          return i < len
+            ? { value: input[i++], done: false }
+            : { value: undefined, done: true };
+        },
+      };
+      return retVal;
+    },
+  };
+}
+
+/**
+ * Type-dependent performance optimizer.
+ *
+ * Tests show that for indexed types, JavaScript performs way better
+ * when accessed via index, rather than iterable interface.
+ */
+function optimizeIterable<T>(input: Iterable<T>): Iterable<T> {
+  return isIndexed<Iterable<T>>(input)
+    ? indexedIterable<T>(input as ArrayLike<T>)
+    : input;
+}
+//#endregion from iter-tools
+
 export {
   compose,
   /**
@@ -796,4 +908,5 @@ export {
   forLoop,
   createSelfReplacingFunction,
   // itr8OperatorFactory,
+  optimizeIterable,
 };
