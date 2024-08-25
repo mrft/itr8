@@ -10,6 +10,13 @@ import { TTransIteratorSyncOrAsync } from "../../types.js";
  * The child iterator depends on the 'category' that is determined by the provided
  * categorizer function (for example distribute http requests by sender).
  *
+ * If you are not going to use all output iterators, make sure to filter out
+ * the categories you don't need before using distribute, because otherwise an unused
+ * buffer will be held needlessly in memory.
+ *
+ * This operator only supports a sungle category, so it would make sense to create a
+ * distributeMulti operator that can handle multiple categories.
+ *
  * @todo create a fully synchronous version of this operator.
  *
  * Difficulties:
@@ -24,17 +31,21 @@ import { TTransIteratorSyncOrAsync } from "../../types.js";
  *    I mean, after some time you'll assume that the same 'sender' has done, and the output terator's
  *    next() call should return { done: true }. Would that be a setting,
  *    like the (unfinished) 'abandoned timeout' in the 'multiIterable' operator?
- * - Do we need a version that can handle multiple categories per value? Like for instance:
- *   divisible by 2, divisible by 3, divisible by 5, etc. where some values can be in multiple categories.
- *
+ *  - Do we need a version that can handle multiple categories per value? Like for instance:
+ *    divisible by 2, divisible by 3, divisible by 5, etc. where some values can be in multiple categories.
+ *  - Do we need to provide a mapping function that can transform the value before it is passed
+ *    to the output iterator? Could make sense if the category is added first with a map operation.
+ *    For example: [category, value] could also be distributed as category: Iterator<value>
+ *    So another option would be to say: distribute() operator will assume a (category, value)
+ *    tuple as input. It would keep things simple, and force users to combine with map etc.
+ *    Otherwise this operator could become more complex than it should be.
  *
  * ```
  * ┌──────────────┐
  * │input iterator│
  * └──────┬───────┘
  *        │
- *        │
- *  <categorize accrding to function>
+ *  <categorize according to function> OR input iterator produces tuples [ category, value ]
  *        │
  * ┌──────▼----------------------─┐
  * │ output iterator of iterators │
@@ -54,25 +65,27 @@ import { TTransIteratorSyncOrAsync } from "../../types.js";
  *        ↳ pipe( iterator, )
  * ```
  *
- * All arguments are the transIterators that need to be run (use compose(for more complex operations)).
- *
  * @example
  * ```typescript
+ * // it could work like this
  * await pipe(
- *        itr8FromArray([ 1, 2, 3, 4 ])
- *        branchAndMerge(
- *          identity(), // keep the original values as the first element of the tuple
- *          runningAverage(),
- *          runningTotal(),
- *        ),
- *        map(([value, avg, total]) => ({ value, avg, total })),
+ *        itr8FromIterable([ 1, 2, 3, 4 ]),
+ *        map( (v) => [ v % 2 === 0 ? 'even' : 'odd', v ] ), // add the category to the value
+ *        // adding the category first would allowu us to easily filter out categories we don't need
+ *        distribute(),
+ *        map(([category, iterator]) => ({ category, values: itr8ToArray(iterator) })),
  *        itr8ToArray,
  *      )
+ * // or like this if the category is determined by a function
+ * await pipe(
+ *        itr8FromIterable([ 1, 2, 3, 4 ]),
+ *        distribute( (v) => v % 2 === 0 ? 'even' : 'odd' ),
+ *        map(([category, iterator]) => ({ category, values: itr8ToArray(iterator) })),
+ *       itr8ToArray,
+ *      )
  * // => [
- * //   { value: 1, avg: 1,   total:  1 },
- * //   { value: 2, avg: 1.5, total:  3 },
- * //   { value: 3, avg: 2,   total:  6 },
- * //   { value: 4, avg: 2.5, total: 10 },
+ * //   { category: 'odd', values: [ 1, 3 ] },
+ * //   { category: 'even', values:  [ 2, 4 ] },
  * // ]
  * ```
  *
@@ -155,12 +168,7 @@ function distribute<T, C = unknown>(
      * and returns [category, iterator] tuples.
      */
     async function* generateOuterIterable() {
-      for await (const nextIn of itr8FromImpureFunction(inputIterator.next)) {
-        if (nextIn.done) {
-          distributionDone = true;
-          return;
-        }
-
+      for (let nextIn = await inputIterator.next(); !nextIn.done; nextIn = await inputIterator.next()) {
         distributeIn(nextIn);
 
         while (categoriesIndex < categoriesArray.length - 1) {
@@ -172,6 +180,7 @@ function distribute<T, C = unknown>(
           ] as [C, AsyncIterableIterator<T>];
         }
       }
+      distributionDone = true;
     }
 
     return generateOuterIterable();
