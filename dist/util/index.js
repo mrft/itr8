@@ -136,7 +136,7 @@ const thenable = (x) => {
  * gain to be made with this.
  *
  * @example
- * ```@typescript
+ * ```typescript
  * // instead of
  * for (x of [1, 2, 3]) {
  *   thenable(x).then((v) => console.log(v));

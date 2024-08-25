@@ -1,3 +1,6 @@
 dist*/
 docs/
 node_modules/
+.github/
+coverage/
+benchmarks/*0x/
