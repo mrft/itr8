@@ -8,13 +8,15 @@ import {
 
 export async function testItr8(
   input: Iterable<number> | AsyncIterable<number>,
+  doFilter = true,
+  doMap = true,
 ) {
   const start = Date.now();
   const i = pipe(
     input,
     itr8FromIterable,
-    filter((a) => a % 2 === 0),
-    map((b) => ({ value: b })),
+    doFilter ? filter((a) => a % 2 === 0) : (x) => x,
+    doMap ? map((b) => ({ value: b })) : (x) => x,
     itr8ToArray,
   ) as Array<any>;
 
