@@ -982,6 +982,10 @@ const powerMapWithoutDoAfter = function <
       // done: false,
     };
 
+    let outputIteratorIsAsync: boolean | undefined = undefined;
+    let inputIteratorIsAsync: boolean | undefined = undefined;
+    let nextFnIsAsync: boolean | undefined = undefined;
+
     /**
      * This very first scroll through the loop should give us all the info we need
      * in order to establish whether the iterator will be synchronous or asynchronous.
@@ -997,7 +1001,15 @@ const powerMapWithoutDoAfter = function <
       | Promise<null> => {
       return pipe(
         itIn.next(),
+        (nextIn) => {
+          inputIteratorIsAsync = isPromise(nextIn);
+          return nextIn;
+        },
         doAfter((nextIn) => nextFn(nextIn, operatorState.state)),
+        (curNextFnResult) => {
+          nextFnIsAsync = isPromise(curNextFnResult);
+          return curNextFnResult;
+        },
         doAfter((curNextFnResult) => {
           if (
             "state" in curNextFnResult &&
@@ -1128,10 +1140,6 @@ const powerMapWithoutDoAfter = function <
       }
     };
 
-    let outputIteratorIsAsync: boolean | undefined = undefined;
-    let inputIteratorIsAsync: boolean | undefined = undefined;
-    let nextFnIsAsync: boolean | undefined = undefined;
-
     const generateDoneAsync: () => Promise<
       IteratorResult<TOut>
     > = async () => ({
@@ -1176,8 +1184,6 @@ const powerMapWithoutDoAfter = function <
       while (true) {
         // no running iterator, so we need to possibly call nextFn again
         const nextInPromiseOrValue = itIn.next();
-        if (inputIteratorIsAsync === undefined)
-          inputIteratorIsAsync = isPromise(nextInPromiseOrValue);
         const nextIn = inputIteratorIsAsync
           ? await nextInPromiseOrValue
           : nextInPromiseOrValue;
@@ -1185,8 +1191,6 @@ const powerMapWithoutDoAfter = function <
           nextIn as IteratorResult<TIn>,
           operatorState.state,
         );
-        if (nextFnIsAsync === undefined)
-          nextFnIsAsync = isPromise(curNextFnResultPromiseOrValue);
 
         const curNextFnResult = (
           nextFnIsAsync
@@ -1353,11 +1357,6 @@ const powerMapWithoutDoAfter = function <
         return { done: false, iterable };
       }).src;
     } else if (/* input.done === false && */ "value" in input) {
-      // if (cachedValueThenable === undefined) {
-      //   cachedValueThenable = thenableFactory(input);
-      // }
-      // return cachedValueThenable(input)
-      // .then((input) =>
       return thenable(
         nextFn(input as IteratorResult<TIn>, operatorState.state),
       ).then((curNextFnResult) => {
@@ -2190,4 +2189,54 @@ const itr8OperatorFactoryExperimental = function <
   };
 };
 
-export { powerMapWithoutDoAfter as powerMap };
+export {
+  /**
+   * The powerMap can be used as the base for many many other operators.
+   *
+   * An operator is 'a function that generates a transIterator'.
+   * So for example filter(...) is an operator, because when called with an argument
+   * (the filter function) the result of that will be another function which is the transIterator.
+   *
+   * A transIterator is simply a function with an iterator as single argument which will return
+   * another iterator. This way we can easily 'build a chain of mulitple transIterators'.
+   * So it transforms iterators, which is why I have called it transIterator (~transducers).
+   *
+   * powerMap is an operator that generates a transIterator that
+   * will work both on synchronous and asynchronous iterators.
+   * The powerMap needs to be provided with a single function of the form:
+   *
+   * ```typescript
+   * (nextOfPreviousIteratorInTheChain, state) => TNextFnResult | Promise<[TNextFnResult]>
+   * ```
+   * and another function generating an initial 'state' (not every operator needs state)
+   *
+   * * *nextIn* is the (resolved if async) result of a next call of the input iterator.
+   *   This means it will be of the form ```{ done: true }``` or ```{ done: false, value: <...> }```.
+   * * The *state* parameter is used to allow operators to have state, but not all operators need this.
+   *   For example: a 'map' operator doesn't need state, but the 'skip' operator would need to keep
+   *   track of how many records have passed.
+   *
+   * Check the readme for some examples on how to write your own operators using 'powerMap'
+   * (or check the source code as all the available operators have been built using this function).
+   *
+   * BEWARE: NEVER MODIFY THE STATE OBJECT (or any of its children!), ALWAYS RETURN A NEW VALUE!
+   *
+   * Why is the initial state not a simple value, but a function that produces the state?
+   *  This way, even if nextFn would modify the state, it wouldn't mess with other instances
+   *  of the same operator? Because if we'd like to deep clone the initial state ourselves, we might
+   *  end up with some complex cases when classes are involved (I hope no one who's interested in
+   *  this library will want to use classes as their state, because the library is more 'functional
+   *  programming' oriented)
+   *
+   * @typeParam TIn the type of values that the input iterator must produce
+   * @typeParam TOut the type of values that the output iterator will produce
+   * @typeParam TState the type of the state that will be passed between all iterations
+   *
+   * @param nextFn
+   * @param initialStateFactory a function that generates the initialSate
+   * @returns a function taking an iterator as input and that has an iterator as output
+   *
+   * @category operators/general
+   */
+  powerMapWithoutDoAfter as powerMap,
+};

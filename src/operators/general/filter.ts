@@ -46,7 +46,7 @@ const filter = <TIn>(filterFn: (v: TIn) => boolean | Promise<boolean>) => {
 
   // return powerMap<TIn, TIn, void>(
   //   (nextIn, _state) => {
-  //     if (nextIn.done) return { done: true };
+  //     if (nextIn.done) return nextIn;
 
   //     return generateNextFnResultFromFilterFnResultContainer.call(
   //       filterFn(nextIn.value),

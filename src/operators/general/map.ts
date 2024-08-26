@@ -40,6 +40,10 @@ const map = <TIn, TOut>(mapFn: (v: TIn) => TOut | Promise<TOut>) => {
   const returnIteratorResultContainer = createSelfReplacingFunction(
     returnIteratorResultSync,
   );
+  /// type problem when using the class version
+  // const returnIteratorResultContainer = new SelfReplacingFunctionContainer(
+  //   returnIteratorResultSync,
+  // );
 
   return powerMap<TIn, TOut, void>(
     (nextIn, _state) => {

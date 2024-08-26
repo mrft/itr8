@@ -250,7 +250,7 @@ const thenableFactory = <T>(
 };
 
 /**
- * doAfter() will create another function that expects a singoe argument which could either be
+ * doAfter() will create another function that expects a single argument which could either be
  * a simple value or a promise, and doAfter will make sure that the given function is executed
  * synchronously if it's a simple value, or asynchronously after the promise resolves.
  *
@@ -286,11 +286,11 @@ const doAfter = <TIn, TOut>(
  *  const doubleAfter = doAfterFactory((n) => n * 2);
  *
  * for (let i = 1; i <= 1_000_000; i++) {
- *  pipe(
- *    i,
- *    incrementAfter,
- *    doubleAfter,
- *    toArray,
+ *  await pipe(
+ *    Promise.resolve(i),
+ *    incrementAfter.doAfter,
+ *    doubleAfter.doAfter,
+ *    console.log,
  *  );
  * }
  * ```
@@ -422,6 +422,9 @@ const forLoop = <State>(
 /**
  * Another attempt to make optimization easier, while trying to avoid code duplication.
  *
+ * This is basically the same as doAfterFactory, but with a different name!
+ * Also, this one allows for extra parameters to be passed to the function.
+ *
  * We have created manual optimizations in the past, where a function would be replaced
  * by another version once we found out whether the input was a promise or not.
  *
@@ -468,7 +471,58 @@ function createSelfReplacingFunction(
       return container.call(possiblePromise, ...otherArgs);
     },
   };
+
   return container;
+
+  // alternative implementation using classes?
+  // class Container {
+  //   call(possiblePromise, ...otherArgs) {
+  //     if (isPromise(possiblePromise)) {
+  //       this.call = (promise, ...otherArgs) =>
+  //         promise.then((promiseVal) => fnToApply(promiseVal, ...otherArgs));
+  //     } else {
+  //       this.call = fnToApply;
+  //     }
+  //     return this.call(possiblePromise, ...otherArgs);
+  //   }
+  // }
+  // return new Container();
+}
+
+/**
+ * Another attempt to make optimization easier, while trying to avoid code duplication.
+ * This time using a class instead of an object.
+ *
+ * @example
+ * ```typescript
+ * const plusOne = (v) => v + 1;
+ *
+ * const fnContainer = new SelfReplacingFunctionContainer(plusOne);
+ * fnContainer.func(1); // 2, and the second call will be faster because by now fnContainer.func has been replaced by fnToApply
+ * fnContainer.func(2); // 3, without any isPromise checks
+ *
+ * const fnContainer2 = new SelfReplacingFunctionContainer(plusOne);
+ * fnContainer2.func(Promise.resolve(1)); // Promise<2>, and the second call will be faster because by now fnContainer2.func has been replaced by (promise) => promise.then(plusOne)
+ * fnContainer2.func(Promise.resolve(2)); // Promise<3>, without any isPromise checks
+ *
+ * @todo make sure the types match the function that is passed in
+ */
+class SelfReplacingFunctionContainer {
+  constructor(fnToApply) {
+    this.call = (possiblePromise, ...otherArgs) => {
+      if (isPromise(possiblePromise)) {
+        this.call = (promise, ...otherArgs) =>
+          promise.then((promiseVal) => fnToApply(promiseVal, ...otherArgs));
+      } else {
+        this.call = fnToApply;
+      }
+      return this.call(possiblePromise, ...otherArgs);
+    };
+  }
+
+  call(possiblePromise, ...otherArgs) {
+    throw new Error("Constructor should have replaced this method");
+  }
 }
 
 /**
@@ -907,6 +961,7 @@ export {
   doAfterFactory,
   forLoop,
   createSelfReplacingFunction,
+  SelfReplacingFunctionContainer,
   // itr8OperatorFactory,
   optimizeIterable,
 };
