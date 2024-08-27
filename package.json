@@ -45,7 +45,7 @@
     "testOnly": "testOnly() { [ \"$1\" = \"\" ] && echo \"Usage:\n  npm run testOnly -- 'grepRegexToMatchTestFilename'\nExample to run the tests about itr8ToObject and the parallel operator:\n  npm run testOnly -- 'itr8ToObject|parallel'\" >&2 && exit 1; npm run echoForTest --silent | c8 mocha  --exit --timeout 1000 --node-option max-old-space-size=300 --require ts-node/register $( find ./test ./src -iname '*.test.ts' -type f | sort | grep -v 'src/index' | grep -E \"$1\" ); }; testOnly",
     "//pretest": "npm run clean && mkdir -p ./dist && npm run build",
     "pretest": "npm run prettier:fix",
-    "test": "npm run echoForTest --silent | c8 mocha --exit --timeout 200 --require ts-node/esm $( find ./test ./src -iname '*.test.ts' -type f | sort )",
+    "test": "MOCHA_CMD=\"mocha\"\n[ -z \"$SKIP_C8\" ] && MOCHA_CMD=\"c8 mocha\"\n\nnpm run echoForTest --silent | $MOCHA_CMD --exit --timeout 200 --require ts-node/esm $( find ./test ./src -iname '*.test.ts' -type f | sort )",
     "//test": "npm run echoForTest --silent | ./node_modules/.bin/mocha --exit --timeout 200 --node-option max-old-space-size=150 --require ts-node/register $( find ./test ./src -iname '*.test.ts' -type f -print | sort)",
     "posttest": "npm run build",
     "pretestCompiled": "rm -rf ./dist_test &&\n  ./node_modules/typescript/bin/tsc --project ./tsconfig.test.json",
