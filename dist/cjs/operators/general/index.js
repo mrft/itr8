@@ -16,6 +16,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./branchAndMerge.js"), exports);
 __exportStar(require("./dedup.js"), exports);
+__exportStar(require("./distribute.js"), exports);
 __exportStar(require("./filter.js"), exports);
 __exportStar(require("./flatten.js"), exports);
 __exportStar(require("./groupPer.js"), exports);

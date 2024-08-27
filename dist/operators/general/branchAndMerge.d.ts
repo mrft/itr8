@@ -55,7 +55,7 @@ import { TTransIteratorSyncOrAsync } from "../../types.js";
  * @param {...(it:Iterator<unknown> | AsyncIterator<unknown>)=>Iterator<unknown> | AsyncIterator<unknown>} moreTransIts
  * @returns
  *
- * @category operators/async
+ * @category operators/general
  */
 declare function branchAndMerge<A, B>(transIt1: TTransIteratorSyncOrAsync<A, B>): TTransIteratorSyncOrAsync<A, [A, B]>;
 declare function branchAndMerge<A, B, C>(transIt1: TTransIteratorSyncOrAsync<A, B>, transIt2: TTransIteratorSyncOrAsync<B, C>): TTransIteratorSyncOrAsync<A, [A, B, C]>;
