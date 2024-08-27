@@ -6,5 +6,5 @@
  *
  * @category operators/general
  */
-declare const tap: <TIn>(tapFn: (TIn: any) => void) => import("../../types.js").TTransIteratorSyncOrAsync<TIn, TIn>;
+declare const tap: <TIn>(tapFn: (value: TIn) => void) => import("../../types.js").TTransIteratorSyncOrAsync<TIn, TIn>;
 export { tap };
