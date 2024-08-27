@@ -63,7 +63,7 @@ import { isPromise } from "../../util/index.js";
  * @param {...(it:Iterator<unknown> | AsyncIterator<unknown>)=>Iterator<unknown> | AsyncIterator<unknown>} moreTransIts
  * @returns
  *
- * @category operators/async
+ * @category operators/general
  */
 function branchAndMerge<A, B>(
   transIt1: TTransIteratorSyncOrAsync<A, B>,
