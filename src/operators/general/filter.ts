@@ -1,5 +1,5 @@
 import { TNextFnResult } from "../../types.js";
-import { isPromise, thenable } from "../../util/index.js";
+import { isPromise } from "../../util/index.js";
 import { powerMap } from "./powerMap.js";
 
 /**

@@ -1,3 +1,5 @@
 docs/
 dist*/
 .github/
+coverage/
+benchmarks/*0x/

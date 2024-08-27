@@ -23,10 +23,28 @@ cfr. [keepachangelog.com](https://keepachangelog.com/en/1.1.0/)
 
 ### Security
 
+## version 0.4.9 (2024-08-27)
+
+### Added
+
+- distribute operator: taking [categroy, value] tuples as input, it will send
+  values to sub-iterator branches based on category
+- for itr8 developers:
+  - package.json:scripts.release added read OTP for npm publishing
+    and then pass it to npm publish command (--otp $OTP)
+  - added c8 to npm test script to check code-coverage of the tests
+  - added missing async iterator tests for itr8ToString
+  - added 'npm run benchmark'
+
+### Fixed
+
+- typing issue on tap operator
+- updated micromatch to fix a Regular Expression Denial of Service (ReDoS)
 
 ## version 0.4.8 (2024-08-08)
 
 ### Added
+
 - a getTimestamp(value) function argument to both the 'debounce' and the 'throttle' operators,
   so the timestamps can be 'prerecorded' inside the values
 - a CHANGELOG.md file to track notable changes
@@ -54,4 +72,4 @@ cfr. [keepachangelog.com](https://keepachangelog.com/en/1.1.0/)
   - removed a (performance related) test that was failing on github workflow node 18
   - Updated ts-node + formatting fixes
   - Upgraded sinon from 15 to 1`
-  - package.json: improved ```npm run gitDiff``` to allow comparing with another branch
+  - package.json: improved `npm run gitDiff` to allow comparing with another branch
