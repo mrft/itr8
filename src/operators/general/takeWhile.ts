@@ -1,4 +1,4 @@
-import { thenable } from "../../util/index.js";
+import { doAfter, thenable } from "../../util/index.js";
 import { powerMap } from "./powerMap.js";
 
 /**
@@ -14,10 +14,18 @@ const takeWhile = <TIn>(filterFn: (x: TIn) => boolean | Promise<boolean>) =>
     (nextIn, _state) => {
       if (nextIn.done) return { done: true };
 
-      return thenable(filterFn(nextIn.value)).then((filterFnResult) => {
-        if (filterFnResult) return { done: false, value: nextIn.value };
-        return { done: true };
-      }).src;
+      // return thenable(filterFn(nextIn.value)).then((filterFnResult) => {
+      //   if (filterFnResult) return { done: false, value: nextIn.value };
+      //   return { done: true };
+      // }).src;
+      return doAfter((filterFnResult) => {
+        if (filterFnResult)
+          return { done: false, value: nextIn.value } as {
+            done: false;
+            value: TIn;
+          };
+        return { done: true } as { done: true };
+      })(filterFn(nextIn.value));
     },
     () => undefined,
   );

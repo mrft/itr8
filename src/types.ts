@@ -15,11 +15,22 @@ type TTransIteratorAsync<TIn, TOut> = (
 
 /**
  * A transIterator is a function that takes a (Sync or Async) Iterator as input and outputs
- * a (Pipeable, Sync or Async, Iterable) Iterator
+ * a (Sync or Async, Iterable) Iterator
  */
 type TTransIteratorSyncOrAsync<TIn = any, TOut = any> = (
   iterator: Iterator<TIn> | AsyncIterator<TIn>,
 ) => IterableIterator<TOut> | AsyncIterableIterator<TOut>;
+/// I guess what's after this would be more correct, but it's causing type errors in other places
+// | (
+//   (
+//     iterator: Iterator<TIn>,
+//   ) => IterableIterator<TOut> | AsyncIterableIterator<TOut>
+// )
+// | (
+//   (
+//     iterator: AsyncIterator<TIn>,
+//   ) => AsyncIterableIterator<TOut>
+// );
 
 /**
  * The type that the the nextFn of the powerMap operator should output

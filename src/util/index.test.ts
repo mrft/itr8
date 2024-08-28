@@ -211,7 +211,7 @@ describe("./util/index.ts", () => {
         if (i > nrOfTimesMinusOne) {
           b = false;
         }
-        if (b === Symbol["myNonExistingSymbol"]) {
+        if (b === Symbol.for("myNonExistingSymbol")) {
           b = "symbol";
         }
       }
@@ -242,7 +242,9 @@ describe("./util/index.ts", () => {
       }
     });
 
-    console.log("We checked '=== Symbol[...]' first and isPromise(...) second");
+    console.log(
+      "We checked '=== Symbol.for(...)' first and isPromise(...) second",
+    );
     console.log(durationDiff(t1, t2));
     // the isPromise call should take longer than comparing if a variable is a specific Symbol
     assert.isBelow(Number(t1), Number(t2));

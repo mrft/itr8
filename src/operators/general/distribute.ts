@@ -2,6 +2,8 @@ import { itr8FromIterable } from "../../interface/index.js";
 import { TTransIteratorSyncOrAsync } from "../../types.js";
 import { isPromise } from "../../util/index.js";
 
+const CATEGORY_EMPTY_SYMBOL = Symbol.for("itr8.distribute.categoryEmpty");
+
 /**
  * This operator should make it easy to distribute different categories on the input iterator,
  * to multiple child iterators for further processing per category.
@@ -105,7 +107,7 @@ function distribute<T, C = unknown>(): TTransIteratorSyncOrAsync<
    * and update the buffer at the same time.
    *
    * @param category
-   * @returns the value from the buffer, or Symbol['categoryEmpty']
+   * @returns the value from the buffer, or Symbol.for('itr8.distribute.categoryEmpty')
    */
   const getFromCategory = (category: C) => {
     if (bufferMap.has(category)) {
@@ -114,7 +116,7 @@ function distribute<T, C = unknown>(): TTransIteratorSyncOrAsync<
         return buffer.shift();
       }
     }
-    return Symbol["categoryEmpty"];
+    return CATEGORY_EMPTY_SYMBOL;
   };
 
   /**
@@ -138,7 +140,7 @@ function distribute<T, C = unknown>(): TTransIteratorSyncOrAsync<
       let innerIterableDone = false;
       while (!innerIterableDone) {
         const valueToYieldMaybe = getFromCategory(category);
-        if (valueToYieldMaybe !== Symbol["categoryEmpty"]) {
+        if (valueToYieldMaybe !== CATEGORY_EMPTY_SYMBOL) {
           yield valueToYieldMaybe;
         } else if (distributionDone) {
           innerIterableDone = true;
@@ -182,7 +184,7 @@ function distribute<T, C = unknown>(): TTransIteratorSyncOrAsync<
       let innerIterableDone = false;
       while (!innerIterableDone) {
         const valueToYieldMaybe = getFromCategory(category);
-        if (valueToYieldMaybe !== Symbol["categoryEmpty"]) {
+        if (valueToYieldMaybe !== CATEGORY_EMPTY_SYMBOL) {
           yield valueToYieldMaybe;
         } else if (distributionDone) {
           innerIterableDone = true;

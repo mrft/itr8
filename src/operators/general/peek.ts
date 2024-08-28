@@ -1,5 +1,6 @@
 import { powerMap } from "./powerMap.js";
 
+const NO_CURRENT_SYMBOL = Symbol.for("itr8.peek.noCurrent");
 /**
  * To solve some problems you need to know what the next element(s) is (are) going
  * to be, or look back at the previous value(s).
@@ -116,7 +117,7 @@ const peek = <TIn>(peekForward = 1, peekBackward = 1) =>
   powerMap<
     TIn,
     { value: TIn; previous: TIn[]; next: TIn[] },
-    { previous: TIn[]; current: TIn; next: TIn[] }
+    { previous: TIn[]; current: TIn | Symbol; next: TIn[] }
   >(
     (nextIn, state) => {
       if (nextIn.done) {
@@ -125,7 +126,7 @@ const peek = <TIn>(peekForward = 1, peekBackward = 1) =>
           return {
             done: true,
             state: {
-              current: Symbol["ITR8_NO_CURRENT"],
+              current: NO_CURRENT_SYMBOL,
               next: [],
               previous: state.previous,
             },
@@ -136,7 +137,7 @@ const peek = <TIn>(peekForward = 1, peekBackward = 1) =>
           const newState = {
             current: firstOfNext,
             next: restOfNext || [],
-            previous: [state.current, ...state.previous].slice(
+            previous: [state.current as TIn, ...state.previous].slice(
               0,
               peekBackward as number,
             ),
@@ -155,7 +156,7 @@ const peek = <TIn>(peekForward = 1, peekBackward = 1) =>
         // NOT nextIn.done
         if (state.next.length < peekForward) {
           const newState = {
-            current: state.current, // still Symbol['ITR8_NO_CURRENT'] until we have enough next values
+            current: state.current, // still NO_CURRENT_SYMBOL until we have enough next values
             next: [...state.next, nextIn.value].slice(0, peekForward as number),
             previous: state.previous,
           };
@@ -170,9 +171,9 @@ const peek = <TIn>(peekForward = 1, peekBackward = 1) =>
               0,
               peekForward as number,
             ),
-            previous: (state.current === Symbol["ITR8_NO_CURRENT"]
+            previous: (state.current === NO_CURRENT_SYMBOL
               ? state.previous
-              : [state.current, ...(state.previous || [])]
+              : [state.current as TIn, ...(state.previous || [])]
             ).slice(0, peekBackward as number),
           };
           return {
@@ -190,7 +191,7 @@ const peek = <TIn>(peekForward = 1, peekBackward = 1) =>
     () => ({
       // hasPrevious: false,
       previous: [],
-      current: Symbol["ITR8_NO_CURRENT"],
+      current: NO_CURRENT_SYMBOL,
       next: [],
       // hasNext
     }),
