@@ -23,6 +23,12 @@ cfr. [keepachangelog.com](https://keepachangelog.com/en/1.1.0/)
 
 ### Security
 
+## version 0.4.10 (2024-08-29)
+
+### Added
+
+- flatMap operator
+
 ## version 0.4.9 (2024-08-27)
 
 ### Added
