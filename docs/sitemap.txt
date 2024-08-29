@@ -48,6 +48,7 @@ https://mrft.github.io/itr8/functions/interface.itr8FromSingleValueAsync.html
 https://mrft.github.io/itr8/functions/util.doAfter.html
 https://mrft.github.io/itr8/functions/interface.itr8RangeAsync.html
 https://mrft.github.io/itr8/functions/operators.skipWhile.html
+https://mrft.github.io/itr8/functions/operators.flatMap.html
 https://mrft.github.io/itr8/functions/operators.average.html
 https://mrft.github.io/itr8/functions/operators.distribute.html
 https://mrft.github.io/itr8/functions/interface.itr8Interval.html

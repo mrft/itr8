@@ -18,6 +18,7 @@ __exportStar(require("./branchAndMerge.js"), exports);
 __exportStar(require("./dedup.js"), exports);
 __exportStar(require("./distribute.js"), exports);
 __exportStar(require("./filter.js"), exports);
+__exportStar(require("./flatMap.js"), exports);
 __exportStar(require("./flatten.js"), exports);
 __exportStar(require("./groupPer.js"), exports);
 __exportStar(require("./identity.js"), exports);
