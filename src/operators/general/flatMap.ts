@@ -58,8 +58,6 @@ const flatMap = function <TIn = unknown, TOut = unknown>(
 ): TTransIteratorSyncOrAsync<TIn, TOut> {
   type TOperatorState = {
     currentOutputIterator: Iterator<TOut> | AsyncIterator<TOut> | undefined;
-    /** Means that we are done after this value or after finishing the currentOutputIterator */
-    // isLastOutputIterator: boolean;
     /** Means that we are done entirely (inputIterator is done) */
     done: boolean;
   };
@@ -114,18 +112,14 @@ const flatMap = function <TIn = unknown, TOut = unknown>(
           return firstNext;
         }),
         doAfter((firstGeneratorNext) => {
+          returnedIterator.next =
+          inputIteratorIsAsync || iterableIsAsync
+            ? generateNextReturnValAsync
+            : generateNextReturnValSync;
           if (operatorState.done) {
             operatorState.currentOutputIterator = undefined;
-            returnedIterator.next =
-              inputIteratorIsAsync || iterableIsAsync
-                ? generateDoneAsync
-                : generateDoneSync;
             return { done: true };
           } else {
-            returnedIterator.next =
-              inputIteratorIsAsync || iterableIsAsync
-                ? generateNextReturnValAsync
-                : generateNextReturnValSync;
             return firstGeneratorNext.done
               ? returnedIterator.next()
               : firstGeneratorNext;
@@ -137,29 +131,6 @@ const flatMap = function <TIn = unknown, TOut = unknown>(
         | Promise<IteratorResult<TOut>>
         | Promise<null>;
     };
-
-    const generateDoneSync: () => IteratorResult<TOut> = () => ({
-      done: true,
-      value: undefined,
-    });
-    // const generateNextFromOutputIteratorSync: () => IteratorResult<TOut> =
-    //   () => {
-    //     // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
-    //     const possibleNext = (
-    //       operatorState.currentOutputIterator as Iterator<TOut>
-    //     ).next() as IteratorResult<TOut>;
-
-    //     if (possibleNext.done) {
-    //       operatorState.currentOutputIterator = undefined;
-    //       returnedIterator.next =
-    //         inputIteratorIsAsync || iterableIsAsync
-    //           ? generateNextReturnValAsync
-    //           : generateNextReturnValSync // operatorState.done = true;
-    //       return returnedIterator.next();
-    //     } else {
-    //       return possibleNext;
-    //     }
-    //   };
 
     const generateNextReturnValSync = (): IteratorResult<TOut> => {
       while (true) {
@@ -190,29 +161,6 @@ const flatMap = function <TIn = unknown, TOut = unknown>(
             : iterable[Symbol.asyncIterator]();
           // got to next loop iteration
         }
-      }
-    };
-
-    const generateDoneAsync: () => Promise<
-      IteratorResult<TOut>
-    > = async () => ({
-      done: true,
-      value: undefined,
-    });
-    const generateNextFromOutputIteratorAsync: () => Promise<
-      IteratorResult<TOut>
-    > = async () => {
-      // if an iterator of a previous nextFn call is not entirely sent yet, get the next element
-      const possibleNext = (await (
-        operatorState.currentOutputIterator as AsyncIterator<TOut>
-      ).next()) as IteratorResult<TOut>;
-
-      if (possibleNext.done) {
-        operatorState.currentOutputIterator = undefined;
-        returnedIterator.next = generateNextReturnValAsync; // operatorState.done = true;
-        return returnedIterator.next();
-      } else {
-        return possibleNext;
       }
     };
 
@@ -251,29 +199,6 @@ const flatMap = function <TIn = unknown, TOut = unknown>(
           // got to next loop iteration
         }
       }
-
-      // no running iterator, so we need to call nextFn again
-      const nextIn = (
-        inputIteratorIsAsync ? await itIn.next() : itIn.next()
-      ) as IteratorResult<TIn>;
-      if (nextIn.done) {
-        operatorState.done = true;
-        returnedIterator.next = generateDoneSync;
-        return { done: true, value: undefined };
-      }
-      const iterable = mapFn(nextIn.value);
-      operatorState.currentOutputIterator = iterable[Symbol.iterator]
-        ? iterable[Symbol.iterator]()
-        : iterable[Symbol.asyncIterator]();
-
-      if (iterableIsAsync) {
-        returnedIterator.next = generateNextFromOutputIteratorAsync;
-        return returnedIterator.next();
-      } else {
-        // returnedIterator.next = generateNextFromOutputIteratorSync;
-        returnedIterator.next = generateNextFromOutputIteratorAsync;
-        return Promise.resolve(returnedIterator.next());
-      }
     };
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -291,16 +216,6 @@ const flatMap = function <TIn = unknown, TOut = unknown>(
           generateFirstReturnValIfPossible(),
           doAfter((n) => (n !== null ? n : returnedIterator.next())),
         );
-        // const n = generateFirstReturnValIfPossible();
-        // if (isPromise(n)) {
-        //   return (async () => {
-        //     // make sure all is handled before we decide what the next() function will become
-        //     const nResolved = await n;
-        //     return nResolved !== null ? nResolved : returnedIterator.next();
-        //   })();
-        // } else {
-        //   return n !== null ? n : returnedIterator.next();
-        // }
       },
       // when the iterator is 'abandoned' (the user indicates no more next() calls will follow)
       // we can do cleanup, but we also pass the message to our incoming iterator!
