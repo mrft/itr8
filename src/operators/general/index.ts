@@ -6,6 +6,8 @@ export * from "./distribute.js";
 
 export * from "./filter.js";
 
+export * from "./flatMap.js";
+
 export * from "./flatten.js";
 
 export * from "./groupPer.js";
