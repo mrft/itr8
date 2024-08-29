@@ -2,6 +2,7 @@ export * from "./branchAndMerge.js";
 export * from "./dedup.js";
 export * from "./distribute.js";
 export * from "./filter.js";
+export * from "./flatMap.js";
 export * from "./flatten.js";
 export * from "./groupPer.js";
 export * from "./identity.js";
