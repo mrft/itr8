@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { multiMap } from "./multiMap.js";
+import { generatorMap } from "./generatorMap.js";
 import { forEach } from "../../interface/forEach.js";
 import {
   itr8Range,
@@ -14,12 +14,12 @@ import FakeTimers from "@sinonjs/fake-timers";
  * A bunch of operators created with the operator factory in order to test multiple
  * cases of operator behaviour.
  *
- * Used in the multiMap tests cases, and maybe some other places...
+ * Used in the generatorMap tests cases, and maybe some other places...
  */
 const transIts = {
   /** problem: how to decide if the ammping function is sync or async */
   opr8Map: <TIn = unknown, TOut = unknown>(mapFn: (TIn) => TOut) => {
-    return multiMap<TIn, TOut>(
+    return generatorMap<TIn, TOut>(
       function* (nextIn) {
         if (nextIn.done) {
           return null;
@@ -30,7 +30,7 @@ const transIts = {
     );
   },
   opr8Skip: (offset: number) => {
-    return multiMap(
+    return generatorMap(
       function* (nextIn, state) {
         if (nextIn.done) {
           return null;
@@ -44,7 +44,7 @@ const transIts = {
     );
   },
   opr8Delay: (timeout: number) => {
-    return multiMap(
+    return generatorMap(
       async function* (nextIn, _state) {
         if (nextIn.done) {
           return null;
@@ -60,7 +60,7 @@ const transIts = {
 
   // sync generator
   opr8MapSync: <TIn>(mapFn: (TIn) => TIn) => {
-    return multiMap<TIn, TIn>(
+    return generatorMap<TIn, TIn>(
       function* (nextIn, _state) {
         if (nextIn.done) {
           return null;
@@ -72,7 +72,7 @@ const transIts = {
   },
   // async generator
   opr8MapAsync: <TIn>(mapFn: (TIn) => TIn) => {
-    return multiMap<TIn, TIn>(
+    return generatorMap<TIn, TIn>(
       async function* (nextIn, _state) {
         if (nextIn.done) {
           return null;
@@ -101,7 +101,7 @@ const transIts = {
   ////////////////////////////////////////////////////////////////
   // sync generator
   opr8RepeatEachSync: (count: number) => {
-    return multiMap<number, any, void>(
+    return generatorMap<number, any, void>(
       function* (nextIn, _state) {
         if (nextIn.done) {
           return null;
@@ -115,7 +115,7 @@ const transIts = {
   },
   // async generator
   opr8RepeatEachAsyncSync: (count: number) => {
-    return multiMap<number, any, void>(
+    return generatorMap<number, any, void>(
       async function* (nextIn, _state) {
         if (nextIn.done) {
           return null;
@@ -137,7 +137,7 @@ const transIts = {
 
   // sync generator
   opr8FilterSync: <TIn>(filterFn: (TIn) => boolean) => {
-    return multiMap<TIn, TIn, void>(
+    return generatorMap<TIn, TIn, void>(
       function* (nextIn, _state) {
         if (nextIn.done) {
           return null;
@@ -151,7 +151,7 @@ const transIts = {
   },
   // async generator
   opr8FilterAsync: <TIn>(filterFn: (TIn) => boolean) => {
-    return multiMap<TIn, TIn, void>(
+    return generatorMap<TIn, TIn, void>(
       async function* (nextIn, _state) {
         if (nextIn.done) {
           return null;
@@ -165,7 +165,7 @@ const transIts = {
   },
   // operator that uses state params to initialize the state
   opr8TakeUseStateFactoryParams: (initVal: number) => {
-    return multiMap<number, any, number>(
+    return generatorMap<number, any, number>(
       function* (nextIn, state: number) {
         if (nextIn.done || state <= 0) {
           return null;
@@ -178,7 +178,7 @@ const transIts = {
   },
   // operator that uses multiple params, and returns a tuple [TIn, p1, p2, p3]
   opr8UseMultipleParams: (param1: number, param2: string, param3: boolean) => {
-    return multiMap<unknown, [unknown, number, string, boolean], boolean>(
+    return generatorMap<unknown, [unknown, number, string, boolean], boolean>(
       // WHY DOES THE TYPE CHECKING for 'value' only kick in by specifying it in the nextFn?
       // I guess the TOut from the type variables should be enough to detect invalid types
       function* (nextIn, state: boolean) {
@@ -203,7 +203,7 @@ const transIts = {
    * it will take the first 5 elements (assuming there will be > 5 elements to keep it simple !)
    */
   opr8TakeFive: <TIn>() =>
-    multiMap<TIn, TIn, number>(
+    generatorMap<TIn, TIn, number>(
       function* (nextIn, state) {
         if (nextIn.done) {
           return null;
@@ -220,7 +220,7 @@ const transIts = {
    * it will repeat the first element 5 times and then stop
    */
   opr8RepeatFirst5times: <TIn>() =>
-    multiMap<TIn, TIn, void>(
+    generatorMap<TIn, TIn, void>(
       function* (nextIn, _state) {
         yield nextIn.value;
         yield nextIn.value;
@@ -243,8 +243,8 @@ const transItToName = (transIt) => {
   return filtered[0][0];
 };
 
-describe("./operators/general/multiMap.ts", () => {
-  describe("multiMap(...) works properly", () => {
+describe("./operators/general/generatorMap.ts", () => {
+  describe("generatorMap(...) works properly", () => {
     // TODO: test ALL cases:
     // *  sync input iterator, sync operator producing a sync iterator
     // * async input iterator, sync operator producing a sync iterator
@@ -558,7 +558,7 @@ describe("./operators/general/multiMap.ts", () => {
      * It is to be proven though whether that will have a big impact.
      */
     describe("allow composing of operators (more like transducers)", () => {
-      it.skip("all operators created with multiMap have a working transNextFn", () => {
+      it.skip("all operators created with generatorMap have a working transNextFn", () => {
         const transMapTimes2 = (transIts.opr8Map((x) => x * 2) as any)
           .transNextFn;
         const transFilterEven = (

@@ -1,10 +1,10 @@
 import { TTransIteratorSyncOrAsync } from "../../types.js";
 import { pipe, doAfter, isPromise } from "../../util/index.js";
 
-const DONE_SYMBOL = Symbol.for("itr8.multiMap.done");
+const DONE_SYMBOL = Symbol.for("itr8.generatorMap.done");
 
 /**
- * multiMap is a more advanced version of the map operator, where the mapping function
+ * generatorMap is a more advanced version of the map operator, where the mapping function
  * is a generator function that can yield 0, 1 or more values.
  * When it returns a value, the output iterator will be done.
  *
@@ -16,19 +16,19 @@ const DONE_SYMBOL = Symbol.for("itr8.multiMap.done");
  * the output iterator will be sync or async. For example: if we want to create a map
  * function that can be sync or async, we only know this after the first next call, and
  * after executing that function. That means that implementing a map operator that supports
- * both synchronous and asynchronous mapping functions is not possible with multiMap.
- * On the other hand, multiMap might be easier in many cases, because it is more
+ * both synchronous and asynchronous mapping functions is not possible with generatorMap.
+ * On the other hand, generatorMap might be easier in many cases, because it is more
  * straightforward. And implementing a separate asyncMap operator could also make sense.
  *
  * The state will be the return value of the generator function,
- * unless you return null (or Symbol.for("itr8.multiMap.done") ?) is used to indicate that
+ * unless you return null (or Symbol.for("itr8.generatorMap.done") ?) is used to indicate that
  * the output iterator is done after this value.
  *
  * @param nextGeneratorFn
  * @param initialStateFactory
  * @returns
  */
-const multiMap = function <TIn = unknown, TOut = unknown, TState = void>(
+const generatorMap = function <TIn = unknown, TOut = unknown, TState = void>(
   nextGeneratorFn: (
     nextIn: IteratorResult<TIn>,
     state: TState,
@@ -141,13 +141,19 @@ const multiMap = function <TIn = unknown, TOut = unknown, TState = void>(
             possibleNext.value === null ||
             possibleNext.value === DONE_SYMBOL
           ) {
-            returnedIterator.next = inputIteratorIsAsync || nextGeneratorFnIsAsync ? generateDoneAsync : generateDoneSync; // operatorState.done = true;
+            returnedIterator.next =
+              inputIteratorIsAsync || nextGeneratorFnIsAsync
+                ? generateDoneAsync
+                : generateDoneSync; // operatorState.done = true;
             return { done: true, value: undefined };
           } else {
             if (possibleNext.value !== undefined) {
               operatorState.state = possibleNext.value;
             }
-            returnedIterator.next = inputIteratorIsAsync || nextGeneratorFnIsAsync ? generateNextReturnValAsync : generateNextReturnValSync;
+            returnedIterator.next =
+              inputIteratorIsAsync || nextGeneratorFnIsAsync
+                ? generateNextReturnValAsync
+                : generateNextReturnValSync;
             return returnedIterator.next();
           }
         } else {
@@ -197,10 +203,12 @@ const multiMap = function <TIn = unknown, TOut = unknown, TState = void>(
       }
     };
 
-    const generateNextReturnValAsync = async (): Promise<IteratorResult<TOut>> => {
+    const generateNextReturnValAsync = async (): Promise<
+      IteratorResult<TOut>
+    > => {
       // no running iterator, so we need to call nextFn again
       operatorState.currentOutputIterator = nextGeneratorFn(
-        await itIn.next() as IteratorResult<TIn>,
+        (await itIn.next()) as IteratorResult<TIn>,
         operatorState.state,
       );
 
@@ -277,4 +285,4 @@ const multiMap = function <TIn = unknown, TOut = unknown, TState = void>(
   return transIt;
 };
 
-export { multiMap };
+export { generatorMap };

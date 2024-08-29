@@ -16,7 +16,7 @@ export * from "./intersperse.js";
 
 export * from "./map.js";
 
-export * from "./multiMap.js";
+export * from "./generatorMap.js";
 
 export * from "./peek.js";
 
