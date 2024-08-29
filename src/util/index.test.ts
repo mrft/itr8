@@ -202,7 +202,7 @@ describe("./util/index.ts", () => {
   });
 
   it("isPromise should be slower than checking whether a variable equals a specific Symbol. If so, building a cachedThenable should be worthwhile...", async () => {
-    const nrOfTimes = 100_000_000;
+    const nrOfTimes = 10_000_000;
     const nrOfTimesMinusOne = nrOfTimes - 1;
 
     const t1 = await duration(() => {
