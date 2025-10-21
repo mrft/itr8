@@ -248,7 +248,7 @@ describe("./util/index.ts", () => {
     assert.isBelow(Number(t1), Number(t2));
 
     console.log(
-      "We checked isPromise(...) first and another function call second",
+      "We checked isPromise(...) first and another function call second"
     );
     console.log(durationDiff(t2, t3));
     // the isPromise call should take longer than calling the alwaysFalse function
@@ -453,7 +453,7 @@ describe("./util/index.ts", () => {
       assert.equal(cachedResult, uncachedResult);
 
       console.log(
-        "First one is the uncached version (using thenable), second one is cached (using thenableFactory)",
+        "First one is the uncached version (using thenable), second one is cached (using thenableFactory)"
       );
       console.log(durationDiff(durationUncached, durationCached));
       assert.isBelow(
@@ -461,10 +461,10 @@ describe("./util/index.ts", () => {
         Number(durationUncached),
         `For some reason thenableFactory produces a thenable that is SLOWER than the uncached thenable (that executes a lot of isPromise calls, even though we have proven above that isPromise calls are slower than boolean checks). ${durationDiff(
           durationUncached,
-          durationCached,
-        )}`,
+          durationCached
+        )}`
       );
-    },
+    }
   ).timeout(10000);
 
   it.skip(
@@ -483,7 +483,7 @@ describe("./util/index.ts", () => {
         let flipflop = true;
         for (let i = 1; i < nrOfIterations; i++) {
           const v = await doSomethingToThenableNumber(
-            thenable(Promise.resolve(i)),
+            thenable(Promise.resolve(i))
           );
           uncachedResult = flipflop ? uncachedResult + v : uncachedResult - v;
           flipflop = !flipflop;
@@ -496,7 +496,7 @@ describe("./util/index.ts", () => {
         const cachedThenable = thenableFactory(Promise.resolve(1));
         for (let i = 1; i < nrOfIterations; i++) {
           const v = await doSomethingToThenableNumber(
-            cachedThenable(Promise.resolve(i)),
+            cachedThenable(Promise.resolve(i))
           );
           cachedResult = flipflop ? cachedResult + v : cachedResult - v;
           flipflop = !flipflop;
@@ -506,7 +506,7 @@ describe("./util/index.ts", () => {
       assert.equal(cachedResult, uncachedResult);
 
       console.log(
-        "First one is the uncached version (using thenable), second one is cached (using thenableFactory)",
+        "First one is the uncached version (using thenable), second one is cached (using thenableFactory)"
       );
       console.log(durationDiff(durationUncached, durationCached));
       assert.isBelow(
@@ -514,10 +514,10 @@ describe("./util/index.ts", () => {
         Number(durationUncached),
         `For some reason thenableFactory produces a thenable that is SLOWER than the uncached thenable (that executes a lot of isPromise calls, even though we have proven above that isPromise calls are slower than boolean checks). ${durationDiff(
           durationUncached,
-          durationCached,
-        )}`,
+          durationCached
+        )}`
       );
-    },
+    }
   ).timeout(10000);
 
   it("doAfter(...) works properly", async () => {
@@ -530,7 +530,7 @@ describe("./util/index.ts", () => {
       doAfter((v) => {
         stages.push(1);
         return v + " and have a nice day";
-      }),
+      })
     );
     stages.push(2);
 
@@ -545,7 +545,7 @@ describe("./util/index.ts", () => {
       doAfter((v) => {
         stages.push(1);
         return v;
-      }),
+      })
     );
     stages.push(2);
 
@@ -558,7 +558,7 @@ describe("./util/index.ts", () => {
       doAfter((v) => {
         stages.push(1);
         return v;
-      }),
+      })
     );
     stages.push(2);
 
@@ -576,7 +576,7 @@ describe("./util/index.ts", () => {
       doAfter((v) => {
         stages.push(2);
         return v;
-      }),
+      })
     );
     stages.push(3);
 
@@ -593,7 +593,7 @@ describe("./util/index.ts", () => {
       doAfter((v) => {
         stages.push(2);
         return v;
-      }),
+      })
     );
     stages.push(3);
 
@@ -610,7 +610,7 @@ describe("./util/index.ts", () => {
       doAfter((v) => {
         stages.push(2);
         return v + 9000;
-      }),
+      })
     );
     stages.push(3); // should be first because synchronous before the promise callbacks get called
 
@@ -630,7 +630,7 @@ describe("./util/index.ts", () => {
       doAfter((v) => {
         stages.push(2);
         return Promise.resolve(v);
-      }),
+      })
     );
     stages.push(3); // should be first because synchronous before the promise callbacks get called
 
@@ -649,7 +649,7 @@ describe("./util/index.ts", () => {
       doAfter((v) => {
         stages.push(2);
         return Promise.resolve(v);
-      }),
+      })
     );
     stages.push(3); // should be first because synchronous before the promise callbacks get called
 
@@ -669,7 +669,7 @@ describe("./util/index.ts", () => {
       doAfter((v) => {
         stages.push(2);
         return Promise.resolve(v);
-      }),
+      })
     );
     stages.push(3); // should be first because synchronous before the promise callbacks get called
 
@@ -690,7 +690,7 @@ describe("./util/index.ts", () => {
       return pipe(
         n,
         doAfter((v: number) => v * 2),
-        doAfter((v) => v + 100),
+        doAfter((v) => v + 100)
       );
     }
 
@@ -719,7 +719,7 @@ describe("./util/index.ts", () => {
     assert.equal(resultDoAfter, resultThenable);
 
     console.log(
-      "First one is the thenable version, second one is using doAfter",
+      "First one is the thenable version, second one is using doAfter"
     );
     console.log(durationDiff(durationThenable, durationDoAfter));
     assert.isBelow(
@@ -727,8 +727,8 @@ describe("./util/index.ts", () => {
       Number(durationThenable),
       `For some reason doAfter is SLOWER than thenable. ${durationDiff(
         durationThenable,
-        durationDoAfter,
-      )}`,
+        durationDoAfter
+      )}`
     );
   }).timeout(10000);
 
@@ -743,7 +743,7 @@ describe("./util/index.ts", () => {
       return pipe(
         n,
         doAfter((v: number) => v * 2),
-        doAfter((v) => v + 100),
+        doAfter((v) => v + 100)
       );
     }
 
@@ -752,7 +752,7 @@ describe("./util/index.ts", () => {
       let flipflop = true;
       for (let i = 1; i < nrOfIterations; i++) {
         const v = await doSomethingToThenableNumber(
-          thenable(Promise.resolve(i)),
+          thenable(Promise.resolve(i))
         ).src;
         resultThenable = flipflop ? resultThenable + v : resultThenable - v;
         flipflop = !flipflop;
@@ -772,7 +772,7 @@ describe("./util/index.ts", () => {
     assert.equal(resultDoAfter, resultThenable);
 
     console.log(
-      "First one is the thenable version, second one is using doAfter",
+      "First one is the thenable version, second one is using doAfter"
     );
     console.log(durationDiff(durationThenable, durationDoAfter));
     assert.isBelow(
@@ -780,8 +780,8 @@ describe("./util/index.ts", () => {
       Number(durationThenable),
       `For some reason doAfter is SLOWER than thenable. ${durationDiff(
         durationThenable,
-        durationDoAfter,
-      )}`,
+        durationDoAfter
+      )}`
     );
   }).timeout(10000);
 
@@ -880,7 +880,7 @@ describe("./util/index.ts", () => {
     result = pipe(
       Promise.resolve(999),
       doAfters[0].doAfter,
-      doAfters[1].doAfter,
+      doAfters[1].doAfter
     );
     stages.push(3); // should be first because synchronous before the promise callbacks get called
 
@@ -904,7 +904,7 @@ describe("./util/index.ts", () => {
     result = pipe(
       Promise.resolve("hello again"),
       doAfters[0].doAfter,
-      doAfters[1].doAfter,
+      doAfters[1].doAfter
     );
     stages.push(3); // should be first because synchronous before the promise callbacks get called
 
@@ -927,7 +927,7 @@ describe("./util/index.ts", () => {
     result = pipe(
       Promise.resolve(true),
       doAfters[0].doAfter,
-      doAfters[1].doAfter,
+      doAfters[1].doAfter
     );
     stages.push(3); // should be first because synchronous before the promise callbacks get called
 
@@ -951,7 +951,7 @@ describe("./util/index.ts", () => {
     result = pipe(
       Promise.resolve("hello again"),
       doAfters[0].doAfter,
-      doAfters[1].doAfter,
+      doAfters[1].doAfter
     );
     stages.push(3); // should be first because synchronous before the promise callbacks get called
 
@@ -968,7 +968,7 @@ describe("./util/index.ts", () => {
       return pipe(
         n,
         doAfter((v: number) => v * 2),
-        doAfter((v) => v + 100),
+        doAfter((v) => v + 100)
       );
     }
 
@@ -1005,7 +1005,7 @@ describe("./util/index.ts", () => {
     assert.equal(resultDoAfterFactory, resultDoAfter);
 
     console.log(
-      "First one is the doAFter version, second one is using doAfterFactory",
+      "First one is the doAFter version, second one is using doAfterFactory"
     );
     console.log(durationDiff(durationDoAfter, durationDoAfterFactory));
     assert.isBelow(
@@ -1013,8 +1013,8 @@ describe("./util/index.ts", () => {
       Number(durationDoAfter),
       `For some reason doAfterFactory is SLOWER than doAfter. ${durationDiff(
         durationDoAfter,
-        durationDoAfterFactory,
-      )}`,
+        durationDoAfterFactory
+      )}`
     );
   }).timeout(10000);
 
@@ -1026,7 +1026,7 @@ describe("./util/index.ts", () => {
       return pipe(
         n,
         doAfter((v: number) => v * 2),
-        doAfter((v) => v + 100),
+        doAfter((v) => v + 100)
       );
     }
 
@@ -1053,7 +1053,7 @@ describe("./util/index.ts", () => {
       let flipflop = true;
       for (let i = 1; i < nrOfIterations; i++) {
         const v = (await doSomethingAfterNumberWithFactory(
-          Promise.resolve(i),
+          Promise.resolve(i)
         )) as number;
         resultDoAfterFactory = flipflop
           ? resultDoAfterFactory + v
@@ -1065,7 +1065,7 @@ describe("./util/index.ts", () => {
     assert.equal(resultDoAfterFactory, resultDoAfter);
 
     console.log(
-      "First one is the doAFter version, second one is using doAfterFactory",
+      "First one is the doAFter version, second one is using doAfterFactory"
     );
     console.log(durationDiff(durationDoAfter, durationDoAfterFactory));
     assert.isBelow(
@@ -1073,8 +1073,8 @@ describe("./util/index.ts", () => {
       Number(durationDoAfter),
       `For some reason doAfterFactory is SLOWER than doAfter. ${durationDiff(
         durationDoAfter,
-        durationDoAfterFactory,
-      )}`,
+        durationDoAfterFactory
+      )}`
     );
   }).timeout(10000);
 
@@ -1094,7 +1094,7 @@ describe("./util/index.ts", () => {
         } else {
           arrayToBeFilled.push(i + 100);
         }
-      },
+      }
     );
 
     // assert.deepEqual(result.value, 8);
@@ -1112,7 +1112,7 @@ describe("./util/index.ts", () => {
         } else {
           arrayToBeFilled.push(i + 100);
         }
-      },
+      }
     ).then((v) => {
       arrayToBeFilled.push("done");
       return v;
@@ -1135,7 +1135,7 @@ describe("./util/index.ts", () => {
         } else {
           arrayToBeFilled.push(i + 100);
         }
-      },
+      }
     ).then((v) => {
       arrayToBeFilled.push("done");
       return v;
@@ -1158,7 +1158,7 @@ describe("./util/index.ts", () => {
         } else {
           arrayToBeFilled.push(i + 100);
         }
-      },
+      }
     ).then((v) => {
       arrayToBeFilled.push("done");
       return v;
@@ -1181,7 +1181,7 @@ describe("./util/index.ts", () => {
         } else {
           arrayToBeFilled.push(i + 100);
         }
-      },
+      }
     ).then((v) => {
       arrayToBeFilled.push("done");
       return v;
@@ -1197,11 +1197,11 @@ describe("./util/index.ts", () => {
     const transIt = compose(
       skip<number>(5),
       take(10),
-      map((x) => x * 2),
+      map((x) => x * 2)
     );
 
     const result: number[] = itr8ToArray(
-      transIt(itr8Range(1, 1000)),
+      transIt(itr8Range(1, 1000))
     ) as number[];
 
     assert.equal(result[0], 6 * 2);
@@ -1210,11 +1210,11 @@ describe("./util/index.ts", () => {
     const transIt2 = compose(
       skip<number>(5),
       take(10),
-      map((x) => x * 2),
+      map((x) => x * 2)
     );
 
     const result2: number[] = itr8ToArray(
-      transIt2(itr8Range(1, 1000)),
+      transIt2(itr8Range(1, 1000))
     ) as number[];
 
     assert.equal(result2[0], 6 * 2);
@@ -1225,9 +1225,9 @@ describe("./util/index.ts", () => {
         itr8Range(1, 1000),
         take(3),
         map((x) => x * 2),
-        itr8ToArray,
+        itr8ToArray
       ),
-      [2, 4, 6],
+      [2, 4, 6]
     );
 
     const r: any[] = [];
@@ -1237,9 +1237,9 @@ describe("./util/index.ts", () => {
       map((x) => x * 2),
       forEach((x) => {
         r.push(x);
-      }),
-    ),
-      assert.deepEqual(r, [2, 4, 6]);
+      })
+    );
+    assert.deepEqual(r, [2, 4, 6]);
   });
 
   it("compose(...) works properly on other functions as well", () => {
@@ -1265,7 +1265,7 @@ describe("./util/index.ts", () => {
     assert.equal(pipe(3, plusOne, timesTwo), timesTwo(plusOne(3)));
     assert.equal(
       pipe(3, plusOne, timesTwo, square, Number.isInteger),
-      Number.isInteger(square(timesTwo(plusOne(3)))),
+      Number.isInteger(square(timesTwo(plusOne(3))))
     );
   });
 });
