@@ -23,6 +23,13 @@ cfr. [keepachangelog.com](https://keepachangelog.com/en/1.1.0/)
 
 ### Security
 
+## version 0.4.12 (2025-10-22)
+
+### Fixed
+
+- chain operator output type: IterableIterator instead of Iterator
+
+
 ## version 0.4.11 (2025-10-22)
 
 ### Added

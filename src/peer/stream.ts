@@ -93,7 +93,7 @@ const itr8FromStream = (
 const itr8FromStdin: () => AsyncIterableIterator<string> = () => {
   process.stdin.setEncoding("utf8");
   return itr8FromStream(process.stdin);
-  // OBSOLETE BECAUSE OF the setEnconding
+  // OBSOLETE BECAUSE OF the setEncoding
   // pipe(
   //   itr8FromStream(process.stdin),
   //   map(x => x.toString()),

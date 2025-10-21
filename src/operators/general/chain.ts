@@ -24,7 +24,7 @@ import { isPromise } from "../../util/index.js";
 const chain = <TIn>(secondIterator: Iterator<TIn> | AsyncIterator<TIn>) => {
   return function (
     firstIterator: Iterator<TIn> | AsyncIterator<TIn>,
-  ): Iterator<TIn> | AsyncIterator<TIn> {
+  ): IterableIterator<TIn> | AsyncIterableIterator<TIn> {
     const firstOfFirst = firstIterator.next();
     const firstOfSecond = secondIterator.next();
 
@@ -44,7 +44,7 @@ const chain = <TIn>(secondIterator: Iterator<TIn> | AsyncIterator<TIn>) => {
             return secondIterator;
           },
         };
-      })() as AsyncIterator<TIn>;
+      })() as AsyncIterableIterator<TIn>;
     } else {
       return (function* () {
         if (!firstOfFirst.done) yield firstOfFirst.value;
@@ -59,7 +59,7 @@ const chain = <TIn>(secondIterator: Iterator<TIn> | AsyncIterator<TIn>) => {
             return secondIterator;
           },
         };
-      })() as Iterator<TIn>;
+      })() as IterableIterator<TIn>;
     }
   };
 };
