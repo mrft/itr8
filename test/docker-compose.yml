@@ -138,6 +138,29 @@ services:
         '\''
       '
 
+  itr8node24tests:
+    image: node:24
+    container_name: itr8node24tests
+    user: "root"
+    working_dir: /home/node/itr8
+    volumes:
+      - ../:/home/node/source_app
+    command:
+      > # > denotes a long string separated over multiple lines, escape $ with $$ !!!
+      bash -c '
+        echo "Current user: $$(whoami)" && pwd &&
+        cp -r ../source_app/* . &&
+        chown -R node:node . &&
+        # ls &&
+        su node -c '\''
+          echo "Current user: $$(whoami)" &&
+          rm -rf node_modules docs dist* package-lock.json &&
+          echo "==== start npm install (using node $$( node --version ) and npm $$( npm --version ))" &&
+          npm install --foreground-scripts=true &&
+          npm run testInsideDocker && npm run testCjsInsideDocker
+        '\''
+      '
+
   itr8node12tests_old:
     image: itr8node12tests
     container_name: itr8node12tests
