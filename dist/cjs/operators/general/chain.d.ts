@@ -19,5 +19,5 @@
  * values from the second iterator
  * @category operators/general
  */
-declare const chain: <TIn>(secondIterator: Iterator<TIn, any, undefined> | AsyncIterator<TIn, any, undefined>) => (firstIterator: Iterator<TIn, any, undefined> | AsyncIterator<TIn, any, undefined>) => Iterator<TIn, any, undefined> | AsyncIterator<TIn, any, undefined>;
+declare const chain: <TIn>(secondIterator: Iterator<TIn, any, undefined> | AsyncIterator<TIn, any, undefined>) => (firstIterator: Iterator<TIn, any, undefined> | AsyncIterator<TIn, any, undefined>) => IterableIterator<TIn> | AsyncIterableIterator<TIn>;
 export { chain };
