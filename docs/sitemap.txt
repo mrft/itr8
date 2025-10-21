@@ -45,6 +45,7 @@ https://mrft.github.io/itr8/functions/operators.flatten.html
 https://mrft.github.io/itr8/functions/operators.skip.html
 https://mrft.github.io/itr8/functions/operators.runningPercentile.html
 https://mrft.github.io/itr8/functions/interface.itr8FromSingleValueAsync.html
+https://mrft.github.io/itr8/functions/operators.chain.html
 https://mrft.github.io/itr8/functions/util.doAfter.html
 https://mrft.github.io/itr8/functions/interface.itr8RangeAsync.html
 https://mrft.github.io/itr8/functions/operators.skipWhile.html

@@ -25,7 +25,7 @@ import { isPromise } from "../../util/index.js";
  *  - Imagine you use it to categorize http requests (for example by sender ip/port),
  *    how do we 'close' a channel after a while so we can avoid the memory to keep growing?
  *    I mean, after some time you'll assume that the same 'sender' has done, and the output terator's
- *    next() call should return { done: true }. Would that be a setting,
+ *    next() call should return `{ done: true }`. Would that be a setting,
  *    like the (unfinished) 'abandoned timeout' in the 'multiIterable' operator?
  *  - It could make sense to create a version that can handle multiple categories per value.
  *    Like for instance: divisible by 2, divisible by 3, divisible by 5, etc.

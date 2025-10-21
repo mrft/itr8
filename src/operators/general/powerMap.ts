@@ -927,25 +927,52 @@ const powerMapWithDoAfter = function <
 };
 
 /**
- * An experimental version of powerMap trying to learn from the lessons from
- * the powerMapWithDoAfter version
- * We'll remove doAfter again from the async version, and use simple ifs again.
+ * The powerMap can be used as the base for many many other operators.
  *
- * The most important optimization is probably the same as what doAfterFactory does:
- * do a first run in order to figure out whether the first next() call is synchronous
- * and then replace the next function by an entirely synchronous version.
- * (And maybe the async version can be written with doAfterFactory (or a for-loop))
+ * An operator is 'a function that generates a transIterator'.
+ * So for example filter(...) is an operator, because when called with an argument
+ * (the filter function) the result of that will be another function which is the transIterator.
  *
- * Consequence: an iterable can only be async in a synchronous handler if it is used the first time
- * otherwise the iterator will already be synchronous.
+ * A transIterator is simply a function with an iterator as single argument which will return
+ * another iterator. This way we can easily 'build a chain of mulitple transIterators'.
+ * So it transforms iterators, which is why I have called it transIterator (~transducers).
  *
- * how do you make the while loop work for both synchronous and asynchronous code?
- * MAYBE I should reimplement the forLoop function using doAfter, and then use the powerMap version
- * that is written using the for-loop (and drop this one)?
+ * powerMap is an operator that generates a transIterator that
+ * will work both on synchronous and asynchronous iterators.
+ * The powerMap needs to be provided with a single function of the form:
+ *
+ * ```typescript
+ * (nextOfPreviousIteratorInTheChain, state) => TNextFnResult | Promise<[TNextFnResult]>
+ * ```
+ * and another function generating an initial 'state' (not every operator needs state)
+ *
+ * * *nextIn* is the (resolved if async) result of a next call of the input iterator.
+ *   This means it will be of the form ```{ done: true }``` or ```{ done: false, value: <...> }```.
+ * * The *state* parameter is used to allow operators to have state, but not all operators need this.
+ *   For example: a 'map' operator doesn't need state, but the 'skip' operator would need to keep
+ *   track of how many records have passed.
+ *
+ * Check the readme for some examples on how to write your own operators using 'powerMap'
+ * (or check the source code as all the available operators have been built using this function).
+ *
+ * Remark: do not modify the state object (or any of its children), but rather return a new value!
+ *
+ * Why is the initial state not a simple value, but a function that produces the state?
+ *  This way, even if nextFn would modify the state, it wouldn't mess with other instances
+ *  of the same operator? Because if we'd like to deep clone the initial state ourselves, we might
+ *  end up with some complex cases when classes are involved (I hope no one who's interested in
+ *  this library will want to use classes as their state, because the library is more 'functional
+ *  programming' oriented)
+ *
+ * @typeParam TIn the type of values that the input iterator must produce
+ * @typeParam TOut the type of values that the output iterator will produce
+ * @typeParam TState the type of the state that will be passed between all iterations
  *
  * @param nextFn
- * @param initialStateFactory
- * @returns
+ * @param initialStateFactory a function that generates the initialSate
+ * @returns a function taking an iterator as input and that has an iterator as output
+ *
+ * @category operators/general
  */
 const powerMapWithoutDoAfter = function <
   TIn = unknown,
@@ -958,6 +985,22 @@ const powerMapWithoutDoAfter = function <
   ) => TNextFnResult<TOut, TState> | Promise<TNextFnResult<TOut, TState>>,
   initialStateFactory: () => TState,
 ): TTransIteratorSyncOrAsync<TIn, TOut> {
+  // An experimental version of powerMap trying to learn from the lessons from
+  // the powerMapWithDoAfter version
+  // We'll remove doAfter again from the async version, and use simple ifs again.
+
+  // The most important optimization is probably the same as what doAfterFactory does:
+  // do a first run in order to figure out whether the first next() call is synchronous
+  // and then replace the next function by an entirely synchronous version.
+  // (And maybe the async version can be written with doAfterFactory (or a for-loop))
+
+  // Consequence: an iterable can only be async in a synchronous handler if it
+  // is used the first time otherwise the iterator will already be synchronous.
+
+  // how do you make the while loop work for both synchronous and asynchronous code?
+  // MAYBE I should reimplement the forLoop function using doAfter, and then use
+  // the powerMap version that is written using the for-loop (and drop this one)?
+
   type TOperatorState = {
     state: TState;
     currentOutputIterator: Iterator<TOut> | AsyncIterator<TOut> | undefined;

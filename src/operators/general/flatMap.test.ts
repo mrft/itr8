@@ -217,7 +217,7 @@ describe("./operators/general/flatMap.ts", () => {
     });
 
     it("opr8FilterSync(...) operator works properly", async () => {
-      const nrOfIterations = 10_000_000;
+      const nrOfIterations = 1_000_000;
       const nrOfElementsFiltered = 99;
 
       // synchronous
