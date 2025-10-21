@@ -1,4 +1,5 @@
 export * from "./branchAndMerge.js";
+export * from "./chain.js";
 export * from "./dedup.js";
 export * from "./distribute.js";
 export * from "./filter.js";
