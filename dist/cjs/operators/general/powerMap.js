@@ -1002,7 +1002,8 @@ const powerMapWithoutDoAfter = function (nextFn, initialStateFactory) {
             // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
             next: () => {
                 // These lines make sure it will still work when the next function is being cached and reused
-                // (which happens for example when using `for (x of ...)`)
+                // (which happens for example when using `for (x of ...)` and which would result in
+                // a `currentOutputIterator should be undefined at this point` error)
                 if (operatorState.notFirst) {
                     return returnedIterator.next();
                 }
@@ -1011,18 +1012,20 @@ const powerMapWithoutDoAfter = function (nextFn, initialStateFactory) {
                 }
                 const n = generateFirstReturnValIfPossible();
                 if ((0, index_js_2.isPromise)(n)) {
+                    // console.debug(`[powerMap] first run, async detected`);
                     const resultPromise = (async () => {
                         // make sure all is handled before we decide what the next() function will become
                         const nResolved = await n;
+                        // console.debug(`[powerMap] first return value resolved to:`, nResolved);
                         returnedIterator.next =
                             operatorState.currentOutputIterator === undefined
                                 ? generateNextReturnValAsync
                                 : generateNextFromOutputIteratorAsync;
+                        // console.debug(`[powerMap] returnedIterator.next has been set to ${returnedIterator.next.name}()`);
                         return nResolved !== null ? nResolved : returnedIterator.next();
                     })();
-                    // make sure the next function is always replaced even if n takes time to resolve
-                    // we'll keep returning this promise until it is resolved
-                    returnedIterator.next = () => resultPromise;
+                    // make sure the next function is replaced immediately even if n takes time to resolve
+                    returnedIterator.next = () => resultPromise.then(() => returnedIterator.next());
                     return resultPromise;
                 }
                 else {
