@@ -682,6 +682,52 @@ describe("./operators/general/powerMap.ts", () => {
       );
     });
 
+    it("it should still work if next is being cached (as for (x of ...) turns out to do)", async () => {
+      /**
+       * Helper operator that delays each incoming element by timeout ms
+       * @param timeout
+       * @returns an async iterator that yields the same elements as the input iterator, but delayed
+       */
+      const delay = <TIn>(timeout: number) =>
+        powerMap<TIn, TIn, void>(
+          (nextIn, _state) => {
+            return new Promise<any>((resolve /*, reject*/) => {
+              setTimeout(() => resolve(nextIn), timeout);
+            });
+          },
+          () => undefined,
+        );
+
+      const it = delay(40)(itr8RangeAsync(1, 3)) as AsyncIterableIterator<number>;
+
+      const turnIntoOneTwoThree = powerMap<number, number, number>(
+        (nextIn, stateNrOfTimesCalledWithDone) => {
+          if (nextIn.done) {
+            stateNrOfTimesCalledWithDone++;
+            if (stateNrOfTimesCalledWithDone > 1) {
+              console.error(
+                "ERROR: nextFn called more than once with done: true",
+              );
+            }
+            return { done: false, iterable: [1,2,3], isLast: true, state: stateNrOfTimesCalledWithDone };
+          }
+          return { done: false, state: stateNrOfTimesCalledWithDone };
+        },
+        () => 0,
+      );
+
+      const result: number[] = [];
+      for await (const item of pipe(it, turnIntoOneTwoThree)) {
+        result.push(item);
+      }
+
+      assert.deepEqual(
+        result,
+        [1, 2, 3],
+        "sync fails",
+      );
+    });
+
     /**
      * If we expose a function representing the operator that can be composed (output same as input)
      * we might be able to improve performance because we'll have less intermediate iterators.
