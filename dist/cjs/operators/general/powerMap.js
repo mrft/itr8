@@ -613,7 +613,6 @@ const powerMapWithDoAfter = function (nextFn, initialStateFactory) {
             // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
             next: () => {
                 const n = generateFirstReturnValIfPossible();
-                const async = (0, index_js_2.isPromise)(n);
                 if ((0, index_js_2.isPromise)(n)) {
                     // const array = [];
                     retVal.next = generateNextReturnValAsync;
@@ -791,6 +790,7 @@ const powerMapWithoutDoAfter = function (nextFn, initialStateFactory) {
     // We'll remove doAfter again from the async version, and use simple ifs again.
     const operatorFunction = (itIn, pState) => {
         const operatorState = {
+            notFirst: false,
             state: pState,
             currentOutputIterator: undefined,
             isLastOutputIterator: false,
@@ -1001,9 +1001,17 @@ const powerMapWithoutDoAfter = function (nextFn, initialStateFactory) {
             [Symbol.asyncIterator]: () => returnedIterator,
             // pipe: (op:TTransIteratorSyncOrAsync) => op(retVal as Iterator<TOut>),
             next: () => {
+                // These lines make sure it will still work when the next function is being cached and reused
+                // (which happens for example when using `for (x of ...)`)
+                if (operatorState.notFirst) {
+                    return returnedIterator.next();
+                }
+                else {
+                    operatorState.notFirst = true;
+                }
                 const n = generateFirstReturnValIfPossible();
                 if ((0, index_js_2.isPromise)(n)) {
-                    return (async () => {
+                    const resultPromise = (async () => {
                         // make sure all is handled before we decide what the next() function will become
                         const nResolved = await n;
                         returnedIterator.next =
@@ -1012,6 +1020,10 @@ const powerMapWithoutDoAfter = function (nextFn, initialStateFactory) {
                                 : generateNextFromOutputIteratorAsync;
                         return nResolved !== null ? nResolved : returnedIterator.next();
                     })();
+                    // make sure the next function is always replaced even if n takes time to resolve
+                    // we'll keep returning this promise until it is resolved
+                    returnedIterator.next = () => resultPromise;
+                    return resultPromise;
                 }
                 else {
                     returnedIterator.next =
@@ -1072,11 +1084,14 @@ const powerMapWithoutDoAfter = function (nextFn, initialStateFactory) {
      */
     transIt.transNextFn = (input) => {
         const operatorState = {
+            notFirst: false,
             state: initialStateFactory(),
             currentOutputIterator: undefined,
             isLastOutputIterator: false,
             // done: false,
         };
+        // Does not really make a difference in transNextFn
+        operatorState.notFirst = true;
         if (input.done === true) {
             return input;
         }
