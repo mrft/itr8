@@ -698,10 +698,14 @@ describe("./operators/general/powerMap.ts", () => {
           () => undefined,
         );
 
-      const it = delay(40)(itr8RangeAsync(1, 3)) as AsyncIterableIterator<number>;
+      const itFactory = () => delay(5)(itr8Range(1, 3)) as AsyncIterableIterator<number>;
 
       const turnIntoOneTwoThree = powerMap<number, number, number>(
-        (nextIn, stateNrOfTimesCalledWithDone) => {
+        async (nextIn, stateNrOfTimesCalledWithDone) => {
+          console.debug(`[turnIntoOneTwoThree] nextFn called with nextIn=${JSON.stringify(nextIn)}, state=${stateNrOfTimesCalledWithDone}`);
+          // make it slow
+          await new Promise((resolve) => setTimeout(resolve, 5));
+          console.debug(`[turnIntoOneTwoThree] waited a bit`);
           if (nextIn.done) {
             stateNrOfTimesCalledWithDone++;
             if (stateNrOfTimesCalledWithDone > 1) {
@@ -716,16 +720,69 @@ describe("./operators/general/powerMap.ts", () => {
         () => 0,
       );
 
-      const result: number[] = [];
-      for await (const item of pipe(it, turnIntoOneTwoThree)) {
-        result.push(item);
-      }
+      const it = pipe(itFactory(), turnIntoOneTwoThree);
+      // immediately call next multiple times, without awaiting the previous one
+      const promises = [it.next(), it.next(), it.next(), it.next(), it.next()]; // start the iterator and have it cache the first result
 
       assert.deepEqual(
-        result,
-        [1, 2, 3],
-        "sync fails",
+        await promises[0],
+        { done: false, value: 1 },
+        "first next() call result is not as expected",
       );
+      assert.deepEqual(
+        await promises[1],
+        { done: false, value: 2 },
+        "second next() call result is not as expected",
+      );
+      assert.deepEqual(
+        await promises[2],
+        { done: false, value: 3 },
+        "third next() call result is not as expected",
+      );
+      assert.deepEqual(
+        await promises[3],
+        { done: true, value: undefined },
+        "fourth next() call result is not as expected",
+      );
+      assert.deepEqual(
+        await promises[4],
+        { done: true, value: undefined },
+        "fifth next() call result is not as expected",
+      );
+
+      //Same test but while caching the 'next' function reference
+      const it2 = pipe(itFactory(), turnIntoOneTwoThree);
+      const next2 = it2.next.bind(it2);
+      // immediately call next multiple times, without awaiting the previous one
+      const promises2 = [next2(), next2(), next2(), next2(), next2()]; // start the iterator and have it cache the first result
+
+      assert.deepEqual(
+        await promises2[0],
+        { done: false, value: 1 },
+        "first next() call result is not as expected",
+      );
+      assert.deepEqual(
+        await promises2[1],
+        { done: false, value: 2 },
+        "second next() call result is not as expected",
+      );
+      assert.deepEqual(
+        await promises2[2],
+        { done: false, value: 3 },
+        "third next() call result is not as expected",
+      );
+      assert.deepEqual(
+        await promises2[3],
+        { done: true, value: undefined },
+        "fourth next() call result is not as expected",
+      );
+      assert.deepEqual(
+        await promises2[4],
+        { done: true, value: undefined },
+        "fifth next() call result is not as expected",
+      );
+
+
     });
 
     /**

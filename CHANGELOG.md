@@ -23,6 +23,13 @@ cfr. [keepachangelog.com](https://keepachangelog.com/en/1.1.0/)
 
 ### Security
 
+## version 0.4.14 (2025-10-22)
+
+### Fixed
+
+- powerMap operator keeps working properly if 'next' is called before the previous call's promise
+  has resolved
+
 ## version 0.4.13 (2025-10-22)
 
 ### Fixed
